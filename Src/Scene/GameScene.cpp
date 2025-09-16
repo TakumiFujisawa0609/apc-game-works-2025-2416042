@@ -8,7 +8,6 @@
 
 GameScene::GameScene(void)
 {
-	gImage_ = -1;
 }
 
 GameScene::~GameScene(void)
@@ -173,7 +172,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
 
 	for (size_t i = 0; i < choices.size(); i++) {
 		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-		DrawString(startX + (int)i * 200, startY, choices[i].text.c_str(), color);
+		DrawString(startX + (int)i * 500, startY, choices[i].text.c_str(), color);
 	}
 }
 
