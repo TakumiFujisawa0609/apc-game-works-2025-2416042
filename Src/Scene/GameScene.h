@@ -1,0 +1,91 @@
+#pragma once
+#include <string>
+#include <vector>
+#include "SceneBase.h"
+#include "../Object/Message.h"
+
+// 選択肢と次の質問番号のペア
+struct Choice {
+	std::string text;
+	int nextIndex; // 次の質問番号（-1なら終了）
+};
+
+struct Question {
+	std::string text;
+	std::vector<Choice> choices;
+};
+
+
+class GameScene : public SceneBase
+{
+	enum class SceneState
+	{
+		STORY,	// メッセージ表示
+		QUESTION, // 問題表示
+		CHOICE,	// 選択肢表示
+		END,		// シーン終了
+	};
+
+
+public:
+#pragma region 前方宣言
+	// コンストラクタ
+	GameScene(void);
+
+	// デストラクタ
+	~GameScene(void);
+
+	// 初期化処理
+	void Init(void) override;
+
+	// 更新ステップ
+	void Update(void) override;
+
+	// 描画処理
+	void Draw(void) override;
+
+	// 選択肢の描画
+	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex);
+
+	// 解放処理
+	void Release(void) override;
+
+	// 次の問いをセット
+	void NextQuestion(int nextIndex_);
+
+	
+private:
+#pragma region 変数宣言
+	// メッセージオブジェクト
+	Message msg_;
+	// シーンの状態
+	SceneState state_;
+
+	// 文章リスト
+	std::vector<std::string> story_; 
+	// 問題リスト
+	std::vector<Question> questions_;
+	//// 選択肢リスト
+	//std::vector<std::string> choices_;
+	//// 選択肢と分岐先のペア
+	//std::vector<Choice> choices;
+	//// 選択肢の文字
+	//std::string text;
+	// 選択肢と結果のログ
+	std::vector<std::pair<std::string, std::string>> resultLog_;
+
+	// ゲーム背景
+	int gImage_;
+	// ストーリーの保管庫
+	int storyIndex_;
+	// 問題の保管庫
+	int questionIndex_;
+	// カーソルの保管庫
+//	int cursorIndex_;
+	// 選択した選択肢の保管庫
+	int selectedChoice_;
+
+	// 左右キーの押下状態
+	bool leftPressed_;
+	bool rightPressed_;
+};
