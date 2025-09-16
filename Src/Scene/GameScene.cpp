@@ -8,6 +8,7 @@
 
 GameScene::GameScene(void)
 {
+	gImage_ = -1;
 }
 
 GameScene::~GameScene(void)
