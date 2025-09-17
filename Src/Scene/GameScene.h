@@ -3,6 +3,7 @@
 #include <vector>
 #include "SceneBase.h"
 #include "../Object/Message.h"
+#include "../Manager/InputManager.h"
 
 // 選択肢と次の質問番号のペア
 struct Choice {
@@ -28,6 +29,10 @@ class GameScene : public SceneBase
 
 
 public:
+	static const int START_Y = 795;        // 吹き出し内の縦位置
+	static const int SPACING = 670;       // 選択肢同士の間隔
+	static const int SCREEN_W = 1920;      // 画面幅
+
 #pragma region 前方宣言
 	// コンストラクタ
 	GameScene(void);
@@ -60,6 +65,9 @@ private:
 	Message msg_;
 	// シーンの状態
 	SceneState state_;
+
+	// 入力制御オブジェクト
+	InputManager& inputManager_;
 
 	// 文章リスト
 	std::vector<std::string> story_; 

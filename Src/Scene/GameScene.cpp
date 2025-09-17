@@ -7,6 +7,7 @@
 #include "GameScene.h"
 
 GameScene::GameScene(void)
+	:inputManager_(InputManager::GetInstance())
 {
 }
 
@@ -101,8 +102,10 @@ void GameScene::Update(void)
 		break;
 
 	case SceneState::QUESTION:
-		if (msg_.IsFinished()) {
-	//		DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
+		// 
+
+	if (msg_.IsFinished()) {
+			DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
 
 			// ç∂âEÉLÅ[Ç≈ëIë
 			if (CheckHitKey(KEY_INPUT_A)) { // ç∂
@@ -130,7 +133,7 @@ void GameScene::Update(void)
 			}
 
 			// åàíË
-			if (CheckHitKey(KEY_INPUT_SPACE)) {
+			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
 				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
 				resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
@@ -159,20 +162,64 @@ void GameScene::Draw(void)
 	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // çïÇ¢ògê¸
 
 	msg_.Draw(165, 65);
-
+	
 	if (state_ == SceneState::QUESTION) {
+		// ñ‚Ç¢ÇÃîwåiòg(ç∂ë§)
+		DrawBox(395, 805, 705, 445, GetColor(255, 255, 255), true);  // îíîwåi
+		DrawBox(400, 800, 700, 450, GetColor(0, 0, 0), true);       // çïògê¸
+
+		// ñ‚Ç¢ÇÃîwåiòg(âEë§)
+		DrawBox(1195, 805, 1505, 445, GetColor(255, 255, 255), true);  // îíîwåi
+		DrawBox(1200, 800, 1500, 450, GetColor(0, 0, 0), true);       // çïògê¸
+
+		// ëIëéàÇÃï`âÊ
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
 	}
 }
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
 {
-	int startY = 850;
-	int startX = 750;
-
+#if 0
+	int startY = 800;
+	int startX = 700;
+	int spacing = 300;
+	
+	int x = startX;
 	for (size_t i = 0; i < choices.size(); i++) {
 		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-		DrawString(startX + (int)i * 500, startY, choices[i].text.c_str(), color);
+		DrawString(x, startY, choices[i].text.c_str(), color);
+
+		// éüÇÃëIëéàÇÃà íuÇåvéZÅiï∂éöïùÅ{ó]îíÅj
+		int textWidth = GetDrawStringWidth(choices[i].text.c_str(), (int)choices[i].text.size());
+		x += textWidth + spacing;
+	}
+#endif
+	// äeëIëéàÇÃïùÇåvéZ
+	std::vector<int> widths;
+	int totalWidth = 0;
+	for (auto& choice : choices) {
+		int w = GetDrawStringWidth(choice.text.c_str(), (int)choice.text.size());
+		widths.push_back(w);
+		totalWidth += w;
+	}
+	// ä‘äuï™Ç‡â¡Ç¶ÇÈ
+	totalWidth += SPACING * ((int)choices.size() - 1);
+
+	// íÜâõëµÇ¶ÇÃäJénX
+	int startX = (SCREEN_W - totalWidth) / 2;
+
+	// ï`âÊÉãÅ[Év
+	int x = startX;
+	for (size_t i = 0; i < choices.size(); i++) {
+		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+
+		// êÅÇ´èoÇµè„Ç…ï∂éöÇï`âÊ
+		DrawString(x, START_Y, choices[i].text.c_str(), color);
+
+		// âÊëúÇégÇ§Ç»ÇÁÇ±Ç±Ç≈ DrawGraph Ç‡OK
+		// DrawGraph(x, startY - 50, choiceImageHandle[i], TRUE);
+
+		x += widths[i] + SPACING;
 	}
 }
 
