@@ -9,6 +9,8 @@
 struct Choice {
 	std::string text;
 	int nextIndex; // 次の質問番号（-1なら終了）
+	int x;
+	int y;
 };
 
 struct Question {
@@ -29,8 +31,8 @@ class GameScene : public SceneBase
 
 
 public:
-	static const int START_Y = 795;        // 吹き出し内の縦位置
-	static const int SPACING = 670;       // 選択肢同士の間隔
+	static const int START_Y = 740;        // 吹き出し内の縦位置
+	static const int SPACING = 660;       // 選択肢同士の間隔
 	static const int SCREEN_W = 1920;      // 画面幅
 
 #pragma region 前方宣言

@@ -43,17 +43,21 @@ void GameScene::Init(void)
 		{
 		"もし、今後人生でパンかご飯の片方だけしか\n"
 		"食べられないとしたら、どちらを選ぶ？",
-		{{"パン" , 1} ,{ "ご飯" , 2 }}
+		{{"パン" , 1, 470, 760} ,
+		{ "ご飯" , 2, 1330, 760 }}
 		},
 	 { "パンを選んだね。パンは何が好き？",
-			{ {"焼きたて", 3}, {"バターたっぷり", 4}}
+		{ {"焼きたて", 3, 470, 760}, 
+		{"バターたっぷり", 4, 1330, 760}}
 		},
 		{ "ご飯を選んだね。和食派？洋食派？",
-			{ {"和食派", 3}, {"洋食派", 4} }
+		{ {"和食派", 3}, 
+		{"洋食派", 4} }
 		},
 		{
 		"ピカチュウ?",
-		{ {"ピカチュウ", -1}, {"イーブイ", -1} }
+		{ {"ピカチュウ", -1},
+		{"イーブイ", -1} }
 		},
 	};
 	// 選択肢の初期化
@@ -164,13 +168,13 @@ void GameScene::Draw(void)
 	msg_.Draw(165, 65);
 	
 	if (state_ == SceneState::QUESTION) {
-		// 問いの背景枠(左側)
-		DrawBox(395, 805, 705, 445, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(400, 800, 700, 450, GetColor(0, 0, 0), true);       // 黒枠線
+		// 問いの背景枠(左側)	DrawBox(左側面、上、右側面、下) 
+		DrawBox(325, 830, 740, 450, GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(330, 825, 735, 455, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 問いの背景枠(右側)
-		DrawBox(1195, 805, 1505, 445, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(1200, 800, 1500, 450, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(1180, 830, 1595, 450, GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(1185, 825, 1590, 455, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
@@ -179,50 +183,11 @@ void GameScene::Draw(void)
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
 {
-#if 0
-	int startY = 800;
-	int startX = 700;
-	int spacing = 300;
-	
-	int x = startX;
 	for (size_t i = 0; i < choices.size(); i++) {
 		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-		DrawString(x, startY, choices[i].text.c_str(), color);
-
-		// 次の選択肢の位置を計算（文字幅＋余白）
-		int textWidth = GetDrawStringWidth(choices[i].text.c_str(), (int)choices[i].text.size());
-		x += textWidth + spacing;
-	}
-#endif
-	// 各選択肢の幅を計算
-	std::vector<int> widths;
-	int totalWidth = 0;
-	for (auto& choice : choices) {
-		int w = GetDrawStringWidth(choice.text.c_str(), (int)choice.text.size());
-		widths.push_back(w);
-		totalWidth += w;
-	}
-	// 間隔分も加える
-	totalWidth += SPACING * ((int)choices.size() - 1);
-
-	// 中央揃えの開始X
-	int startX = (SCREEN_W - totalWidth) / 2;
-
-	// 描画ループ
-	int x = startX;
-	for (size_t i = 0; i < choices.size(); i++) {
-		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-
-		// 吹き出し上に文字を描画
-		DrawString(x, START_Y, choices[i].text.c_str(), color);
-
-		// 画像を使うならここで DrawGraph もOK
-		// DrawGraph(x, startY - 50, choiceImageHandle[i], TRUE);
-
-		x += widths[i] + SPACING;
+		DrawString(choices[i].x, choices[i].y, choices[i].text.c_str(), color);
 	}
 }
-
 void GameScene::Release(void)
 {
 	// 背景画像の解放
