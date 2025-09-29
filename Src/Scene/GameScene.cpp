@@ -47,17 +47,17 @@ void GameScene::Init(void)
 		{ "ご飯" , 2, 1330, 760 }}
 		},
 	 { "パンを選んだね。パンは何が好き？",
-		{ {"焼きたて", 3, 470, 760}, 
-		{"バターたっぷり", 4, 1330, 760}}
+		{ {"焼きたて", 3, 410, 760}, 
+		{"バター", 3, 1310, 760}}
 		},
 		{ "ご飯を選んだね。和食派？洋食派？",
-		{ {"和食派", 3}, 
-		{"洋食派", 4} }
+		{ {"和食派", 3, 470, 760},
+		{"洋食派", 3, 1310, 760} }
 		},
 		{
 		"ピカチュウ?",
-		{ {"ピカチュウ", -1},
-		{"イーブイ", -1} }
+		{ {"ピカチュウ", -1,  380, 760},
+		{"イーブイ", -1, 1280, 760} }
 		},
 	};
 	// 選択肢の初期化
@@ -139,6 +139,7 @@ void GameScene::Update(void)
 			// 決定
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
 				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
+				choice.count++; // 選択肢の選ばれた回数をカウント
 				resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
 				 NextQuestion(choice.nextIndex);
@@ -169,12 +170,12 @@ void GameScene::Draw(void)
 	
 	if (state_ == SceneState::QUESTION) {
 		// 問いの背景枠(左側)	DrawBox(左側面、上、右側面、下) 
-		DrawBox(325, 830, 740, 450, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(330, 825, 735, 455, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(325, 450, 740, 830,  GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(330, 455, 735, 825, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 問いの背景枠(右側)
-		DrawBox(1180, 830, 1595, 450, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(1185, 825, 1590, 455, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(1180, 450, 1595, 830, GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(1185, 455, 1590, 825, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
@@ -183,9 +184,21 @@ void GameScene::Draw(void)
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
 {
+	int total_ = 0;
+	for (auto& c : choices) {
+		total_ += c.count;
+	}
+
 	for (size_t i = 0; i < choices.size(); i++) {
 		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+
 		DrawString(choices[i].x, choices[i].y, choices[i].text.c_str(), color);
+
+		// 割合の表示
+		if (total_ > 0) {
+			int percentage_ = (choices[i].count * 100) / total_;
+			DrawFormatString(choices[i].x, choices[i].y + 50, GetColor(255, 255, 0), "%d%%", percentage_);
+		}
 	}
 }
 void GameScene::Release(void)
@@ -211,6 +224,5 @@ void GameScene::NextQuestion(int nextIndex_)
 		state_ = SceneState::END;
 		msg_.SetMessage("これで実験は終了だよ。\nお疲れ様！");
 	}
-	
 }
 

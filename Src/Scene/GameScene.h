@@ -9,8 +9,8 @@
 struct Choice {
 	std::string text;
 	int nextIndex; // Ÿ‚Ì¿–â”Ô†i-1‚È‚çI—¹j
-	int x;
-	int y;
+	int x, y;
+	int count = 0;
 };
 
 struct Question {
