@@ -6,6 +6,11 @@
 #include "../Object/Message.h"
 #include "GameScene.h"
 
+// 家のディレクトリ
+// "C:\DxLib\プロジェクトに追加すべきファイル_VC用"
+// 学校のディレクトリ
+// $(DXLIB_DIR)
+
 GameScene::GameScene(void)
 	:inputManager_(InputManager::GetInstance())
 {
@@ -51,7 +56,7 @@ void GameScene::Init(void)
 		{"バター", 3, 1310, 760}}
 		},
 		{ "ご飯を選んだね。和食派？洋食派？",
-		{ {"和食派", 3, 470, 760},
+		{ {"和食派", 3, 450, 760},
 		{"洋食派", 3, 1310, 760} }
 		},
 		{
@@ -60,9 +65,7 @@ void GameScene::Init(void)
 		{"イーブイ", -1, 1280, 760} }
 		},
 	};
-	// 選択肢の初期化
-	/*choices_ = {
-	};*/
+
 
 	// メッセージの初期化
 	storyIndex_ = 0;
@@ -196,7 +199,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
 
 		// 割合の表示
 		if (total_ > 0) {
-			int percentage_ = (choices[i].count * 100) / total_;
+			float percentage_ = (choices[i].count / (float)total_) * 100.0f;
 			DrawFormatString(choices[i].x, choices[i].y + 50, GetColor(255, 255, 0), "%d%%", percentage_);
 		}
 	}
