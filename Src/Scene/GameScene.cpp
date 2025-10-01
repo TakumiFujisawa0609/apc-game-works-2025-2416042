@@ -145,8 +145,19 @@ void GameScene::Update(void)
 				choice.count++; // 選択肢の選ばれた回数をカウント
 				resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
-				 NextQuestion(choice.nextIndex);
+				state_ = SceneState::RESULT;
+				resultTimer_ = 120; // 2秒間結果表示
+			//	 NextQuestion(choice.nextIndex);
 				}
+			}
+		break;
+
+	case SceneState::RESULT:
+		// 集計結果の表示
+			resultTimer_--;
+			if (resultTimer_ <= 0) {
+				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
+				NextQuestion(choice.nextIndex); // 次の問題 or END へ
 			}
 		break;
 
@@ -182,6 +193,9 @@ void GameScene::Draw(void)
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
+	}
+	else if (state_ == SceneState::RESULT) {
+		DrawChoices(questions_[questionIndex_].choices, -1); // カーソル非表示
 	}
 }
 
@@ -220,6 +234,7 @@ void GameScene::NextQuestion(int nextIndex_)
 		questionIndex_ = nextIndex_;
 		selectedChoice_ = 0;
 		msg_.SetMessage(questions_[questionIndex_].text);
+		state_ = SceneState::QUESTION;
 	}
 	else
 	{

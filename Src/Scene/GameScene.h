@@ -23,10 +23,11 @@ class GameScene : public SceneBase
 {
 	enum class SceneState
 	{
-		STORY,	// メッセージ表示
+		STORY,		  // メッセージ表示
 		QUESTION, // 問題表示
-		CHOICE,	// 選択肢表示
-		END,		// シーン終了
+		CHOICE,	 // 選択肢表示
+		RESULT,	 // 結果表示
+		END,			 // シーン終了
 	};
 
 
@@ -75,12 +76,7 @@ private:
 	std::vector<std::string> story_; 
 	// 問題リスト
 	std::vector<Question> questions_;
-	//// 選択肢リスト
-	//std::vector<std::string> choices_;
-	//// 選択肢と分岐先のペア
-	//std::vector<Choice> choices;
-	//// 選択肢の文字
-	//std::string text;
+
 	// 選択肢と結果のログ
 	std::vector<std::pair<std::string, std::string>> resultLog_;
 
@@ -90,10 +86,12 @@ private:
 	int storyIndex_;
 	// 問題の保管庫
 	int questionIndex_;
-	// カーソルの保管庫
-//	int cursorIndex_;
+
 	// 選択した選択肢の保管庫
 	int selectedChoice_;
+
+	// 結果の表示のタイマー
+	int resultTimer_;
 
 	// 左右キーの押下状態
 	bool leftPressed_;
