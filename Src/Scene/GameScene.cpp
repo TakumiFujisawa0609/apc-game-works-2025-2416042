@@ -109,10 +109,9 @@ void GameScene::Update(void)
 		break;
 
 	case SceneState::QUESTION:
-		// 
-
-	if (msg_.IsFinished()) {
-			DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
+		// 問いを表示して選択肢が選ばれたら結果へ
+		if (msg_.IsFinished()) {
+			//DrawChoices(questions_[questionIndex_].choices, selectedChoice_, );
 
 			// 左右キーで選択
 			if (CheckHitKey(KEY_INPUT_A)) { // 左
@@ -141,24 +140,48 @@ void GameScene::Update(void)
 
 			// 決定
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
+				prevQuestionIndex_ = questionIndex_;
+				prevSelectedChoice_ = selectedChoice_;
+
+				// カウントアップ
 				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
 				choice.count++; // 選択肢の選ばれた回数をカウント
 				resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
-				state_ = SceneState::RESULT;
-				resultTimer_ = 120; // 2秒間結果表示
-			//	 NextQuestion(choice.nextIndex);
+				int follow = choice.nextIndex;
+
+				if (follow >= 0)
+				{
+					// 選択した後の会話
+					questionIndex_ = follow;
+					msg_.SetMessage(questions_[questionIndex_].text);
+					state_ = SceneState::ANSWER_TALK;
+				}
+				else {
+					// 全問終了 → 終了メッセージへ
+					state_ = SceneState::END;
+					resultTimer_ = 120; // 2秒間結果表示
 				}
 			}
+			break;
+
+	case SceneState::ANSWER_TALK:
+		// 選択した後の会話を表示して終わったら結果へ
+		if (msg_.IsFinished() && CheckHitKey(KEY_INPUT_SPACE))
+		{
+			state_ = SceneState::QUESTION;
+			selectedChoice_ = 0;
+			resultTimer_ = 120; // 2秒間結果表示
+		}
 		break;
 
 	case SceneState::RESULT:
 		// 集計結果の表示
-			resultTimer_--;
-			if (resultTimer_ <= 0) {
-				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
-				NextQuestion(choice.nextIndex); // 次の問題 or END へ
-			}
+		resultTimer_--;
+		if (resultTimer_ <= 0) {
+			auto& choice = questions_[questionIndex_].choices[selectedChoice_];
+			NextQuestion(choice.nextIndex); // 次の問題 or END へ
+		}
 		break;
 
 	case SceneState::END:
@@ -169,6 +192,7 @@ void GameScene::Update(void)
 			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 		}
 		break;
+		}
 	}
 }
 
@@ -192,18 +216,26 @@ void GameScene::Draw(void)
 		DrawBox(1185, 455, 1590, 825, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 選択肢の描画
-		DrawChoices(questions_[questionIndex_].choices, selectedChoice_);
+		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
 	}
-	else if (state_ == SceneState::RESULT) {
-		DrawChoices(questions_[questionIndex_].choices, -1); // カーソル非表示
+	else if (state_ == SceneState::ANSWER_TALK) {
+		if (prevQuestionIndex_ >= 0 && prevQuestionIndex_ < (int)questions_.size()) {
+			DrawChoices(questions_[prevQuestionIndex_].choices, -1, true);
+		}
+	}
+	else if (state_ == SceneState::RESULT){
+		// 最終結果表示
+		if (prevQuestionIndex_ >= 0 && prevQuestionIndex_ < (int)questions_.size()) {
+			DrawChoices(questions_[prevQuestionIndex_].choices, -1, true);
+		}
 	}
 }
 
-void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
+void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent)
 {
-	int total_ = 0;
-	for (auto& c : choices) {
-		total_ += c.count;
+	int total = 0;
+	if (showPercent) {
+		for (auto& c : choices) total += c.count;
 	}
 
 	for (size_t i = 0; i < choices.size(); i++) {
@@ -212,8 +244,9 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex)
 		DrawString(choices[i].x, choices[i].y, choices[i].text.c_str(), color);
 
 		// 割合の表示
-		if (total_ > 0) {
-			float percentage_ = (choices[i].count / (float)total_) * 100.0f;
+		if (showPercent &&  total > 0) {
+			float percentage_ = (choices[i].count / (float)total) * 100.0f;
+			char buf[64];
 			DrawFormatString(choices[i].x, choices[i].y + 50, GetColor(255, 255, 0), "%d%%", percentage_);
 		}
 	}

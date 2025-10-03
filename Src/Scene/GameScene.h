@@ -23,17 +23,18 @@ class GameScene : public SceneBase
 {
 	enum class SceneState
 	{
-		STORY,		  // メッセージ表示
-		QUESTION, // 問題表示
-		CHOICE,	 // 選択肢表示
-		RESULT,	 // 結果表示
-		END,			 // シーン終了
+		STORY,				// メッセージ表示
+		QUESTION,		// 問題表示
+		ANSWER_TALK, // 解答後の会話
+	//	CHOICE,			// 選択肢表示
+		RESULT,			// 結果表示
+		END,					// シーン終了
 	};
 
 
 public:
-	static const int START_Y = 740;        // 吹き出し内の縦位置
-	static const int SPACING = 660;       // 選択肢同士の間隔
+	static const int START_Y = 740;			  // 吹き出し内の縦位置
+	static const int SPACING = 660;			  // 選択肢同士の間隔
 	static const int SCREEN_W = 1920;      // 画面幅
 
 #pragma region 前方宣言
@@ -53,7 +54,7 @@ public:
 	void Draw(void) override;
 
 	// 選択肢の描画
-	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex);
+	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent);
 
 	// 解放処理
 	void Release(void) override;
@@ -68,7 +69,6 @@ private:
 	Message msg_;
 	// シーンの状態
 	SceneState state_;
-
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
 
@@ -82,11 +82,11 @@ private:
 
 	// ゲーム背景
 	int gImage_;
+
 	// ストーリーの保管庫
 	int storyIndex_;
 	// 問題の保管庫
 	int questionIndex_;
-
 	// 選択した選択肢の保管庫
 	int selectedChoice_;
 
@@ -96,4 +96,9 @@ private:
 	// 左右キーの押下状態
 	bool leftPressed_;
 	bool rightPressed_;
+
+	// 前の問い
+	int prevQuestionIndex_;
+	// 前の選択肢
+	int prevSelectedChoice_;
 };
