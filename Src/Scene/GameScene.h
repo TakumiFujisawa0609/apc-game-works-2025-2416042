@@ -18,6 +18,12 @@ struct Question {
 	std::vector<Choice> choices;
 };
 
+struct AfterTalk {
+	std::string text;
+	int questionIndex;
+	int choiceIndex;
+};
+
 
 class GameScene : public SceneBase
 {
@@ -40,29 +46,23 @@ public:
 #pragma region 前方宣言
 	// コンストラクタ
 	GameScene(void);
-
 	// デストラクタ
 	~GameScene(void);
 
 	// 初期化処理
 	void Init(void) override;
-
 	// 更新ステップ
 	void Update(void) override;
-
 	// 描画処理
 	void Draw(void) override;
-
 	// 選択肢の描画
 	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent);
-
 	// 解放処理
 	void Release(void) override;
 
 	// 次の問いをセット
 	void NextQuestion(int nextIndex_);
 
-	
 private:
 #pragma region 変数宣言
 	// メッセージオブジェクト
@@ -76,6 +76,8 @@ private:
 	std::vector<std::string> story_; 
 	// 問題リスト
 	std::vector<Question> questions_;
+	// 解答後の会話リスト
+	std::vector<AfterTalk> afterTalks_;
 
 	// 選択肢と結果のログ
 	std::vector<std::pair<std::string, std::string>> resultLog_;
@@ -89,6 +91,8 @@ private:
 	int questionIndex_;
 	// 選択した選択肢の保管庫
 	int selectedChoice_;
+	// 解答後の会話の保管庫
+	int afterTalkIndex_;
 
 	// 結果の表示のタイマー
 	int resultTimer_;

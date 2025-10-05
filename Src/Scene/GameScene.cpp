@@ -51,21 +51,32 @@ void GameScene::Init(void)
 		{{"パン" , 1, 470, 760} ,
 		{ "ご飯" , 2, 1330, 760 }}
 		},
-	 { "パンを選んだね。パンは何が好き？",
+	 { "じゃーパンは何が好き？",
 		{ {"焼きたて", 3, 410, 760}, 
 		{"バター", 3, 1310, 760}}
 		},
-		{ "ご飯を選んだね。和食派？洋食派？",
+		{ "じゃー和食派？洋食派？",
 		{ {"和食派", 3, 450, 760},
 		{"洋食派", 3, 1310, 760} }
 		},
 		{
 		"ピカチュウ?",
 		{ {"ピカチュウ", -1,  380, 760},
-		{"イーブイ", -1, 1280, 760} }
+		{"ピカチュウ", -1, 1280, 760} }
 		},
 	};
 
+	// 解答後の会話の初期化
+	afterTalks_ = {
+		{"なるほど、君はパン派なんだね。", 0, 0},
+		{"なるほど、君はご飯派なんだね。", 0, 1},
+		{"そうなんだ。僕は焼きたてのパンが好きだな。", 1, 0},
+		{"そうなんだ。僕はバターたっぷりのパンが好きだな。", 1, 1},
+		{"そうなんだ。僕は和食派かな。", 2, 0},
+		{"そうなんだ。僕は洋食派かな。", 2, 1},
+		{"ピカチュウ", 3, 0},
+		{"ピカチュウ。", 3, 1},
+	};
 
 	// メッセージの初期化
 	storyIndex_ = 0;
@@ -140,38 +151,58 @@ void GameScene::Update(void)
 
 			// 決定
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
-				prevQuestionIndex_ = questionIndex_;
-				prevSelectedChoice_ = selectedChoice_;
-
 				// カウントアップ
 				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
 				choice.count++; // 選択肢の選ばれた回数をカウント
-				resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
-				int follow = choice.nextIndex;
+				prevQuestionIndex_ = questionIndex_;
+				prevSelectedChoice_ = selectedChoice_;
 
-				if (follow >= 0)
-				{
-					// 選択した後の会話
-					questionIndex_ = follow;
-					msg_.SetMessage(questions_[questionIndex_].text);
+				afterTalkIndex_ = -1;
+				for (int i = 0; i <(int) afterTalks_.size(); i++) {
+					if (afterTalks_[i].questionIndex == questionIndex_ &&
+						afterTalks_[i].choiceIndex == selectedChoice_) {
+						afterTalkIndex_ = i;
+						break;
+					}
+				}
+
+			//	resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
+
+				if (afterTalkIndex_ >= 0) {
+					// アフタートークの文をセットして遷移
+					msg_.SetMessage(afterTalks_[afterTalkIndex_].text);
 					state_ = SceneState::ANSWER_TALK;
 				}
 				else {
-					// 全問終了 → 終了メッセージへ
-					state_ = SceneState::END;
-					resultTimer_ = 120; // 2秒間結果表示
+					// アフタートークが見つからなければそのまま次へ
+					int follow = choice.nextIndex;
+					if (follow >= 0) {
+						questionIndex_ = follow;
+						msg_.SetMessage(questions_[questionIndex_].text);
+						state_ = SceneState::QUESTION;
+					}
+					else {
+						state_ = SceneState::END;
+					}
 				}
 			}
 			break;
 
 	case SceneState::ANSWER_TALK:
 		// 選択した後の会話を表示して終わったら結果へ
-		if (msg_.IsFinished() && CheckHitKey(KEY_INPUT_SPACE))
-		{
-			state_ = SceneState::QUESTION;
-			selectedChoice_ = 0;
-			resultTimer_ = 120; // 2秒間結果表示
+		if (msg_.IsFinished() && inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
+			// 次の質問へ
+			int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
+			if (next == -1) {
+				state_ = SceneState::END;
+				msg_.SetMessage("これで終わりだよ。");
+			}
+			else {
+				questionIndex_ = next;
+				state_ = SceneState::QUESTION;
+				msg_.SetMessage(questions_[questionIndex_].text);
+			}
 		}
 		break;
 
@@ -208,19 +239,51 @@ void GameScene::Draw(void)
 	
 	if (state_ == SceneState::QUESTION) {
 		// 問いの背景枠(左側)	DrawBox(左側面、上、右側面、下) 
-		DrawBox(325, 450, 740, 830,  GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(330, 455, 735, 825, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(325, 490, 740, 880,  GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(330, 495, 735, 875, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 問いの背景枠(右側)
-		DrawBox(1180, 450, 1595, 830, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(1185, 455, 1590, 825, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(1180, 490, 1595, 880, GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(1185, 495, 1590, 875, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
 	}
 	else if (state_ == SceneState::ANSWER_TALK) {
-		if (prevQuestionIndex_ >= 0 && prevQuestionIndex_ < (int)questions_.size()) {
-			DrawChoices(questions_[prevQuestionIndex_].choices, -1, true);
+		if (afterTalkIndex_ >= 0 && afterTalkIndex_ < (int)afterTalks_.size()) {
+
+			const auto& talk = afterTalks_[afterTalkIndex_];
+			const auto& question = questions_[talk.questionIndex];
+
+			// 吹き出し or 背景枠
+			DrawBox(300, 450, 1600, 950, GetColor(255, 255, 255), true);
+			DrawBox(305, 455, 1595, 945, GetColor(0, 0, 0), true);
+
+			// アフタートーク本文
+		//	DrawString(350, 470, talk.text.c_str(), GetColor(255, 255, 255));
+
+			// 元の問いを表示
+			DrawString(350, 470, question.text.c_str(), GetColor(255, 255, 255));
+
+			// 各選択肢と割合を表示
+			int total = 0;
+			for (auto& c : question.choices) total += c.count;
+
+			int y = 700; // 縦の開始位置
+			for (size_t i = 0; i < question.choices.size(); i++) {
+				auto& c = question.choices[i];
+				float percent = (total > 0) ? (100.0f * c.count / total) : 0.0f;
+
+				int color = (i == talk.choiceIndex) ? GetColor(255, 255, 255) : GetColor(255, 255, 255);
+
+				// 選択肢文字
+				DrawString(400, y, c.text.c_str(), color);
+
+				// 割合
+				DrawFormatString(900, y, GetColor(255, 255, 255), "%.1f%%", percent);
+
+				y += 60; // 次の行へ
+			}
 		}
 	}
 	else if (state_ == SceneState::RESULT){
@@ -247,7 +310,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 		if (showPercent &&  total > 0) {
 			float percentage_ = (choices[i].count / (float)total) * 100.0f;
 			char buf[64];
-			DrawFormatString(choices[i].x, choices[i].y + 50, GetColor(255, 255, 0), "%d%%", percentage_);
+			DrawFormatString(choices[i].x, choices[i].x + 50, GetColor(255, 255, 0), "%d%%", percentage_);
 		}
 	}
 }
