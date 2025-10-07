@@ -3,6 +3,7 @@
 #include <vector>
 #include "../Manager/InputManager.h"
 #include "../Manager/SceneManager.h"
+#include"../Manager/QuestionManager.h"
 #include "../Object/Message.h"
 #include "GameScene.h"
 
@@ -87,11 +88,11 @@ void GameScene::Init(void)
 	// メッセージオブジェクトの初期化
 	msg_.Init();
 	msg_.SetMessage(story_[storyIndex_]);
-	//msg_.SetMessage(questions_[storyIndex_]);
-	//msg_.SetMessage(choices_[storyIndex_]);
 
 	leftPressed_ = false;
 	rightPressed_ = false;
+
+	questionManager_.LoadData();
 }
 
 void GameScene::Update(void)
@@ -154,6 +155,9 @@ void GameScene::Update(void)
 				// カウントアップ
 				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
 				choice.count++; // 選択肢の選ばれた回数をカウント
+
+				// 全体集計
+				questionManager_.SelectChoice(questionIndex_, selectedChoice_);
 
 				prevQuestionIndex_ = questionIndex_;
 				prevSelectedChoice_ = selectedChoice_;
@@ -266,21 +270,24 @@ void GameScene::Draw(void)
 			DrawString(350, 470, question.text.c_str(), GetColor(255, 255, 255));
 
 			// 各選択肢と割合を表示
+			const auto& questions = questionManager_.GetQuestions();
 			int total = 0;
-			for (auto& c : question.choices) total += c.count;
-
 			int y = 700; // 縦の開始位置
+			for (auto count : questions[questionIndex_].choiceCounts)
+				total += count;
+
+
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				auto& c = question.choices[i];
 				float percent = (total > 0) ? (100.0f * c.count / total) : 0.0f;
 
-				int color = (i == talk.choiceIndex) ? GetColor(255, 255, 255) : GetColor(255, 255, 255);
+				int color = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
 
 				// 選択肢文字
 				DrawString(400, y, c.text.c_str(), color);
 
 				// 割合
-				DrawFormatString(900, y, GetColor(255, 255, 255), "%.1f%%", percent);
+				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent);
 
 				y += 60; // 次の行へ
 			}

@@ -4,6 +4,7 @@
 #include "SceneBase.h"
 #include "../Object/Message.h"
 #include "../Manager/InputManager.h"
+#include "../Manager/QuestionManager.h"
 
 // 選択肢と次の質問番号のペア
 struct Choice {
@@ -71,6 +72,8 @@ private:
 	SceneState state_;
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
+	// 質問管理オブジェクト
+	QuestionManager questionManager_;
 
 	// 文章リスト
 	std::vector<std::string> story_; 

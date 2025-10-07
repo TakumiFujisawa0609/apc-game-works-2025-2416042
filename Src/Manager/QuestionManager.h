@@ -23,6 +23,7 @@ public:
 	void LoadData();
 	void SaveData();
 
+	const std::vector<QuestionData>& GetQuestions() const { return questions_; }
 private:
 	std::vector<QuestionData> questions_;
 };
