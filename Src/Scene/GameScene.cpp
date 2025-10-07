@@ -122,12 +122,13 @@ void GameScene::Update(void)
 
 	case SceneState::QUESTION:
 		// 問いを表示して選択肢が選ばれたら結果へ
-		if (msg_.IsFinished()) {
-			//DrawChoices(questions_[questionIndex_].choices, selectedChoice_, );
-
+		if (msg_.IsFinished()) 
+		{
 			// 左右キーで選択
-			if (CheckHitKey(KEY_INPUT_A)) { // 左
-				if (!leftPressed_) {
+			if (CheckHitKey(KEY_INPUT_A))
+			{ // 左
+				if (!leftPressed_)
+				{
 					selectedChoice_ = (selectedChoice_ - 1 + (int)questions_[questionIndex_].choices.size())
 						% (int)questions_[questionIndex_].choices.size();
 					leftPressed_ = true;
@@ -139,7 +140,8 @@ void GameScene::Update(void)
 			}
 
 			if (CheckHitKey(KEY_INPUT_D)) { // 右
-				if (!rightPressed_) {
+				if (!rightPressed_)
+				{
 					selectedChoice_ = (selectedChoice_ + 1)
 						% (int)questions_[questionIndex_].choices.size();
 					rightPressed_ = true;
@@ -152,20 +154,22 @@ void GameScene::Update(void)
 
 			// 決定
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
-				// カウントアップ
-				auto& choice = questions_[questionIndex_].choices[selectedChoice_];
-				choice.count++; // 選択肢の選ばれた回数をカウント
-
-				// 全体集計
-				questionManager_.SelectChoice(questionIndex_, selectedChoice_);
-
+				//// カウントアップ
+				//auto& choice = questions_[questionIndex_].choices[selectedChoice_];
+				//choice.count++; // 選択肢の選ばれた回数をカウント
 				prevQuestionIndex_ = questionIndex_;
 				prevSelectedChoice_ = selectedChoice_;
 
+				// 全体集計
+				questionManager_.SelectChoice(questionIndex_, selectedChoice_);
+				questionManager_.SaveData();
+				
 				afterTalkIndex_ = -1;
-				for (int i = 0; i <(int) afterTalks_.size(); i++) {
+				for (int i = 0; i <(int) afterTalks_.size(); i++) 
+				{
 					if (afterTalks_[i].questionIndex == questionIndex_ &&
-						afterTalks_[i].choiceIndex == selectedChoice_) {
+						afterTalks_[i].choiceIndex == selectedChoice_)
+					{
 						afterTalkIndex_ = i;
 						break;
 					}
@@ -173,20 +177,23 @@ void GameScene::Update(void)
 
 			//	resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
-				if (afterTalkIndex_ >= 0) {
+				if (afterTalkIndex_ >= 0) 
+				{
 					// アフタートークの文をセットして遷移
 					msg_.SetMessage(afterTalks_[afterTalkIndex_].text);
 					state_ = SceneState::ANSWER_TALK;
 				}
-				else {
+				else
+				{
 					// アフタートークが見つからなければそのまま次へ
-					int follow = choice.nextIndex;
+					int follow = questions_[questionIndex_].choices[selectedChoice_].nextIndex;
 					if (follow >= 0) {
 						questionIndex_ = follow;
 						msg_.SetMessage(questions_[questionIndex_].text);
 						state_ = SceneState::QUESTION;
 					}
-					else {
+					else 
+					{
 						state_ = SceneState::END;
 					}
 				}
@@ -195,14 +202,16 @@ void GameScene::Update(void)
 
 	case SceneState::ANSWER_TALK:
 		// 選択した後の会話を表示して終わったら結果へ
-		if (msg_.IsFinished() && inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
+		if (msg_.IsFinished() && inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		{
 			// 次の質問へ
 			int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
 			if (next == -1) {
 				state_ = SceneState::END;
 				msg_.SetMessage("これで終わりだよ。");
 			}
-			else {
+			else 
+			{
 				questionIndex_ = next;
 				state_ = SceneState::QUESTION;
 				msg_.SetMessage(questions_[questionIndex_].text);
@@ -262,9 +271,6 @@ void GameScene::Draw(void)
 			// 吹き出し or 背景枠
 			DrawBox(300, 450, 1600, 950, GetColor(255, 255, 255), true);
 			DrawBox(305, 455, 1595, 945, GetColor(0, 0, 0), true);
-
-			// アフタートーク本文
-		//	DrawString(350, 470, talk.text.c_str(), GetColor(255, 255, 255));
 
 			// 元の問いを表示
 			DrawString(350, 470, question.text.c_str(), GetColor(255, 255, 255));

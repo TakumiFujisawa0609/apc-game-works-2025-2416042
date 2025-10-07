@@ -18,20 +18,24 @@ void QuestionManager::Update()
 
 void QuestionManager::Draw()
 {
+	if (questions_.empty()) return;
+
     const auto& q = questions_[0];
 	// 質問文表示
-    DrawFormatString(100, 100, 0xffffff, q.questionText.c_str());
+    DrawFormatString(100, 100, GetColor(255, 255, 255), "%s", q.questionText.c_str());
 
+    // 合計を算出
     int total = 0;
     for (int c : q.choiceCounts) total += c;
-	// 選択肢と集計表示
-    for (int i = 0; i < q.choices.size(); i++) {
-        int y = 150 + i * 40;
-        DrawFormatString(120, y, 0xffffff, q.choices[i].c_str());
 
-		// 集計数表示
+    // 選択肢と集計表示
+    for (int i = 0; i < (int)q.choices.size(); i++) {
+        int y = 150 + i * 40;
+        DrawFormatString(120, y, GetColor(255, 255, 255), "%s", q.choices[i].c_str());
+
+        // 集計数表示（％）
         float percent = (total > 0) ? (q.choiceCounts[i] * 100.0f / total) : 0.0f;
-        DrawFormatString(400, y, 0xaaaaaa, "%.1f%%", percent);
+        DrawFormatString(400, y, GetColor(170, 170, 170), "%.1f%%", percent);
     }
 }
 
@@ -52,12 +56,11 @@ void QuestionManager::LoadData()
 {
 	// ファイルから集計データを読み込む
     FILE* fp = nullptr;
-    if (fopen_s(&fp, "SurveyData.txt", "r") != 0) return;
-    if (!fp) return;
+    if (fopen_s(&fp, "SurveyData.txt", "r") != 0 || !fp) return;
 
 	// 1件ずつ読み込む
     for (auto& q : questions_) {
-        for (int i = 0; i < q.choiceCounts.size(); i++) {
+        for (int i = 0; i < (int)q.choiceCounts.size(); i++) {
             fscanf_s(fp, "%d", &q.choiceCounts[i]);
         }
     }
@@ -69,8 +72,7 @@ void QuestionManager::SaveData()
 {
 	// ファイルに集計データを書き込む
     FILE* fp = nullptr;
-    if (fopen_s(&fp, "SurveyData.txt", "w") != 0) return;
-    if (!fp) return;
+    if (fopen_s(&fp, "SurveyData.txt", "w") != 0 || !fp) return;
 
 	// 1件ずつ書き込む
     for (auto& q : questions_) {
@@ -79,7 +81,6 @@ void QuestionManager::SaveData()
         }
         fprintf(fp, "\n");
     }
-
 
     fclose(fp);
 }
