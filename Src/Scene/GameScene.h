@@ -52,6 +52,7 @@ public:
 
 	// 初期化処理
 	void Init(void) override;
+	void ManagerInit(void);
 	// 更新ステップ
 	void Update(void) override;
 	// 描画処理

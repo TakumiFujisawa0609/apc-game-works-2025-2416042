@@ -92,6 +92,27 @@ void GameScene::Init(void)
 	leftPressed_ = false;
 	rightPressed_ = false;
 
+	ManagerInit();
+}
+
+void GameScene::ManagerInit(void)
+{
+	// QuestionManagerの初期化
+	std::vector<QuestionData> qdata;
+	qdata.reserve(questions_.size());
+	for (auto& q : questions_) {
+		QuestionData dq;
+		dq.questionText = q.text;
+		dq.choices = {};
+		dq.choiceCounts.clear();
+		for (auto& ch : q.choices) {
+			dq.choices.push_back(ch.text);
+			dq.choiceCounts.push_back(0); // 初期は0、LoadDataで上書きされる
+		}
+		qdata.push_back(std::move(dq));
+	}
+	questionManager_.SetQuestions(qdata);
+
 	questionManager_.LoadData();
 }
 
@@ -122,7 +143,7 @@ void GameScene::Update(void)
 
 	case SceneState::QUESTION:
 		// 問いを表示して選択肢が選ばれたら結果へ
-		if (msg_.IsFinished()) 
+		if (msg_.IsFinished())
 		{
 			// 左右キーで選択
 			if (CheckHitKey(KEY_INPUT_A))
@@ -163,9 +184,9 @@ void GameScene::Update(void)
 				// 全体集計
 				questionManager_.SelectChoice(questionIndex_, selectedChoice_);
 				questionManager_.SaveData();
-				
+
 				afterTalkIndex_ = -1;
-				for (int i = 0; i <(int) afterTalks_.size(); i++) 
+				for (int i = 0; i < (int)afterTalks_.size(); i++)
 				{
 					if (afterTalks_[i].questionIndex == questionIndex_ &&
 						afterTalks_[i].choiceIndex == selectedChoice_)
@@ -175,9 +196,9 @@ void GameScene::Update(void)
 					}
 				}
 
-			//	resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
+				//	resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
 
-				if (afterTalkIndex_ >= 0) 
+				if (afterTalkIndex_ >= 0)
 				{
 					// アフタートークの文をセットして遷移
 					msg_.SetMessage(afterTalks_[afterTalkIndex_].text);
@@ -192,7 +213,7 @@ void GameScene::Update(void)
 						msg_.SetMessage(questions_[questionIndex_].text);
 						state_ = SceneState::QUESTION;
 					}
-					else 
+					else
 					{
 						state_ = SceneState::END;
 					}
@@ -210,7 +231,7 @@ void GameScene::Update(void)
 				state_ = SceneState::END;
 				msg_.SetMessage("これで終わりだよ。");
 			}
-			else 
+			else
 			{
 				questionIndex_ = next;
 				state_ = SceneState::QUESTION;
@@ -238,8 +259,12 @@ void GameScene::Update(void)
 		break;
 		}
 	}
-}
 
+	if (CheckHitKey(KEY_INPUT_BACK))
+	{
+		questionManager_.ResetData();
+	}
+}
 void GameScene::Draw(void)
 {
 	// 背景画像の描画
@@ -263,37 +288,55 @@ void GameScene::Draw(void)
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
 	}
 	else if (state_ == SceneState::ANSWER_TALK) {
+		// --- ANSWER_TALK 内の該当部分をこれに置き換えてください ---
 		if (afterTalkIndex_ >= 0 && afterTalkIndex_ < (int)afterTalks_.size()) {
 
 			const auto& talk = afterTalks_[afterTalkIndex_];
+
+			// 見た目用の question（GameScene が持つもの）
+			if (talk.questionIndex < 0 || talk.questionIndex >= (int)questions_.size()) return;
 			const auto& question = questions_[talk.questionIndex];
 
-			// 吹き出し or 背景枠
+			// manager 側のデータを取得（安全チェック）
+			const auto& managerQuestions = questionManager_.GetQuestions();
+			if (talk.questionIndex < 0 || talk.questionIndex >= (int)managerQuestions.size()) {
+				// manager 側にデータが無ければ表示しない（またはログ）
+				DrawFormatString(350, 470, GetColor(255, 0, 0), "No manager data for question %d", talk.questionIndex);
+				return;
+			}
+			const auto& questionData = managerQuestions[talk.questionIndex];
+
+			// 描画枠
 			DrawBox(300, 450, 1600, 950, GetColor(255, 255, 255), true);
 			DrawBox(305, 455, 1595, 945, GetColor(0, 0, 0), true);
 
-			// 元の問いを表示
+			// 元の問い（見た目）
 			DrawString(350, 470, question.text.c_str(), GetColor(255, 255, 255));
 
-			// 各選択肢と割合を表示
-			const auto& questions = questionManager_.GetQuestions();
+			// 合計票数（manager 側）
 			int total = 0;
+			for (int v : questionData.choiceCounts) total += v;
+
+			// 選択肢と割合の表示（manager 側の counts を使う）
 			int y = 700; // 縦の開始位置
-			for (auto count : questions[questionIndex_].choiceCounts)
-				total += count;
-
-
 			for (size_t i = 0; i < question.choices.size(); i++) {
-				auto& c = question.choices[i];
-				float percent = (total > 0) ? (100.0f * c.count / total) : 0.0f;
+				const auto& cVisual = question.choices[i];
+
+				// manager 側の count を安全に取得
+				int count = 0;
+				if (i < questionData.choiceCounts.size()) {
+					count = questionData.choiceCounts[i];
+				}
+
+				float percent = (total > 0) ? (100.0f * count / (float)total) : 0.0f;
 
 				int color = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
 
 				// 選択肢文字
-				DrawString(400, y, c.text.c_str(), color);
+				DrawString(400, y, cVisual.text.c_str(), color);
 
-				// 割合
-				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent);
+				// 割合（と件数）
+				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent, count);
 
 				y += 60; // 次の行へ
 			}
