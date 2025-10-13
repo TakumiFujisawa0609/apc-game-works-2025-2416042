@@ -33,9 +33,9 @@ class GameScene : public SceneBase
 		STORY,				// メッセージ表示
 		QUESTION,		// 問題表示
 		ANSWER_TALK, // 解答後の会話
-	//	CHOICE,			// 選択肢表示
 		RESULT,			// 結果表示
 		END,					// シーン終了
+		PAUSE,				// 一時停止
 	};
 
 
@@ -71,6 +71,9 @@ private:
 	Message msg_;
 	// シーンの状態
 	SceneState state_;
+	// ポーズ前の状態を記録
+	SceneState stateBeforePause_;
+	
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
 	// 質問管理オブジェクト
@@ -97,6 +100,8 @@ private:
 	int selectedChoice_;
 	// 解答後の会話の保管庫
 	int afterTalkIndex_;
+	// ポーズメニューの選択肢インデックス
+	int pauseSelectIndex_;
 
 	// 結果の表示のタイマー
 	int resultTimer_;
@@ -109,4 +114,10 @@ private:
 	int prevQuestionIndex_;
 	// 前の選択肢
 	int prevSelectedChoice_;
+
+	// ポーズ状態での操作
+	bool pauseUpPressed_;
+	// 一時中断中の選択肢
+	int pauseSelected_;
+	
 };

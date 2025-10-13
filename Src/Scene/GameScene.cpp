@@ -120,6 +120,16 @@ void GameScene::Update(void)
 {
 	msg_.Update();
 
+	// ポーズ
+	if (CheckHitKey(KEY_INPUT_TAB))
+	{
+		if (state_ != SceneState::PAUSE)
+		{
+			stateBeforePause_ = state_;
+			state_ = SceneState::PAUSE;
+		}
+	}
+
 	switch (state_)
 	{
 	case SceneState::STORY:
@@ -146,7 +156,7 @@ void GameScene::Update(void)
 		if (msg_.IsFinished())
 		{
 			// 左右キーで選択
-			if (CheckHitKey(KEY_INPUT_A))
+			if (inputManager_.IsTrgDown(KEY_INPUT_A))
 			{ // 左
 				if (!leftPressed_)
 				{
@@ -160,7 +170,7 @@ void GameScene::Update(void)
 				leftPressed_ = false;
 			}
 
-			if (CheckHitKey(KEY_INPUT_D)) { // 右
+			if (inputManager_.IsTrgDown(KEY_INPUT_D)) { // 右
 				if (!rightPressed_)
 				{
 					selectedChoice_ = (selectedChoice_ + 1)
@@ -175,9 +185,6 @@ void GameScene::Update(void)
 
 			// 決定
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
-				//// カウントアップ
-				//auto& choice = questions_[questionIndex_].choices[selectedChoice_];
-				//choice.count++; // 選択肢の選ばれた回数をカウント
 				prevQuestionIndex_ = questionIndex_;
 				prevSelectedChoice_ = selectedChoice_;
 
@@ -227,7 +234,8 @@ void GameScene::Update(void)
 		{
 			// 次の質問へ
 			int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
-			if (next == -1) {
+			if (next == -1)
+			{
 				state_ = SceneState::END;
 				msg_.SetMessage("これで終わりだよ。");
 			}
@@ -258,6 +266,36 @@ void GameScene::Update(void)
 		}
 		break;
 		}
+
+	case SceneState::PAUSE:
+		if (inputManager_.IsTrgDown(KEY_INPUT_W))
+		{
+			pauseSelectIndex_ = (pauseSelectIndex_ - 1 + 2) % 3;
+		}
+		if (inputManager_.IsTrgDown(KEY_INPUT_S))
+		{
+			pauseSelectIndex_ = (pauseSelectIndex_ + 1) % 3;
+		}
+
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		{
+			if (pauseSelectIndex_ == 0)
+			{
+				// 続ける
+				state_ = stateBeforePause_;
+			}
+			else if (pauseSelectIndex_ == 1)
+			{
+				// タイトルへ戻る
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+			}
+			else if (pauseSelectIndex_ == 2)
+			{
+				// 終了
+				DxLib_End();
+			}
+		}
+		break;
 	}
 
 	if (CheckHitKey(KEY_INPUT_BACK))
@@ -342,12 +380,31 @@ void GameScene::Draw(void)
 			}
 		}
 	}
-	else if (state_ == SceneState::RESULT){
+	else if (state_ == SceneState::PAUSE)
+	{
+		// 画面を少し暗くする
+		DrawBox(0, 0, 1920, 1080, GetColor(0, 0, 0), TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150); // 半透明黒
+		DrawBox(0, 0, 1920, 1080, GetColor(0, 0, 0), TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+		SetFontSize(100);
+		// メニュータイトル
+		DrawString(650, 300, "ポーズ中", GetColor(255, 255, 0));
+
+		// 選択肢
+		DrawString(650, 400, pauseSelectIndex_ == 0 ? "> 続ける" : "  続ける", GetColor(255, 255, 255));
+		DrawString(650, 500, pauseSelectIndex_ == 1 ? "> タイトルへ" : "  タイトルへ", GetColor(255, 255, 255));
+		DrawString(650, 600, pauseSelectIndex_ == 2 ? "> 終了する" : "  終了する", GetColor(255, 255, 255));
+	}
+	else if (state_ == SceneState::RESULT)
+	{
 		// 最終結果表示
 		if (prevQuestionIndex_ >= 0 && prevQuestionIndex_ < (int)questions_.size()) {
 			DrawChoices(questions_[prevQuestionIndex_].choices, -1, true);
 		}
 	}
+
 }
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent)

@@ -12,6 +12,7 @@ int WINAPI WinMain(
 	// インスタンスの生成
 	Application::CreateInstance();
 
+
 	// インスタンスの取得
 	Application& instance = Application::GetInstance();
 

@@ -44,7 +44,6 @@ void Application::Init(void)
 		return;
 	}
 
-	// 乱数のシード値を設定する
 	DATEDATA date;
 
 	// 現在時刻を取得する
@@ -70,7 +69,8 @@ void Application::Run(void)
 	SceneManager& sceneManager = SceneManager::GetInstance();
 
 	// ゲームループ
-	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
+//	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
+	while (ProcessMessage() == 0)
 	{
 
 		inputManager.Update();
