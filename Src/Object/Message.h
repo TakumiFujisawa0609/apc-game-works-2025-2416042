@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <cstdlib> // mblen
+#include "../Manager/InputManager.h"
 
 class Message
 {
@@ -30,6 +31,8 @@ public:
 	void Release(void);
 	// 全て表示の確認
 	bool IsFinished(void) const;
+	// 文章を全て表示
+	void Skip(void);
 
 private:
 	// メッセージを改行するごとに分割する関数
@@ -38,8 +41,18 @@ private:
 	std::string SubstrMBCS(const std::string& src, int charCount);
 
 #pragma region 変数宣言
+	InputManager& inputManager_;
+
 	// 改行ごとに分割した文章
 	std::vector<std::string> messageLines_; 
+
+	// 全文
+	std::string fullText_;
+	// 表示中の文章
+	std::string displayText_;
+
+	// 現在表示してる文字のインデックス
+	int charIndex_;
 
 	// 現在表示してる文字数
 	int charCount_;
@@ -53,8 +66,11 @@ private:
 	bool finished_;
 	// 点滅用カウンタ
 	int blinkCounter_;
-
+	// 次の文章へ進むまでの待機カウンタ
+	int waitCounter_;
 	// 次の文章へ進むフラグ
 	bool next_;
+	// スキップフラグ
+	bool skipped_;
 };
 

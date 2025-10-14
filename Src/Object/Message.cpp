@@ -3,6 +3,7 @@
 #include "Message.h"
 
 Message::Message(void)
+	:inputManager_(InputManager::GetInstance())
 {
 }
 
@@ -19,6 +20,7 @@ void Message::Init(void)
 	charSpeed_ = 1;   // 文字表示速度（フレーム数）
 	finished_ = true;  // 全て表示したか
 	blinkCounter_ = 0; // 点滅用カウンタ
+	skipped_ = false;
 }
 
 void Message::SetMessage(const std::string& message)
@@ -35,21 +37,36 @@ void Message::Update(void)
 {
 	if (finished_ || messageLines_.empty()) return;
 
+	// スペースキーが押されたら全文を即表示
+	if (!skipped_ && !finished_&&  inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+	{
+		// 全ての行を最後まで表示状態にする
+		currentLine_ = (int)messageLines_.size() - 1;
+		charCount_ = (int)messageLines_.back().size();
+		skipped_ = true;
+		return;
+	}
+
+	if (finished_) return;
+
 	// 一定時間ごとに1文字ずつ表示
 	frameCount_++;
 	if (frameCount_ >= charSpeed_) {
 		frameCount_ = 0;
 
 		// 文字がまだ残ってるなら次を表示
-		if (charCount_ < (int)messageLines_[currentLine_].size()) {
+		if (charCount_ < (int)messageLines_[currentLine_].size()) 
+		{
 			charCount_++;
 		}
-		else if (currentLine_ + 1 < (int)messageLines_.size()) {
+		else if (currentLine_ + 1 < (int)messageLines_.size())
+		{
 			// 次の行に移る
 			currentLine_++;
 			charCount_ = 0;
 		}
-		else {
+		else 
+		{
 			finished_ = true;
 		}
 	}
@@ -59,7 +76,7 @@ void Message::Update(void)
 void Message::Draw(int x, int y)
 {
 	// フォントのサイズ
-	SetFontSize(60);
+	SetFontSize(50);
 
 	int drawX = x;
 	int drawY = y;
@@ -87,15 +104,15 @@ void Message::Draw(int x, int y)
 			SetFontSize(40);
 			DrawFormatString(drawX + 1460, 250, GetColor(255, 255, 255), "SPACE");
 			
-			SetFontSize(60);
+			SetFontSize(50);
 		}
 	}
 #pragma region デバック
-	// デバッグ表示
-	DrawFormatString(50, 400, GetColor(255, 0, 0),
-		"frame=%d  charCount=%d / %d",
-		frameCount_, charCount_, (int)messageLines_.size());
-#pragma endregion
+//	// デバッグ表示
+//	DrawFormatString(50, 400, GetColor(255, 0, 0),
+//		"frame=%d  charCount=%d / %d",
+//		frameCount_, charCount_, (int)messageLines_.size());
+//#pragma endregion
 }
 
 void Message::Release(void)
@@ -105,6 +122,15 @@ void Message::Release(void)
 bool Message::IsFinished(void) const
 {
 	return finished_;
+}
+
+void Message::Skip(void)
+{
+	// 全文を一気に表示する
+	displayText_ = fullText_;
+	charIndex_ = static_cast<int>(fullText_.size());
+	// 表示完了フラグ
+	finished_ = true;
 }
 
 std::vector<std::string> Message::SplitMessage(const std::string& message)
@@ -127,9 +153,9 @@ std::string Message::SubstrMBCS(const std::string& src, int charCount)
 	int i = 0;
 
 	while (i < len && charCount > 0) {
-		int bytes = mblen(p, MB_CUR_MAX); // 1文字が何バイトか取得
-		if (bytes <= 0) break;            // エラー or 終端
-		result.append(p, bytes);          // そのバイト数ぶんコピー
+		int bytes = mblen(p, MB_CUR_MAX);	// 1文字が何バイトか取得
+		if (bytes <= 0) break;							// エラー or 終端
+		result.append(p, bytes);						// そのバイト数ぶんコピー
 		p += bytes;
 		i += bytes;
 		charCount--;

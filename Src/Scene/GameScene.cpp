@@ -52,31 +52,36 @@ void GameScene::Init(void)
 		{{"パン" , 1, 470, 760} ,
 		{ "ご飯" , 2, 1330, 760 }}
 		},
-	 { "じゃーパンは何が好き？",
-		{ {"焼きたて", 3, 410, 760}, 
-		{"バター", 3, 1310, 760}}
+	 { "日本でパンの製造ができなくなり、輸入にしか頼るしかなくなった。\n"
+		"値段は今の10倍だけど、それでも君はパンを購入する？",
+		{ {"購入する", -1, 440, 760}, 
+		{"購入しない", -1, 1270, 760}}
 		},
-		{ "じゃー和食派？洋食派？",
-		{ {"和食派", 3, 450, 760},
-		{"洋食派", 3, 1310, 760} }
-		},
-		{
-		"ピカチュウ?",
-		{ {"ピカチュウ", -1,  380, 760},
-		{"ピカチュウ", -1, 1280, 760} }
+	{ "世界的にお米の生産が大幅に減少し、お米の価値が高騰した。\n"
+		"値段は今の10倍となった場合、それでも君はご飯を選ぶ？",
+		{ {"選ぶ", -1, 480, 760},
+		{"選ばない", -1, 1290, 760} }
 		},
 	};
 
 	// 解答後の会話の初期化
 	afterTalks_ = {
-		{"なるほど、君はパン派なんだね。", 0, 0},
-		{"なるほど、君はご飯派なんだね。", 0, 1},
-		{"そうなんだ。僕は焼きたてのパンが好きだな。", 1, 0},
-		{"そうなんだ。僕はバターたっぷりのパンが好きだな。", 1, 1},
-		{"そうなんだ。僕は和食派かな。", 2, 0},
-		{"そうなんだ。僕は洋食派かな。", 2, 1},
-		{"ピカチュウ", 3, 0},
-		{"ピカチュウ。", 3, 1},
+	{{"なるほど、君はパン派なんだね。",
+		"確かに、パンは色んな種類があって美味しいよね。",
+		"なら、もし日本での製造ができない場合って考えたことある？"},0, 0},
+	{{"なるほど、君はご飯派なんだね。",
+		"確かに、ご飯をしばらく食べてないと恋しくなるくらい\n"
+		"日本人にとって欠かせない食べ物だよね。",
+		"なら、お米の生産が物凄く減ったを考えたことはある？"},0, 1},
+	{{"そうなんだね。\n"
+		"君はお金をかけてでも食べたいくらいパンが好きなんだね。"	}, 1, 0},
+	{{"そうなんだね。\n"
+		"やっぱり物価が高騰した状態では購入するのは厳しいよね。"}, 1, 1},
+	{{"なるほど！\n"
+		"素晴らしい！君は日本人の鑑だ！！",
+		"君はお金を使ってでもご飯を食べたいんだね！",}, 2, 0},
+	{{"そうなんだ。\n"
+		"ご飯を選んでも物価の高騰で値段が上がると選びにくいよね。"}, 2, 1},
 	};
 
 	// メッセージの初期化
@@ -121,131 +126,157 @@ void GameScene::Update(void)
 	msg_.Update();
 
 	// ポーズ
-	if (CheckHitKey(KEY_INPUT_TAB))
+	if (inputManager_.IsTrgDown(KEY_INPUT_TAB))
 	{
 		if (state_ != SceneState::PAUSE)
 		{
 			stateBeforePause_ = state_;
 			state_ = SceneState::PAUSE;
+			pauseSelectIndex_ = 0;
 		}
 	}
+
 
 	switch (state_)
 	{
 	case SceneState::STORY:
 		// ストーリーを表示して終わったら次の文章へ
-		if (msg_.IsFinished() && CheckHitKey(KEY_INPUT_SPACE))
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
-			storyIndex_++;
-			if (storyIndex_ < (int)story_.size())
+			// まだ表示中なら一気に表示
+			if (!msg_.IsFinished())
 			{
-				msg_.SetMessage(story_[storyIndex_]);
+				msg_.Skip();
 			}
 			else
 			{
-				// ストーリー終わったら問いへ
-			//	storyIndex_ = 0;
-				state_ = SceneState::QUESTION;
-				msg_.SetMessage(questions_[questionIndex_].text);
+				// 次の文章へ
+				storyIndex_++;
+				if (storyIndex_ < (int)story_.size())
+				{
+					msg_.SetMessage(story_[storyIndex_]);
+				}
+				else
+				{
+					// ストーリー終わったら問いへ
+				//	storyIndex_ = 0;
+					state_ = SceneState::QUESTION;
+					msg_.SetMessage(questions_[questionIndex_].text);
+				}
 			}
 		}
 		break;
 
 	case SceneState::QUESTION:
-		// 問いを表示して選択肢が選ばれたら結果へ
-		if (msg_.IsFinished())
+		if (!msg_.IsFinished())
+			break; // 表示中なら選択肢操作は無効
+
+		// 左右で選択
+		if (inputManager_.IsTrgDown(KEY_INPUT_A) && !leftPressed_)
 		{
-			// 左右キーで選択
-			if (inputManager_.IsTrgDown(KEY_INPUT_A))
-			{ // 左
-				if (!leftPressed_)
+			selectedChoice_ = (selectedChoice_ - 1 + (int)questions_[questionIndex_].choices.size())
+				% (int)questions_[questionIndex_].choices.size();
+			leftPressed_ = true;
+		}
+		else if (!inputManager_.IsTrgDown(KEY_INPUT_A))
+		{
+			leftPressed_ = false;
+		}
+
+		if (inputManager_.IsTrgDown(KEY_INPUT_D) && !rightPressed_)
+		{
+			selectedChoice_ = (selectedChoice_ + 1) % (int)questions_[questionIndex_].choices.size();
+			rightPressed_ = true;
+		}
+		else if (!inputManager_.IsTrgDown(KEY_INPUT_D))
+		{
+			rightPressed_ = false;
+		}
+
+		// 決定
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		{
+			prevQuestionIndex_ = questionIndex_;
+			prevSelectedChoice_ = selectedChoice_;
+
+			questionManager_.SelectChoice(questionIndex_, selectedChoice_);
+			questionManager_.SaveData();
+
+			// アフタートーク検索
+			afterTalkIndex_ = -1;
+			for (int i = 0; i < (int)afterTalks_.size(); i++)
+			{
+				if (afterTalks_[i].questionIndex == questionIndex_ &&
+					afterTalks_[i].choiceIndex == selectedChoice_)
 				{
-					selectedChoice_ = (selectedChoice_ - 1 + (int)questions_[questionIndex_].choices.size())
-						% (int)questions_[questionIndex_].choices.size();
-					leftPressed_ = true;
+					afterTalkIndex_ = i;
+					break;
 				}
+			}
+
+			if (afterTalkIndex_ >= 0)
+			{
+				state_ = SceneState::ANSWER_TALK;
+				currentLineIndex_ = 0;
+				isAfterTalkActive_ = true;
+				msg_.SetMessage(afterTalks_[afterTalkIndex_].lines[currentLineIndex_]);
 			}
 			else
 			{
-				leftPressed_ = false;
-			}
-
-			if (inputManager_.IsTrgDown(KEY_INPUT_D)) { // 右
-				if (!rightPressed_)
+				int follow = questions_[questionIndex_].choices[selectedChoice_].nextIndex;
+				if (follow >= 0)
 				{
-					selectedChoice_ = (selectedChoice_ + 1)
-						% (int)questions_[questionIndex_].choices.size();
-					rightPressed_ = true;
-				}
-			}
-			else
-			{
-				rightPressed_ = false;
-			}
-
-			// 決定
-			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE)) {
-				prevQuestionIndex_ = questionIndex_;
-				prevSelectedChoice_ = selectedChoice_;
-
-				// 全体集計
-				questionManager_.SelectChoice(questionIndex_, selectedChoice_);
-				questionManager_.SaveData();
-
-				afterTalkIndex_ = -1;
-				for (int i = 0; i < (int)afterTalks_.size(); i++)
-				{
-					if (afterTalks_[i].questionIndex == questionIndex_ &&
-						afterTalks_[i].choiceIndex == selectedChoice_)
-					{
-						afterTalkIndex_ = i;
-						break;
-					}
-				}
-
-				//	resultLog_.push_back({ questions_[questionIndex_].text, choice.text });
-
-				if (afterTalkIndex_ >= 0)
-				{
-					// アフタートークの文をセットして遷移
-					msg_.SetMessage(afterTalks_[afterTalkIndex_].text);
-					state_ = SceneState::ANSWER_TALK;
+					questionIndex_ = follow;
+					msg_.SetMessage(questions_[questionIndex_].text);
 				}
 				else
 				{
-					// アフタートークが見つからなければそのまま次へ
-					int follow = questions_[questionIndex_].choices[selectedChoice_].nextIndex;
-					if (follow >= 0) {
-						questionIndex_ = follow;
-						msg_.SetMessage(questions_[questionIndex_].text);
-						state_ = SceneState::QUESTION;
-					}
-					else
-					{
-						state_ = SceneState::END;
-					}
+					state_ = SceneState::END;
 				}
 			}
-			break;
+		}
+		break;
+
 
 	case SceneState::ANSWER_TALK:
-		// 選択した後の会話を表示して終わったら結果へ
-		if (msg_.IsFinished() && inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		// スペースキーで次の行へ
+		if (!msg_.IsFinished())
+			break;
+
+		// アフタートークを表示して終わったら次の問いへ		
+
+			// スペースで次の行へ
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
-			// 次の質問へ
-			int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
-			if (next == -1)
+			currentLineIndex_++;
+			auto& lines = afterTalks_[afterTalkIndex_].lines;
+
+			// 最後まで表示したら通常ルートへ戻る
+			if (currentLineIndex_ >= static_cast<int>(lines.size()))
 			{
-				state_ = SceneState::END;
-				msg_.SetMessage("これで終わりだよ。");
+				isAfterTalkActive_ = false;
+
+				// 次の質問へ（元の処理をここに移動）
+				int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
+				if (next >= 0)
+				{
+					questionIndex_ = next;
+					state_ = SceneState::QUESTION;
+					msg_.SetMessage(questions_[questionIndex_].text);
+				}
+				else
+				{
+					state_ = SceneState::END;
+					msg_.SetMessage("これで実験は終わりだよ。\n遊んでくれてありがとう！");
+				}
 			}
 			else
 			{
-				questionIndex_ = next;
-				state_ = SceneState::QUESTION;
-				msg_.SetMessage(questions_[questionIndex_].text);
+				// 次の行をセット
+				msg_.SetMessage(lines[currentLineIndex_]);
 			}
 		}
+
 		break;
 
 	case SceneState::RESULT:
@@ -259,24 +290,32 @@ void GameScene::Update(void)
 
 	case SceneState::END:
 		// 最後の文章を表示して終わったらクリアシーンへ
-		if (msg_.IsFinished() && CheckHitKey(KEY_INPUT_SPACE))
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
-			// シーン終了
-			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+			if (!msg_.IsFinished())
+			{
+				msg_.Skip();
+			}
+			else
+			{
+				// シーン終了
+				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
+			}
 		}
 		break;
-		}
 
 	case SceneState::PAUSE:
+		// ポーズメニューの操作
 		if (inputManager_.IsTrgDown(KEY_INPUT_W))
 		{
-			pauseSelectIndex_ = (pauseSelectIndex_ - 1 + 2) % 3;
+			pauseSelectIndex_ = (pauseSelectIndex_ - 1 + 3) % 3;
 		}
 		if (inputManager_.IsTrgDown(KEY_INPUT_S))
 		{
 			pauseSelectIndex_ = (pauseSelectIndex_ + 1) % 3;
 		}
 
+		// 決定
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
 			if (pauseSelectIndex_ == 0)
@@ -289,20 +328,22 @@ void GameScene::Update(void)
 				// タイトルへ戻る
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
 			}
-			else if (pauseSelectIndex_ == 2)
+			else
 			{
 				// 終了
 				DxLib_End();
 			}
+			break;
 		}
-		break;
-	}
 
-	if (CheckHitKey(KEY_INPUT_BACK))
-	{
-		questionManager_.ResetData();
+		// デバッグ用：Rキーでデータリセット
+		if (inputManager_.IsTrgDown(KEY_INPUT_BACK))
+		{
+			questionManager_.ResetData();
+		}
 	}
 }
+
 void GameScene::Draw(void)
 {
 	// 背景画像の描画
@@ -310,23 +351,27 @@ void GameScene::Draw(void)
 	// 吹き出しの描画
 	DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
 	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // 黒い枠線
-
+	// 吹き出しのメッセージ描画
 	msg_.Draw(165, 65);
 	
 	if (state_ == SceneState::QUESTION) {
-		// 問いの背景枠(左側)	DrawBox(左側面、上、右側面、下) 
+		// 問いの選択肢の背景枠(左側)	DrawBox(左側面、上、右側面、下) 
 		DrawBox(325, 490, 740, 880,  GetColor(255, 255, 255), true);  // 白背景
 		DrawBox(330, 495, 735, 875, GetColor(0, 0, 0), true);       // 黒枠線
 
-		// 問いの背景枠(右側)
+		// 問いの選択肢の背景枠(右側)
 		DrawBox(1180, 490, 1595, 880, GetColor(255, 255, 255), true);  // 白背景
 		DrawBox(1185, 495, 1590, 875, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
+
+		// 左右キーのヒント
+		SetFontSize(60);
+		DrawFormatString(0, 1000, GetColor(255, 255, 255), "A/Dキーで操作、Spaceで選択");
 	}
+	// 解答後の会話と結果表示
 	else if (state_ == SceneState::ANSWER_TALK) {
-		// --- ANSWER_TALK 内の該当部分をこれに置き換えてください ---
 		if (afterTalkIndex_ >= 0 && afterTalkIndex_ < (int)afterTalks_.size()) {
 
 			const auto& talk = afterTalks_[afterTalkIndex_];
@@ -345,11 +390,11 @@ void GameScene::Draw(void)
 			const auto& questionData = managerQuestions[talk.questionIndex];
 
 			// 描画枠
-			DrawBox(300, 450, 1600, 950, GetColor(255, 255, 255), true);
-			DrawBox(305, 455, 1595, 945, GetColor(0, 0, 0), true);
+			DrawBox(160, 450, 1735, 950, GetColor(255, 255, 255), true);
+			DrawBox(165, 455, 1730, 945, GetColor(0, 0, 0), true);
 
 			// 元の問い（見た目）
-			DrawString(350, 470, question.text.c_str(), GetColor(255, 255, 255));
+			DrawString(175, 470, question.text.c_str(), GetColor(255, 255, 255));
 
 			// 合計票数（manager 側）
 			int total = 0;
@@ -365,7 +410,7 @@ void GameScene::Draw(void)
 				if (i < questionData.choiceCounts.size()) {
 					count = questionData.choiceCounts[i];
 				}
-
+				// 割合計算
 				float percent = (total > 0) ? (100.0f * count / (float)total) : 0.0f;
 
 				int color = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
@@ -375,8 +420,9 @@ void GameScene::Draw(void)
 
 				// 割合（と件数）
 				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent, count);
-
-				y += 60; // 次の行へ
+				
+				// 次の行へ
+				y += 60; 
 			}
 		}
 	}
@@ -387,6 +433,10 @@ void GameScene::Draw(void)
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150); // 半透明黒
 		DrawBox(0, 0, 1920, 1080, GetColor(0, 0, 0), TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+		// ポーズメニューの操作ヒント
+		SetFontSize(60);
+		DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキーで操作、Spaceで選択");
 
 		SetFontSize(100);
 		// メニュータイトル
@@ -409,11 +459,13 @@ void GameScene::Draw(void)
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent)
 {
+	// 選択肢の描画
 	int total = 0;
 	if (showPercent) {
 		for (auto& c : choices) total += c.count;
 	}
 
+	// 
 	for (size_t i = 0; i < choices.size(); i++) {
 		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
 
@@ -449,7 +501,6 @@ void GameScene::NextQuestion(int nextIndex_)
 	{
 		// 全問終了 → 終了メッセージへ
 		state_ = SceneState::END;
-		msg_.SetMessage("これで実験は終了だよ。\nお疲れ様！");
 	}
 }
 

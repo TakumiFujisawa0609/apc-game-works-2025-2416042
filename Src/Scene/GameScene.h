@@ -20,7 +20,7 @@ struct Question {
 };
 
 struct AfterTalk {
-	std::string text;
+	std::vector<std::string> lines;
 	int questionIndex;
 	int choiceIndex;
 };
@@ -102,6 +102,8 @@ private:
 	int afterTalkIndex_;
 	// ポーズメニューの選択肢インデックス
 	int pauseSelectIndex_;
+	// 一行ずつ表示するためのインデックス
+	int currentLineIndex_;
 
 	// 結果の表示のタイマー
 	int resultTimer_;
@@ -120,4 +122,6 @@ private:
 	// 一時中断中の選択肢
 	int pauseSelected_;
 	
+	// アフタートーク中かどうか	
+	bool isAfterTalkActive_;
 };
