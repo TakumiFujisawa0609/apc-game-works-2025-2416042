@@ -335,12 +335,11 @@ void GameScene::Update(void)
 			}
 			break;
 		}
-
-		// デバッグ用：Rキーでデータリセット
-		if (inputManager_.IsTrgDown(KEY_INPUT_BACK))
-		{
-			questionManager_.ResetData();
-		}
+	}
+	// デバッグ用：Rキーでデータリセット
+	if (inputManager_.IsTrgDown(KEY_INPUT_BACK))
+	{
+		questionManager_.ResetData();
 	}
 }
 
