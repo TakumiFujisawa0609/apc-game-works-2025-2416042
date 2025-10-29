@@ -19,6 +19,8 @@ TitleScene::~TitleScene(void)
 void TitleScene::Init(void)
 {
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title1.png").c_str());
+	bgmHandle_ = LoadSoundMem((Application::PATH_DATA + "BGM/TitleScene.mp3").c_str());
+	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
 }
 
 void TitleScene::Update(void)
@@ -67,6 +69,9 @@ void TitleScene::Update(void)
 	// 全てのキーのうち、どれかを押したら画面遷移
 	for (int key = 0; key < 256; key++) {
 		if (ins.IsTrgDown(key)) {
+			// BGM停止
+			StopSoundMem(bgmHandle_);
+			// ゲームシーンへ遷移
 			SceneManager::GetInstance().ChangeScene(
 				SceneManager::SCENE_ID::GAME);
 			break; // 一つでも押されたら遷移
@@ -108,5 +113,10 @@ void TitleScene::Draw(void)
 
 void TitleScene::Release(void)
 {
+	// 画像解放
 	DeleteGraph(imgTitle_);
+
+	// BGM解放
+	StopSoundMem(bgmHandle_);
+	DeleteSoundMem(bgmHandle_);
 }

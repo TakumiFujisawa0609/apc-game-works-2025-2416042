@@ -44,6 +44,7 @@ private:
 	int pauseSelect_;
 	// ƒQ[ƒ€ƒNƒŠƒA‰æ‘œ
 	int imgGameClear_;
-
+	// BGM
+	int bgmHandle_;
 };
 

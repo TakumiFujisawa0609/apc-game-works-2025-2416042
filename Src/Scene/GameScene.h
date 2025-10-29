@@ -14,17 +14,25 @@ struct Choice {
 	int count = 0;
 };
 
+// 質問と選択肢のセット
 struct Question {
 	std::string text;
 	std::vector<Choice> choices;
 };
 
+// 解答後の会話
 struct AfterTalk {
 	std::vector<std::string> lines;
 	int questionIndex;
 	int choiceIndex;
 };
 
+// 選択肢の結果
+struct ChoiceResult {
+	int questionIndex = -1;
+	std::string questionText;
+	std::string selectedChoiceText;
+};
 
 class GameScene : public SceneBase
 {
@@ -38,6 +46,12 @@ class GameScene : public SceneBase
 		PAUSE,				// 一時停止
 	};
 
+	// リザルト
+	enum class ResultState
+	{
+		LIST,			// 一覧表示
+		DETAIL,		// 詳細表示
+	};
 
 public:
 	static const int START_Y = 740;			  // 吹き出し内の縦位置
@@ -67,13 +81,15 @@ public:
 
 private:
 #pragma region 変数宣言
-	// メッセージオブジェクト
-	Message msg_;
 	// シーンの状態
 	SceneState state_;
 	// ポーズ前の状態を記録
 	SceneState stateBeforePause_;
+	// リザルトの状態
+	ResultState resultState_;
 	
+	// メッセージオブジェクト
+	Message msg_;
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
 	// 質問管理オブジェクト
@@ -85,12 +101,13 @@ private:
 	std::vector<Question> questions_;
 	// 解答後の会話リスト
 	std::vector<AfterTalk> afterTalks_;
-
-	// 選択肢と結果のログ
-	std::vector<std::pair<std::string, std::string>> resultLog_;
+	// リザルトリスト
+	std::vector<ChoiceResult> results_;
 
 	// ゲーム背景
 	int gImage_;
+	// 通常BGM
+	int bgmHandle_;
 
 	// ストーリーの保管庫
 	int storyIndex_;
@@ -104,19 +121,22 @@ private:
 	int pauseSelectIndex_;
 	// 一行ずつ表示するためのインデックス
 	int currentLineIndex_;
+	// 結果一覧の選択肢インデックス
+	int resultSelectIndex_;
 
 	// 結果の表示のタイマー
 	int resultTimer_;
-
-	// 左右キーの押下状態
-	bool leftPressed_;
-	bool rightPressed_;
 
 	// 前の問い
 	int prevQuestionIndex_;
 	// 前の選択肢
 	int prevSelectedChoice_;
 
+	// 左右キーの押下状態
+	bool leftPressed_;
+	bool rightPressed_;
+	// 上下キーの押下状態
+	bool pauseDownPressed_;
 	// ポーズ状態での操作
 	bool pauseUpPressed_;
 	// 一時中断中の選択肢
@@ -124,4 +144,9 @@ private:
 	
 	// アフタートーク中かどうか	
 	bool isAfterTalkActive_;
+
+	// リザルトの構造体
+	bool resultDisplayed_;
+	int resultType_;
+
 };

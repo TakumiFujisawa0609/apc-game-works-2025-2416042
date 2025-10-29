@@ -44,5 +44,6 @@ private:
 
 	// ‰æ‘œ
 	int imgTitle_;
-
+	// BGM
+	int bgmHandle_;
 };
