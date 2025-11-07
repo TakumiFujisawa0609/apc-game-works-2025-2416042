@@ -73,7 +73,12 @@ void GameScene::Init(void)
 	// 問いの内容
 	questions_ = {
 		{
-		"もし、今後人生でパンかご飯の片方だけしか\n"
+			"もし、今後人生でパンかご飯の片方だけしか\n"
+		"食べられないとしたら、どちらを選ぶ？",
+		{{"パン" , -1, 470, 760} ,
+		{ "ご飯" , -1, 1330, 760 }}
+		},
+		/*"もし、今後人生でパンかご飯の片方だけしか\n"
 		"食べられないとしたら、どちらを選ぶ？",
 		{{"パン" , 1, 470, 760} ,
 		{ "ご飯" , 2, 1330, 760 }}
@@ -87,7 +92,7 @@ void GameScene::Init(void)
 		"値段は今の10倍となった場合、それでも君はご飯を選ぶ？",
 		{ {"選ぶ", -1, 480, 760},
 		{"選ばない", -1, 1290, 760} }
-		},
+		},*/
 	};
 
 	// 解答後の会話
@@ -99,7 +104,7 @@ void GameScene::Init(void)
 		"確かに、ご飯をしばらく食べていないと恋しくなるくらい\n"
 		"日本人にとって欠かせない食べ物だよね。",
 		"なら、お米の生産が物凄く減った場合って考えたことはある？"},0, 1},
-	{{"そうなんだね。\n"
+	/*{{"そうなんだね。\n"
 		"君はお金を使ってでも食べたいくらいパンが大好きなんだね。"	}, 1, 0},
 	{{"そうなんだね。\n"
 		"やっぱり物価が高騰した状態では購入するのは厳しいよね。"}, 1, 1},
@@ -107,7 +112,7 @@ void GameScene::Init(void)
 		"素晴らしい！君は日本人の鑑だ！！",
 		"君はお金を使ってでもご飯を食べたいんだね！",}, 2, 0},
 	{{"そうなんだ。\n"
-		"ご飯を選んでも物価の高騰で値段が上がると選びにくいよね。"}, 2, 1},
+		"ご飯を選んでも物価の高騰で値段が上がると選びにくいよね。"}, 2, 1},*/
 	};
 
 	// メッセージの初期化
@@ -359,6 +364,9 @@ void GameScene::Update(void)
 		switch (resultState_)
 		{
 		case ResultState::LIST:
+			int listSize = static_cast<int>(results_.size());
+			int totalOptions = listSize + 1; // 結果リスト＋「次に進む」
+
 			// W/Sキーで選択項目を上下に移動
 			if (inputManager_.IsTrgDown(KEY_INPUT_W) && !pauseDownPressed_)
 			{
@@ -375,14 +383,14 @@ void GameScene::Update(void)
 				pauseDownPressed_ = false;
 			}
 
-			// Spaceキーで詳細表示へ遷移
+			// Spaceキー押下処理
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 			{
-				if (results_.size() > 0)
+				if (resultSelectIndex_ < listSize)
 				{
+					// 通常の詳細表示
 					resultState_ = ResultState::DETAIL;
 
-					// 詳細表示メッセージをセット
 					std::string detailMsg =
 						"【質問 " + std::to_string(resultSelectIndex_ + 1) + " の詳細】\n\n" +
 						results_[resultSelectIndex_].questionText + "\n\n" +
@@ -392,12 +400,12 @@ void GameScene::Update(void)
 				}
 				else
 				{
-					// 結果が無い場合はタイトルへ戻る
-					StopSoundMem(bgmHandle_);
-					SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+					// 「次に進む」選択時
+					state_ = SceneState::END;  // ENDシーンへ遷移
+					msg_.SetMessage("それじゃあ、次に進もう。");
 				}
 			}
-			break;
+		break;
 #pragma endregion
 
 #pragma region リザルト詳細表示
@@ -589,15 +597,19 @@ void GameScene::Draw(void)
 		// 画面全体を結果表示用に暗くしない（QUESTION/ANSWER_TALKと同じ背景）
 
 		// メインメッセージボックスの描画
-		DrawBox(145, 45, 1750, 950, GetColor(255, 255, 255), true);   // 白い背景
-		DrawBox(150, 50, 1745, 945, GetColor(0, 0, 0), true);        // 黒い枠線
+		DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // 白い背景
+		DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // 黒い枠線
+
+		// 描画枠
+		DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
+		DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
 
 		SetFontSize(36);
 
 		// 「全問解答結果」を中央上部に表示
-		DrawString(816, 60, "【全問解答結果】", GetColor(255, 255, 0));
+		DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
 
-		DrawLine(160, 100, 1735, 100, GetColor(255, 255, 255));
+		DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
 
 
 		switch (resultState_)
@@ -607,26 +619,25 @@ void GameScene::Draw(void)
 			SetFontSize(32);
 			for (size_t i = 0; i < results_.size(); i++)
 			{
-				int y = 120 + (int)i * 60;
+				int y = 410 + (int)i * 60;
 				// 選択中の質問は色を変える
 				int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
 
-				// 修正点: 「問N: [選択内容]」の形式に変更
 				std::string line =
 					"問" + std::to_string(i + 1) + ": " + results_[i].selectedChoiceText;
 
-				DrawString(170, y, line.c_str(), color);
+				DrawString(210, y, line.c_str(), color);
 
 				// 選択中の行にカーソルを付ける
 				if (i == resultSelectIndex_)
 				{
-					DrawString(140, y, ">", color);
+					DrawString(180, y, ">", color);
 				}
 			}
 
 			// 操作ヒント
 			SetFontSize(40);
-			DrawFormatString(170, 900, GetColor(255, 255, 0), "W/Sキーで選択、Spaceで詳細表示、Escape/Tabでタイトルへ");
+			DrawFormatString(170, 1200, GetColor(255, 255, 0), "W/Sキーで選択、Spaceで詳細表示、Escape/Tabでタイトルへ");
 			break;
 
 		case ResultState::DETAIL:
