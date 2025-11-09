@@ -1,4 +1,4 @@
-#include <DxLib.h>
+ï»¿#include <DxLib.h>
 #include <string>
 #include <vector>
 #include "../Manager/InputManager.h"
@@ -7,36 +7,37 @@
 #include "../Object/Message.h"
 #include "GameScene.h"
 
-// ‰Æ‚ÌƒfƒBƒŒƒNƒgƒŠ
-// "C:\DxLib\ƒvƒƒWƒFƒNƒg‚É’Ç‰Á‚·‚×‚«ƒtƒ@ƒCƒ‹_VC—p"
-// ŠwZ‚ÌƒfƒBƒŒƒNƒgƒŠ
+// å®¶ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
+// "C:\DxLib\ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆã«è¿½åŠ ã™ã¹ããƒ•ã‚¡ã‚¤ãƒ«_VCç”¨"
+// å­¦æ ¡ã®ãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒª
 // $(DXLIB_DIR)
 
 GameScene::GameScene(void)
-	:inputManager_(InputManager::GetInstance())
-	, state_(SceneState::STORY)
-	, stateBeforePause_(SceneState::STORY)
-	, gImage_(-1)
-	, bgmHandle_(-1)
-	, storyIndex_(0)
-	, questionIndex_(0)
-	, selectedChoice_(0)
-	, afterTalkIndex_(-1)
-	, pauseSelectIndex_(0)
-	, currentLineIndex_(0)
-	, resultTimer_(0)
-	, leftPressed_(false)
-	, rightPressed_(false)
-	, prevQuestionIndex_(-1)
-	, prevSelectedChoice_(-1)
-	, pauseUpPressed_(false)
-	, pauseSelected_(0)
-	, isAfterTalkActive_(false)
-	, resultDisplayed_(false)
-	, resultType_(0)
-	, resultState_(ResultState::LIST)
-	, resultSelectIndex_(0)
-	, pauseDownPressed_(false)
+	:inputManager_(InputManager::GetInstance()),
+	state_(SceneState::STORY),
+	stateBeforePause_(SceneState::STORY),
+	gImage_(-1),
+	bgmHandle_(-1),
+	storyIndex_(0),
+	questionIndex_(0),
+	selectedChoice_(0),
+	afterTalkIndex_(-1),
+	pauseSelectIndex_(0),
+	currentLineIndex_(0),
+	resultTimer_(0),
+	leftPressed_(false),
+	rightPressed_(false),
+	prevQuestionIndex_(-1),
+	prevSelectedChoice_(-1),
+	pauseUpPressed_(false),
+	pauseSelected_(0),
+	isAfterTalkActive_(false),
+	resultDisplayed_(false),
+	resultType_(0),
+	resultState_(ResultState::LIST),
+	resultSelectIndex_(0),
+	pauseDownPressed_(false),
+	justEnteredList_(true)
 {
 }
 
@@ -46,82 +47,82 @@ GameScene::~GameScene(void)
 
 void GameScene::Init(void)
 {
-	// ”wŒi‰æ‘œ‚Ì“Ç‚İ‚İ
+	// èƒŒæ™¯ç”»åƒã®èª­ã¿è¾¼ã¿
 	gImage_ = LoadGraph("Data/Image/haikei.png");
-	// BGM‚Ì“Ç‚İ‚İ‚ÆÄ¶
+	// BGMã®èª­ã¿è¾¼ã¿ã¨å†ç”Ÿ
 	bgmHandle_ = LoadSoundMem("Data/BGM/GameScene.mp3");
 	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
 
-	// •¶Í‚Ì‰Šú‰»
+	// æ–‡ç« ã®åˆæœŸåŒ–
 	story_ = {
-		/*"‚â‚ŸA–Ú‚ªŠo‚ß‚½HB",
-		"‚±‚±‚Í¸_‚Æ•¨¿‚Ì‹·ŠÔ‚É‚ ‚éêŠB\n"
-		"ŒN‚É‚Í­‚µÀŒ±‚ğè“`‚Á‚Ä‚à‚ç‚¢‚½‚¢‚ñ‚¾B",
-		"‚È‚ÉAŠÈ’P‚È‚±‚Æ‚¾‚æB\n"
-		"‚½‚¾A–l‚ªo‘è‚·‚é–â‚¢‚É“š‚¦‚Ä‚à‚ç‚¤‚¾‚¯‚¾‚©‚çB",
-		"‚ ‚ŸA“ï‚µ‚¢–â‚¢‚Ío‚È‚¢‚©‚çˆÀS‚µ‚Ä‚¢‚¢‚æB\n"
-		"‚¿‚å‚Á‚Æ•¡G‚È–â‚¢‚Í‚ ‚é‚©‚à‚¾‚¯‚ÇAŒN‚È‚ç‘åä•vB",
-		"‚»‚ê‚¶‚á‚ An‚ß‚é‘O‚É­‚µ’ˆÓ“_‚ğà–¾‚·‚é‚ËB",
-		"‚Ü‚¸AŒN‚ª“š‚¦‚½–â‚¢‚Í‘S‚Ä‹L˜^‚³‚ê‚éB\n"
-		"‚¾‚©‚çA³’¼‚ÉŒN‚Ì‰¿’lŠÏ‚É‰ˆ‚Á‚Ä“š‚¦‚Ä‚ËB",
-		"‚»‚ê‚ÆAŒN‚ª“š‚¦‚½–â‚¢‚ÍŒã‚Å‰Â‹‰»‚³‚ê‚é‚©‚ç\n"
-		"Šy‚µ‚İ‚É‚µ‚Ä‚Ä‚ËB",
-		"‚»‚ê‚¶‚á‚ A€”õ‚ª‚Å‚«‚½‚ç\n"
-		"ƒXƒy[ƒXƒL[‚ğ‰Ÿ‚µ‚Än‚ß‚æ‚¤B",*/
-		"‚Ü‚¸‚Í—á‘è‚ğo‚µ‚Ä‚İ‚é‚ËB",
+		/*"ã‚„ãã€ç›®ãŒè¦šã‚ãŸï¼Ÿã€‚",
+		"ã“ã“ã¯ç²¾ç¥ã¨ç‰©è³ªã®ç‹­é–“ã«ã‚ã‚‹å ´æ‰€ã€‚\n"
+		"å›ã«ã¯å°‘ã—å®Ÿé¨“ã‚’æ‰‹ä¼ã£ã¦ã‚‚ã‚‰ã„ãŸã„ã‚“ã ã€‚",
+		"ãªã«ã€ç°¡å˜ãªã“ã¨ã ã‚ˆã€‚\n"
+		"ãŸã ã€åƒ•ãŒå‡ºé¡Œã™ã‚‹å•ã„ã«ç­”ãˆã¦ã‚‚ã‚‰ã†ã ã‘ã ã‹ã‚‰ã€‚",
+		"ã‚ãã€é›£ã—ã„å•ã„ã¯å‡ºãªã„ã‹ã‚‰å®‰å¿ƒã—ã¦ã„ã„ã‚ˆã€‚\n"
+		"ã¡ã‚‡ã£ã¨è¤‡é›‘ãªå•ã„ã¯ã‚ã‚‹ã‹ã‚‚ã ã‘ã©ã€å›ãªã‚‰å¤§ä¸ˆå¤«ã€‚",
+		"ãã‚Œã˜ã‚ƒã‚ã€å§‹ã‚ã‚‹å‰ã«å°‘ã—æ³¨æ„ç‚¹ã‚’èª¬æ˜ã™ã‚‹ã­ã€‚",
+		"ã¾ãšã€å›ãŒç­”ãˆãŸå•ã„ã¯å…¨ã¦è¨˜éŒ²ã•ã‚Œã‚‹ã€‚\n"
+		"ã ã‹ã‚‰ã€æ­£ç›´ã«å›ã®ä¾¡å€¤è¦³ã«æ²¿ã£ã¦ç­”ãˆã¦ã­ã€‚",
+		"ãã‚Œã¨ã€å›ãŒç­”ãˆãŸå•ã„ã¯å¾Œã§å¯è¦–åŒ–ã•ã‚Œã‚‹ã‹ã‚‰\n"
+		"æ¥½ã—ã¿ã«ã—ã¦ã¦ã­ã€‚",
+		"ãã‚Œã˜ã‚ƒã‚ã€æº–å‚™ãŒã§ããŸã‚‰\n"
+		"ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ã‚’æŠ¼ã—ã¦å§‹ã‚ã‚ˆã†ã€‚",*/
+		"ã¾ãšã¯ä¾‹é¡Œã‚’å‡ºã—ã¦ã¿ã‚‹ã­ã€‚",
 	};
-	// –â‚¢‚Ì“à—e
+	// å•ã„ã®å†…å®¹
 	questions_ = {
 		{
-			"‚à‚µA¡Œãl¶‚Åƒpƒ“‚©‚²”Ñ‚Ì•Ğ•û‚¾‚¯‚µ‚©\n"
-		"H‚×‚ç‚ê‚È‚¢‚Æ‚µ‚½‚çA‚Ç‚¿‚ç‚ğ‘I‚ÔH",
-		{{"ƒpƒ“" , -1, 470, 760} ,
-		{ "‚²”Ñ" , -1, 1330, 760 }}
+			"ã‚‚ã—ã€ä»Šå¾Œäººç”Ÿã§ãƒ‘ãƒ³ã‹ã”é£¯ã®ç‰‡æ–¹ã ã‘ã—ã‹\n"
+		"é£Ÿã¹ã‚‰ã‚Œãªã„ã¨ã—ãŸã‚‰ã€ã©ã¡ã‚‰ã‚’é¸ã¶ï¼Ÿ",
+		{{"ãƒ‘ãƒ³" , -1, 470, 760} ,
+		{ "ã”é£¯" , -1, 1330, 760 }}
 		},
-		/*"‚à‚µA¡Œãl¶‚Åƒpƒ“‚©‚²”Ñ‚Ì•Ğ•û‚¾‚¯‚µ‚©\n"
-		"H‚×‚ç‚ê‚È‚¢‚Æ‚µ‚½‚çA‚Ç‚¿‚ç‚ğ‘I‚ÔH",
-		{{"ƒpƒ“" , 1, 470, 760} ,
-		{ "‚²”Ñ" , 2, 1330, 760 }}
+		/*"ã‚‚ã—ã€ä»Šå¾Œäººç”Ÿã§ãƒ‘ãƒ³ã‹ã”é£¯ã®ç‰‡æ–¹ã ã‘ã—ã‹\n"
+		"é£Ÿã¹ã‚‰ã‚Œãªã„ã¨ã—ãŸã‚‰ã€ã©ã¡ã‚‰ã‚’é¸ã¶ï¼Ÿ",
+		{{"ãƒ‘ãƒ³" , 1, 470, 760} ,
+		{ "ã”é£¯" , 2, 1330, 760 }}
 		},
-	 { "“ú–{‚Åƒpƒ“‚Ì»‘¢‚ª‚Å‚«‚È‚­‚È‚èA—A“ü‚ğ—Š‚é‚µ‚©‚È‚­‚È‚Á‚½B\n"
-		"’l’i‚Í¡‚Ì10”{‚¾‚¯‚ÇA‚»‚ê‚Å‚àŒN‚Íƒpƒ“‚ğw“ü‚·‚éH",
-		{ {"w“ü‚·‚é", -1, 440, 760}, 
-		{"w“ü‚µ‚È‚¢", -1, 1270, 760}}
+	 { "æ—¥æœ¬ã§ãƒ‘ãƒ³ã®è£½é€ ãŒã§ããªããªã‚Šã€è¼¸å…¥ã‚’é ¼ã‚‹ã—ã‹ãªããªã£ãŸã€‚\n"
+		"å€¤æ®µã¯ä»Šã®10å€ã ã‘ã©ã€ãã‚Œã§ã‚‚å›ã¯ãƒ‘ãƒ³ã‚’è³¼å…¥ã™ã‚‹ï¼Ÿ",
+		{ {"è³¼å…¥ã™ã‚‹", -1, 440, 760}, 
+		{"è³¼å…¥ã—ãªã„", -1, 1270, 760}}
 		},
-	{ "¢ŠE“I‚É‚¨•Ä‚Ì¶Y‚ª‘å•‚ÉŒ¸­‚µA‚¨•Ä‚Ì‰¿’l‚ª‚“«‚µ‚½B\n"
-		"’l’i‚Í¡‚Ì10”{‚Æ‚È‚Á‚½ê‡A‚»‚ê‚Å‚àŒN‚Í‚²”Ñ‚ğ‘I‚ÔH",
-		{ {"‘I‚Ô", -1, 480, 760},
-		{"‘I‚Î‚È‚¢", -1, 1290, 760} }
+	{ "ä¸–ç•Œçš„ã«ãŠç±³ã®ç”Ÿç”£ãŒå¤§å¹…ã«æ¸›å°‘ã—ã€ãŠç±³ã®ä¾¡å€¤ãŒé«˜é¨°ã—ãŸã€‚\n"
+		"å€¤æ®µã¯ä»Šã®10å€ã¨ãªã£ãŸå ´åˆã€ãã‚Œã§ã‚‚å›ã¯ã”é£¯ã‚’é¸ã¶ï¼Ÿ",
+		{ {"é¸ã¶", -1, 480, 760},
+		{"é¸ã°ãªã„", -1, 1290, 760} }
 		},*/
 	};
 
-	// ‰ğ“šŒã‚Ì‰ï˜b
-	afterTalks_ = {
-	{{"‚È‚é‚Ù‚ÇAŒN‚Íƒpƒ“”h‚È‚ñ‚¾‚ËB",
-		"Šm‚©‚ÉAƒpƒ“‚¾‚¯‚Å‚à—lX‚Èí—Ş‚ª‚ ‚Á‚Ä”ü–¡‚µ‚¢‚æ‚ËB",
-		"‚È‚çA‚à‚µ“ú–{‚Å‚Ì»‘¢‚ª‚Å‚«‚È‚¢ê‡‚Á‚Äl‚¦‚½‚±‚Æ‚ ‚éH"},0, 0},
-	{{"‚È‚é‚Ù‚ÇAŒN‚Í‚²”Ñ”h‚È‚ñ‚¾‚ËB",
-		"Šm‚©‚ÉA‚²”Ñ‚ğ‚µ‚Î‚ç‚­H‚×‚Ä‚¢‚È‚¢‚Æ—ö‚µ‚­‚È‚é‚­‚ç‚¢\n"
-		"“ú–{l‚É‚Æ‚Á‚ÄŒ‡‚©‚¹‚È‚¢H‚×•¨‚¾‚æ‚ËB",
-		"‚È‚çA‚¨•Ä‚Ì¶Y‚ª•¨¦‚­Œ¸‚Á‚½ê‡‚Á‚Äl‚¦‚½‚±‚Æ‚Í‚ ‚éH"},0, 1},
-	/*{{"‚»‚¤‚È‚ñ‚¾‚ËB\n"
-		"ŒN‚Í‚¨‹à‚ğg‚Á‚Ä‚Å‚àH‚×‚½‚¢‚­‚ç‚¢ƒpƒ“‚ª‘åD‚«‚È‚ñ‚¾‚ËB"	}, 1, 0},
-	{{"‚»‚¤‚È‚ñ‚¾‚ËB\n"
-		"‚â‚Á‚Ï‚è•¨‰¿‚ª‚“«‚µ‚½ó‘Ô‚Å‚Íw“ü‚·‚é‚Ì‚ÍŒµ‚µ‚¢‚æ‚ËB"}, 1, 1},
-	{{"‚È‚é‚Ù‚ÇI\n"
-		"‘f°‚ç‚µ‚¢IŒN‚Í“ú–{l‚ÌŠÓ‚¾II",
-		"ŒN‚Í‚¨‹à‚ğg‚Á‚Ä‚Å‚à‚²”Ñ‚ğH‚×‚½‚¢‚ñ‚¾‚ËI",}, 2, 0},
-	{{"‚»‚¤‚È‚ñ‚¾B\n"
-		"‚²”Ñ‚ğ‘I‚ñ‚Å‚à•¨‰¿‚Ì‚“«‚Å’l’i‚ªã‚ª‚é‚Æ‘I‚Ñ‚É‚­‚¢‚æ‚ËB"}, 2, 1},*/
-	};
+	// è§£ç­”å¾Œã®ä¼šè©±
+	/*afterTalks_ = {
+	{{"ãªã‚‹ã»ã©ã€å›ã¯ãƒ‘ãƒ³æ´¾ãªã‚“ã ã­ã€‚",
+		"ç¢ºã‹ã«ã€ãƒ‘ãƒ³ã ã‘ã§ã‚‚æ§˜ã€…ãªç¨®é¡ãŒã‚ã£ã¦ç¾å‘³ã—ã„ã‚ˆã­ã€‚",
+		"ãªã‚‰ã€ã‚‚ã—æ—¥æœ¬ã§ã®è£½é€ ãŒã§ããªã„å ´åˆã£ã¦è€ƒãˆãŸã“ã¨ã‚ã‚‹ï¼Ÿ"},0, 0},
+	{{"ãªã‚‹ã»ã©ã€å›ã¯ã”é£¯æ´¾ãªã‚“ã ã­ã€‚",
+		"ç¢ºã‹ã«ã€ã”é£¯ã‚’ã—ã°ã‚‰ãé£Ÿã¹ã¦ã„ãªã„ã¨æ‹ã—ããªã‚‹ãã‚‰ã„\n"
+		"æ—¥æœ¬äººã«ã¨ã£ã¦æ¬ ã‹ã›ãªã„é£Ÿã¹ç‰©ã ã‚ˆã­ã€‚",
+		"ãªã‚‰ã€ãŠç±³ã®ç”Ÿç”£ãŒç‰©å‡„ãæ¸›ã£ãŸå ´åˆã£ã¦è€ƒãˆãŸã“ã¨ã¯ã‚ã‚‹ï¼Ÿ"},0, 1},
+	{{"ãã†ãªã‚“ã ã­ã€‚\n"
+		"å›ã¯ãŠé‡‘ã‚’ä½¿ã£ã¦ã§ã‚‚é£Ÿã¹ãŸã„ãã‚‰ã„ãƒ‘ãƒ³ãŒå¤§å¥½ããªã‚“ã ã­ã€‚"	}, 1, 0},
+	{{"ãã†ãªã‚“ã ã­ã€‚\n"
+		"ã‚„ã£ã±ã‚Šç‰©ä¾¡ãŒé«˜é¨°ã—ãŸçŠ¶æ…‹ã§ã¯è³¼å…¥ã™ã‚‹ã®ã¯å³ã—ã„ã‚ˆã­ã€‚"}, 1, 1},
+	{{"ãªã‚‹ã»ã©ï¼\n"
+		"ç´ æ™´ã‚‰ã—ã„ï¼å›ã¯æ—¥æœ¬äººã®é‘‘ã ï¼ï¼",
+		"å›ã¯ãŠé‡‘ã‚’ä½¿ã£ã¦ã§ã‚‚ã”é£¯ã‚’é£Ÿã¹ãŸã„ã‚“ã ã­ï¼",}, 2, 0},
+	{{"ãã†ãªã‚“ã ã€‚\n"
+		"ã”é£¯ã‚’é¸ã‚“ã§ã‚‚ç‰©ä¾¡ã®é«˜é¨°ã§å€¤æ®µãŒä¸ŠãŒã‚‹ã¨é¸ã³ã«ãã„ã‚ˆã­ã€‚"}, 2, 1},
+	};*/
 
-	// ƒƒbƒZ[ƒW‚Ì‰Šú‰»
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã®åˆæœŸåŒ–
 	storyIndex_ = 0;
 	questionIndex_ = 0;
 	selectedChoice_ = 0;
 	state_ = SceneState::STORY;
 
-	// ƒƒbƒZ[ƒWƒIƒuƒWƒFƒNƒg‚Ì‰Šú‰»
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®åˆæœŸåŒ–
 	msg_.Init();
 	msg_.SetMessage(story_[storyIndex_]);
 
@@ -140,7 +141,7 @@ void GameScene::Init(void)
 
 void GameScene::ManagerInit(void)
 {
-	// QuestionManager‚Ì‰Šú‰»
+	// QuestionManagerã®åˆæœŸåŒ–
 	std::vector<QuestionData> qdata;
 	qdata.reserve(questions_.size());
 	for (auto& q : questions_) {
@@ -150,7 +151,7 @@ void GameScene::ManagerInit(void)
 		dq.choiceCounts.clear();
 		for (auto& ch : q.choices) {
 			dq.choices.push_back(ch.text);
-			dq.choiceCounts.push_back(0); // ‰Šú‚Í0ALoadData‚Åã‘‚«‚³‚ê‚é
+			dq.choiceCounts.push_back(0); // åˆæœŸã¯0ã€LoadDataã§ä¸Šæ›¸ãã•ã‚Œã‚‹
 		}
 		qdata.push_back(std::move(dq));
 	}
@@ -163,10 +164,14 @@ void GameScene::Update(void)
 {
 	msg_.Update();
 
-	// ƒ|[ƒY
+	// --- ãƒãƒ¼ã‚º ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB))
 	{
-		if (state_ != SceneState::PAUSE)
+		if (state_ == SceneState::RESULT && resultState_ == ResultState::DETAIL)
+		{
+			// ç„¡è¦–ã—ã¦ä½•ã‚‚ã—ãªã„
+		}
+		else if (state_ != SceneState::PAUSE)
 		{
 			stateBeforePause_ = state_;
 			state_ = SceneState::PAUSE;
@@ -179,31 +184,25 @@ void GameScene::Update(void)
 		}
 	}
 
-
 	switch (state_)
 	{
-#pragma region ƒXƒg[ƒŠ[
+#pragma region ã‚¹ãƒˆãƒ¼ãƒªãƒ¼
 	case SceneState::STORY:
-		// ƒXƒg[ƒŠ[‚ğ•\¦‚µ‚ÄI‚í‚Á‚½‚çŸ‚Ì•¶Í‚Ö
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
-			// ‚Ü‚¾•\¦’†‚È‚çˆê‹C‚É•\¦
 			if (!msg_.IsFinished())
 			{
 				msg_.Skip();
 			}
 			else
 			{
-				// Ÿ‚Ì•¶Í‚Ö
 				storyIndex_++;
-				if (storyIndex_ < (int)story_.size())
+				if (storyIndex_ < static_cast<int>(story_.size()))
 				{
 					msg_.SetMessage(story_[storyIndex_]);
 				}
 				else
 				{
-					// ƒXƒg[ƒŠ[I‚í‚Á‚½‚ç–â‚¢‚Ö
-				//	storyIndex_ = 0;
 					state_ = SceneState::QUESTION;
 					msg_.SetMessage(questions_[questionIndex_].text);
 				}
@@ -212,34 +211,24 @@ void GameScene::Update(void)
 		break;
 #pragma endregion
 
-#pragma region –â‘è•\¦
+#pragma region å•é¡Œè¡¨ç¤º
 	case SceneState::QUESTION:
-		if (!msg_.IsFinished())
-			break; // •\¦’†‚È‚ç‘I‘ğˆ‘€ì‚Í–³Œø
+		if (!msg_.IsFinished()) break;
 
-		// ¶‰E‚Å‘I‘ğ
-		if (inputManager_.IsTrgDown(KEY_INPUT_A) && !leftPressed_)
+		// --- å·¦å³ç§»å‹• ---
+		if (inputManager_.IsTrgDown(KEY_INPUT_A))
 		{
-			selectedChoice_ = (selectedChoice_ - 1 + (int)questions_[questionIndex_].choices.size())
-				% (int)questions_[questionIndex_].choices.size();
-			leftPressed_ = true;
+			selectedChoice_ =
+				(selectedChoice_ - 1 + static_cast<int>(questions_[questionIndex_].choices.size())) %
+				static_cast<int>(questions_[questionIndex_].choices.size());
 		}
-		else if (!inputManager_.IsTrgDown(KEY_INPUT_A))
+		if (inputManager_.IsTrgDown(KEY_INPUT_D))
 		{
-			leftPressed_ = false;
-		}
-
-		if (inputManager_.IsTrgDown(KEY_INPUT_D) && !rightPressed_)
-		{
-			selectedChoice_ = (selectedChoice_ + 1) % (int)questions_[questionIndex_].choices.size();
-			rightPressed_ = true;
-		}
-		else if (!inputManager_.IsTrgDown(KEY_INPUT_D))
-		{
-			rightPressed_ = false;
+			selectedChoice_ =
+				(selectedChoice_ + 1) % static_cast<int>(questions_[questionIndex_].choices.size());
 		}
 
-		// Œˆ’è
+		// --- æ±ºå®š ---
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
 			prevQuestionIndex_ = questionIndex_;
@@ -248,17 +237,16 @@ void GameScene::Update(void)
 			questionManager_.SelectChoice(questionIndex_, selectedChoice_);
 			questionManager_.SaveData();
 
-			// Œ‹‰Ê‚Ì‹L˜^
+			// çµæœã‚’ä¿å­˜
 			ChoiceResult result;
 			result.questionIndex = questionIndex_;
 			result.questionText = questions_[questionIndex_].text;
-			result.selectedChoiceText =
-				questions_[questionIndex_].choices[selectedChoice_].text;
+			result.selectedChoiceText = questions_[questionIndex_].choices[selectedChoice_].text;
 			results_.push_back(result);
 
-			// ƒAƒtƒ^[ƒg[ƒNŒŸõ
+			// --- ã‚¢ãƒ•ã‚¿ãƒ¼ãƒˆãƒ¼ã‚¯åˆ¤å®š ---
 			afterTalkIndex_ = -1;
-			for (int i = 0; i < (int)afterTalks_.size(); i++)
+			for (int i = 0; i < static_cast<int>(afterTalks_.size()); i++)
 			{
 				if (afterTalks_[i].questionIndex == questionIndex_ &&
 					afterTalks_[i].choiceIndex == selectedChoice_)
@@ -287,32 +275,28 @@ void GameScene::Update(void)
 				{
 					state_ = SceneState::RESULT;
 					resultDisplayed_ = false;
+					justEnteredList_ = true;
 				}
 			}
 		}
 		break;
 #pragma endregion
 
-#pragma region ‰ğ“šŒã‚Ì‰ï˜b
+#pragma region è§£ç­”å¾Œã®ä¼šè©±
 	case SceneState::ANSWER_TALK:
-		// ƒXƒy[ƒXƒL[‚ÅŸ‚Ìs‚Ö
-		if (!msg_.IsFinished())
-			break;
+		if (!msg_.IsFinished()) break;
 
-		// ƒAƒtƒ^[ƒg[ƒN‚ğ•\¦‚µ‚ÄI‚í‚Á‚½‚çŸ‚Ì–â‚¢‚Ö		
-
-			// ƒXƒy[ƒX‚ÅŸ‚Ìs‚Ö
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
+			// ä¼šè©±ã®æ¬¡ã®è¡Œã¸
 			currentLineIndex_++;
 			auto& lines = afterTalks_[afterTalkIndex_].lines;
 
-			// ÅŒã‚Ü‚Å•\¦‚µ‚½‚ç’Êíƒ‹[ƒg‚Ö–ß‚é
+			// ä¼šè©±çµ‚äº†åˆ¤å®š
 			if (currentLineIndex_ >= static_cast<int>(lines.size()))
 			{
+				// ä¼šè©±çµ‚äº†
 				isAfterTalkActive_ = false;
-
-				// Ÿ‚Ì¿–â‚ÖiŒ³‚Ìˆ—‚ğ‚±‚±‚ÉˆÚ“®j
 				int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
 				if (next >= 0)
 				{
@@ -328,160 +312,125 @@ void GameScene::Update(void)
 			}
 			else
 			{
-				// Ÿ‚Ìs‚ğƒZƒbƒg
 				msg_.SetMessage(lines[currentLineIndex_]);
 			}
 		}
-
 		break;
 #pragma endregion
 
-#pragma region Œ‹‰Ê•\¦
+#pragma region æœ€çµ‚çµæœè¡¨ç¤º
 	case SceneState::RESULT:
-		// ˆê“x‚¾‚¯Œ‹‰Ê¶¬
+	{
 		if (!resultDisplayed_)
 		{
 			resultDisplayed_ = true;
-
 			int positive = 0, calm = 0;
-			for (auto& r : results_)
-			{
-				if (r.selectedChoiceText.find("’§í") != std::string::npos) positive++;
-				else if (r.selectedChoiceText.find("ˆÀ’è") != std::string::npos) calm++;
-			}
+		
 			resultType_ = (positive > calm) ? 0 : 1;
 			msg_.SetMessage("");
 		}
-		if (inputManager_.IsTrgDown(KEY_INPUT_ESCAPE) || inputManager_.IsTrgDown(KEY_INPUT_TAB))
-		{
-			StopSoundMem(bgmHandle_);
-			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
-			break;
-		}
-#pragma endregion
 
-#pragma region ƒŠƒUƒ‹ƒg‘€ì
+
+		// --- çµæœç”»é¢ã®çŠ¶æ…‹åˆ¥å‡¦ç† ---
 		switch (resultState_)
 		{
 		case ResultState::LIST:
+		{
+			// é·ç§»ç›´å¾Œã®ä¸€å›ã ã‘ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã‚’å‡ºã™
+			if (justEnteredList_) {
+				msg_.SetMessage("ãŠç–²ã‚Œã•ã¾ã€‚çµæœã‚’è¦‹ã¦ã¿ã‚ˆã†ã€‚");
+				justEnteredList_ = false;  // ä¸€åº¦ã ã‘å®Ÿè¡Œ
+			}
+
 			int listSize = static_cast<int>(results_.size());
-			int totalOptions = listSize + 1; // Œ‹‰ÊƒŠƒXƒg{uŸ‚Éi‚Şv
+			int totalOptions = listSize + 1;
 
-			// W/SƒL[‚Å‘I‘ğ€–Ú‚ğã‰º‚ÉˆÚ“®
-			if (inputManager_.IsTrgDown(KEY_INPUT_W) && !pauseDownPressed_)
-			{
-				resultSelectIndex_ = (resultSelectIndex_ - 1 + (int)results_.size()) % (int)results_.size();
-				pauseDownPressed_ = true;
-			}
-			else if (inputManager_.IsTrgDown(KEY_INPUT_S) && !pauseDownPressed_)
-			{
-				resultSelectIndex_ = (resultSelectIndex_ + 1) % (int)results_.size();
-				pauseDownPressed_ = true;
-			}
-			else if (!inputManager_.IsTrgDown(KEY_INPUT_W) && !inputManager_.IsTrgDown(KEY_INPUT_S))
-			{
-				pauseDownPressed_ = false;
-			}
+			// W/Sã‚­ãƒ¼ã§é¸æŠè‚¢ç§»å‹•
+			if (inputManager_.IsTrgDown(KEY_INPUT_W))
+				resultSelectIndex_ = (resultSelectIndex_ - 1 + totalOptions) % totalOptions;
+			if (inputManager_.IsTrgDown(KEY_INPUT_S))
+				resultSelectIndex_ = (resultSelectIndex_ + 1) % totalOptions;
 
-			// SpaceƒL[‰Ÿ‰ºˆ—
+			// Spaceã‚­ãƒ¼ã§æ±ºå®š
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 			{
 				if (resultSelectIndex_ < listSize)
 				{
-					// ’Êí‚ÌÚ×•\¦
+					// è©³ç´°è¡¨ç¤ºã¸
 					resultState_ = ResultState::DETAIL;
 
 					std::string detailMsg =
-						"y¿–â " + std::to_string(resultSelectIndex_ + 1) + " ‚ÌÚ×z\n\n" +
+						"ã€è³ªå• " + std::to_string(resultSelectIndex_ + 1) + " ã€‘\n\n" +
 						results_[resultSelectIndex_].questionText + "\n\n" +
-						"‚ ‚È‚½‚Ì‘I‘ğ: " + results_[resultSelectIndex_].selectedChoiceText +
-						"\n\nSpaceƒL[‚Åˆê——‚É–ß‚éB";
+						"ã‚ãªãŸã®é¸æŠ: " + results_[resultSelectIndex_].selectedChoiceText +
+						"\n\nSpaceã‚­ãƒ¼ã§ä¸€è¦§ã«æˆ»ã‚‹ã€‚";
+
 					msg_.SetMessage(detailMsg);
 				}
-				else
+				else if (resultSelectIndex_ == listSize)
 				{
-					// uŸ‚Éi‚Şv‘I‘ğ
-					state_ = SceneState::END;  // ENDƒV[ƒ“‚Ö‘JˆÚ
-					msg_.SetMessage("‚»‚ê‚¶‚á‚ AŸ‚Éi‚à‚¤B");
+					state_ = SceneState::END;
+					msg_.SetMessage("ãã‚Œã˜ã‚ƒã‚ã€æ¬¡ã«é€²ã‚‚ã†ã€‚");
 				}
-			}
-		break;
-#pragma endregion
-
-#pragma region ƒŠƒUƒ‹ƒgÚ×•\¦
-		case ResultState::DETAIL:
-			// C³“_: ƒƒbƒZ[ƒW•\¦‚ªŠ®—¹‚µ‚Ä‚¢‚È‚¢ê‡‚ÍA‚¢‚©‚È‚é‘€ì‚àó‚¯•t‚¯‚È‚¢
-			if (!msg_.IsFinished())
-				break; // ƒƒbƒZ[ƒW•\¦’†‚ÍƒL[“ü—Í‚ğ–³‹
-
-			// SpaceƒL[‚ª‰Ÿ‚³‚ê‚½‚çAˆê——‚É–ß‚éiƒƒbƒZ[ƒW•\¦Š®—¹Œã‚Ì‚İ”½‰j
-			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
-			{
-				resultState_ = ResultState::LIST;
-				msg_.SetMessage(""); // ƒƒbƒZ[ƒWƒ{ƒbƒNƒX‚ğƒNƒŠƒA
 			}
 			break;
 		}
 
+		case ResultState::DETAIL:
+		{
+			// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒæµã‚Œã¦ã„ã‚‹é–“ã¯å…¥åŠ›ã‚’å—ã‘ä»˜ã‘ãªã„
+			if (!msg_.IsFinished()) break;
+
+			// Spaceã§ä¸€è¦§ã¸æˆ»ã‚‹
+			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+			{
+				resultState_ = ResultState::LIST;
+				msg_.SetMessage("");
+			}
+			break;
+			}
+		}
 		break;
+	}
 #pragma endregion
 
-#pragma region ƒV[ƒ“I—¹
+#pragma region ã‚·ãƒ¼ãƒ³çµ‚äº†
 	case SceneState::END:
-		// ÅŒã‚Ì•¶Í‚ğ•\¦‚µ‚ÄI‚í‚Á‚½‚çƒNƒŠƒAƒV[ƒ“‚Ö
+		// ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ã§ã‚¯ãƒªã‚¢ã‚·ãƒ¼ãƒ³ã¸
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
-			if (!msg_.IsFinished())
-			{
-				msg_.Skip();
-			}
+			if (!msg_.IsFinished()) msg_.Skip();
 			else
 			{
-				// BGM’â~
 				StopSoundMem(bgmHandle_);
-
-				// ƒV[ƒ“I—¹
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
 		}
 		break;
 #pragma endregion
 
-#pragma region ƒ|[ƒYƒƒjƒ…[
+#pragma region ãƒãƒ¼ã‚ºãƒ¡ãƒ‹ãƒ¥ãƒ¼
 	case SceneState::PAUSE:
-		// ƒ|[ƒYƒƒjƒ…[‚Ì‘€ì
 		if (inputManager_.IsTrgDown(KEY_INPUT_W))
-		{
 			pauseSelectIndex_ = (pauseSelectIndex_ - 1 + 3) % 3;
-		}
 		if (inputManager_.IsTrgDown(KEY_INPUT_S))
-		{
 			pauseSelectIndex_ = (pauseSelectIndex_ + 1) % 3;
-		}
 
-		// Œˆ’è
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
 		{
-			if (pauseSelectIndex_ == 0)
+			switch (pauseSelectIndex_)
 			{
-				// ‘±‚¯‚é
-				state_ = stateBeforePause_;
+			case 0: state_ = stateBeforePause_; break; // ç¶šã‘ã‚‹
+			case 1: SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE); break;
+			case 2: DxLib_End(); break;
 			}
-			else if (pauseSelectIndex_ == 1)
-			{
-				// ƒ^ƒCƒgƒ‹‚Ö–ß‚é
-				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
-			}
-			else
-			{
-				// I—¹
-				DxLib_End();
-			}
-			break;
 		}
-	}
+		break;
 #pragma endregion
-	// ƒfƒoƒbƒO—pFRƒL[‚Åƒf[ƒ^ƒŠƒZƒbƒg
+	}
+
+	// --- ãƒ‡ãƒãƒƒã‚°ç”¨ ---
+	// Rã‚­ãƒ¼ã§å•ã„ãƒ‡ãƒ¼ã‚¿ãƒªã‚»ãƒƒãƒˆ
 	if (inputManager_.IsTrgDown(KEY_INPUT_BACK))
 	{
 		questionManager_.ResetData();
@@ -490,172 +439,173 @@ void GameScene::Update(void)
 
 void GameScene::Draw(void)
 {
-	// ”wŒi‰æ‘œ‚Ì•`‰æ
+	// èƒŒæ™¯ç”»åƒã®æç”»
 	DrawGraph(0, 0, gImage_, true);
-	// ‚«o‚µ‚Ì•`‰æ
-	DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // ”’‚¢‚«o‚µ”wŒi
-	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // •‚¢˜gü
-	// ‚«o‚µ‚ÌƒƒbƒZ[ƒW•`‰æ
+	// å¹ãå‡ºã—ã®æç”»
+	DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // ç™½ã„å¹ãå‡ºã—èƒŒæ™¯
+	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // é»’ã„æ ç·š
+	// å¹ãå‡ºã—ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸æç”»
 	msg_.Draw(165, 65);
 	
 	if (state_ == SceneState::QUESTION) 
 	{
-		// –â‚¢‚Ì‘I‘ğˆ‚Ì”wŒi˜g(¶‘¤)	DrawBox(¶‘¤–ÊAãA‰E‘¤–ÊA‰º) 
-		DrawBox(325, 490, 740, 880,  GetColor(255, 255, 255), true);  // ”’”wŒi
-		DrawBox(330, 495, 735, 875, GetColor(0, 0, 0), true);       // •˜gü
+		// å•ã„ã®é¸æŠè‚¢ã®èƒŒæ™¯æ (å·¦å´)	DrawBox(å·¦å´é¢ã€ä¸Šã€å³å´é¢ã€ä¸‹) 
+		DrawBox(325, 490, 740, 880,  GetColor(255, 255, 255), true);  // ç™½èƒŒæ™¯
+		DrawBox(330, 495, 735, 875, GetColor(0, 0, 0), true);       // é»’æ ç·š
 
-		// –â‚¢‚Ì‘I‘ğˆ‚Ì”wŒi˜g(‰E‘¤)
-		DrawBox(1180, 490, 1595, 880, GetColor(255, 255, 255), true);  // ”’”wŒi
-		DrawBox(1185, 495, 1590, 875, GetColor(0, 0, 0), true);       // •˜gü
+		// å•ã„ã®é¸æŠè‚¢ã®èƒŒæ™¯æ (å³å´)
+		DrawBox(1180, 490, 1595, 880, GetColor(255, 255, 255), true);  // ç™½èƒŒæ™¯
+		DrawBox(1185, 495, 1590, 875, GetColor(0, 0, 0), true);       // é»’æ ç·š
 
-		// ‘I‘ğˆ‚Ì•`‰æ
+		// é¸æŠè‚¢ã®æç”»
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
 
-		// ¶‰EƒL[‚Ìƒqƒ“ƒg
+		// å·¦å³ã‚­ãƒ¼ã®ãƒ’ãƒ³ãƒˆ
 		SetFontSize(60);
-		DrawFormatString(0, 1000, GetColor(255, 255, 255), "A/DƒL[‚Å‘€ìASpace‚Å‘I‘ğ");
+		DrawFormatString(0, 1000, GetColor(255, 255, 255), "A/Dã‚­ãƒ¼ã§æ“ä½œã€Spaceã§é¸æŠ");
 	}
-	// ‰ğ“šŒã‚Ì‰ï˜b‚ÆŒ‹‰Ê•\¦
+	// è§£ç­”å¾Œã®ä¼šè©±ã¨çµæœè¡¨ç¤º
 	else if (state_ == SceneState::ANSWER_TALK) {
 		if (afterTalkIndex_ >= 0 && afterTalkIndex_ < (int)afterTalks_.size()) {
 
 			const auto& talk = afterTalks_[afterTalkIndex_];
 
-			// Œ©‚½–Ú—p‚Ì questioniGameScene ‚ª‚Â‚à‚Ìj
+			// è¦‹ãŸç›®ç”¨ã® questionï¼ˆGameScene ãŒæŒã¤ã‚‚ã®ï¼‰
 			if (talk.questionIndex < 0 || talk.questionIndex >= (int)questions_.size()) return;
 			const auto& question = questions_[talk.questionIndex];
 
-			// manager ‘¤‚Ìƒf[ƒ^‚ğæ“¾iˆÀ‘Sƒ`ƒFƒbƒNj
+			// manager å´ã®ãƒ‡ãƒ¼ã‚¿ã‚’å–å¾—ï¼ˆå®‰å…¨ãƒã‚§ãƒƒã‚¯ï¼‰
 			const auto& managerQuestions = questionManager_.GetQuestions();
 			if (talk.questionIndex < 0 || talk.questionIndex >= (int)managerQuestions.size()) {
-				// manager ‘¤‚Éƒf[ƒ^‚ª–³‚¯‚ê‚Î•\¦‚µ‚È‚¢i‚Ü‚½‚ÍƒƒOj
+				// manager å´ã«ãƒ‡ãƒ¼ã‚¿ãŒç„¡ã‘ã‚Œã°è¡¨ç¤ºã—ãªã„ï¼ˆã¾ãŸã¯ãƒ­ã‚°ï¼‰
 				DrawFormatString(350, 470, GetColor(255, 0, 0), "No manager data for question %d", talk.questionIndex);
 				return;
 			}
 			const auto& questionData = managerQuestions[talk.questionIndex];
 
-			// •`‰æ˜g
+			// æç”»æ 
 			DrawBox(160, 450, 1735, 950, GetColor(255, 255, 255), true);
 			DrawBox(165, 455, 1730, 945, GetColor(0, 0, 0), true);
 
-			// Œ³‚Ì–â‚¢iŒ©‚½–Új
+			// å…ƒã®å•ã„ï¼ˆè¦‹ãŸç›®ï¼‰
 			DrawString(175, 470, question.text.c_str(), GetColor(255, 255, 255));
 
-			// ‡Œv•[”imanager ‘¤j
+			// åˆè¨ˆç¥¨æ•°ï¼ˆmanager å´ï¼‰
 			int total = 0;
 			for (int v : questionData.choiceCounts) total += v;
 
-			// ‘I‘ğˆ‚ÆŠ„‡‚Ì•\¦imanager ‘¤‚Ì counts ‚ğg‚¤j
-			int y = 700; // c‚ÌŠJnˆÊ’u
+			// é¸æŠè‚¢ã¨å‰²åˆã®è¡¨ç¤ºï¼ˆmanager å´ã® counts ã‚’ä½¿ã†ï¼‰
+			int y = 700; // ç¸¦ã®é–‹å§‹ä½ç½®
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				const auto& cVisual = question.choices[i];
 
-				// manager ‘¤‚Ì count ‚ğˆÀ‘S‚Éæ“¾
+				// manager å´ã® count ã‚’å®‰å…¨ã«å–å¾—
 				int count = 0;
 				if (i < questionData.choiceCounts.size()) {
 					count = questionData.choiceCounts[i];
 				}
-				// Š„‡ŒvZ
+				// å‰²åˆè¨ˆç®—
 				float percent = (total > 0) ? (100.0f * count / (float)total) : 0.0f;
 
 				int color = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
 
-				// ‘I‘ğˆ•¶š
+				// é¸æŠè‚¢æ–‡å­—
 				DrawString(400, y, cVisual.text.c_str(), color);
 
-				// Š„‡i‚ÆŒ”j
+				// å‰²åˆï¼ˆã¨ä»¶æ•°ï¼‰
 				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent, count);
 				
-				// Ÿ‚Ìs‚Ö
+				// æ¬¡ã®è¡Œã¸
 				y += 60; 
 			}
 		}
 	}
 	else if (state_ == SceneState::PAUSE)
 	{
-		// ‰æ–Ê‚ğ­‚µˆÃ‚­‚·‚é
+		// ç”»é¢ã‚’å°‘ã—æš—ãã™ã‚‹
 		DrawBox(0, 0, 1920, 1080, GetColor(0, 0, 0), TRUE);
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150); // ”¼“§–¾•
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 150); // åŠé€æ˜é»’
 		DrawBox(0, 0, 1920, 1080, GetColor(0, 0, 0), TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-		// ƒ|[ƒYƒƒjƒ…[‚Ì‘€ìƒqƒ“ƒg
+		// ãƒãƒ¼ã‚ºãƒ¡ãƒ‹ãƒ¥ãƒ¼ã®æ“ä½œãƒ’ãƒ³ãƒˆ
 		SetFontSize(60);
-		DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/SƒL[‚Å‘€ìASpace‚Å‘I‘ğ");
+		DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sã‚­ãƒ¼ã§æ“ä½œã€Spaceã§é¸æŠ");
 
 		SetFontSize(100);
-		// ƒƒjƒ…[ƒ^ƒCƒgƒ‹
-		DrawString(650, 300, "ƒ|[ƒY’†", GetColor(255, 255, 0));
+		// ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¿ã‚¤ãƒˆãƒ«
+		DrawString(650, 300, "ãƒãƒ¼ã‚ºä¸­", GetColor(255, 255, 0));
 
-		// ‘I‘ğˆ
-		DrawString(650, 400, pauseSelectIndex_ == 0 ? "> ‘±‚¯‚é" : "  ‘±‚¯‚é", GetColor(255, 255, 255));
-		DrawString(650, 500, pauseSelectIndex_ == 1 ? "> ƒ^ƒCƒgƒ‹‚Ö" : "  ƒ^ƒCƒgƒ‹‚Ö", GetColor(255, 255, 255));
-		DrawString(650, 600, pauseSelectIndex_ == 2 ? "> I—¹‚·‚é" : "  I—¹‚·‚é", GetColor(255, 255, 255));
+		// é¸æŠè‚¢
+		DrawString(650, 400, pauseSelectIndex_ == 0 ? "> ç¶šã‘ã‚‹" : "  ç¶šã‘ã‚‹", GetColor(255, 255, 255));
+		DrawString(650, 500, pauseSelectIndex_ == 1 ? "> ã‚¿ã‚¤ãƒˆãƒ«ã¸" : "  ã‚¿ã‚¤ãƒˆãƒ«ã¸", GetColor(255, 255, 255));
+		DrawString(650, 600, pauseSelectIndex_ == 2 ? "> çµ‚äº†ã™ã‚‹" : "  çµ‚äº†ã™ã‚‹", GetColor(255, 255, 255));
 	}
 	else if (state_ == SceneState::RESULT)
 	{
-		// ‰æ–Ê‘S‘Ì‚ğŒ‹‰Ê•\¦—p‚ÉˆÃ‚­‚µ‚È‚¢iQUESTION/ANSWER_TALK‚Æ“¯‚¶”wŒij
+		// èƒŒæ™¯ã‚„æ ç·š
+		DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // ç™½èƒŒæ™¯
+		DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // é»’æ 
 
-		// ƒƒCƒ“ƒƒbƒZ[ƒWƒ{ƒbƒNƒX‚Ì•`‰æ
-		DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // ”’‚¢”wŒi
-		DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // •‚¢˜gü
-
-		// •`‰æ˜g
 		DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
 		DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
 
 		SetFontSize(36);
-
-		// u‘S–â‰ğ“šŒ‹‰Êv‚ğ’†‰›ã•”‚É•\¦
-		DrawString(816, 345, "y‘S–â‰ğ“šŒ‹‰Êz", GetColor(255, 255, 0));
-
+		DrawString(816, 345, "ã€å…¨å•è§£ç­”çµæœã€‘", GetColor(255, 255, 0));
 		DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
-
 
 		switch (resultState_)
 		{
 		case ResultState::LIST:
-			// ¿–âˆê——•\¦
+		{
 			SetFontSize(32);
+			int baseY = 410;
+
+			// å›ç­”ãƒªã‚¹ãƒˆã®è¡¨ç¤º
 			for (size_t i = 0; i < results_.size(); i++)
 			{
-				int y = 410 + (int)i * 60;
-				// ‘I‘ğ’†‚Ì¿–â‚ÍF‚ğ•Ï‚¦‚é
+
+				int y = baseY + (int)i * 60;
+				SetFontSize(60);
 				int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-
-				std::string line =
-					"–â" + std::to_string(i + 1) + ": " + results_[i].selectedChoiceText;
-
+				SetFontSize(60);
+				std::string line = "å•" + std::to_string(i + 1);
 				DrawString(210, y, line.c_str(), color);
-
-				// ‘I‘ğ’†‚Ìs‚ÉƒJ[ƒ\ƒ‹‚ğ•t‚¯‚é
-				if (i == resultSelectIndex_)
-				{
-					DrawString(180, y, ">", color);
-				}
+				if (i == resultSelectIndex_) DrawString(180, y, ">", color);
 			}
 
-			// ‘€ìƒqƒ“ƒg
-			SetFontSize(40);
-			DrawFormatString(170, 1200, GetColor(255, 255, 0), "W/SƒL[‚Å‘I‘ğASpace‚ÅÚ×•\¦AEscape/Tab‚Åƒ^ƒCƒgƒ‹‚Ö");
+			// æ¬¡ã¸é€²ã‚€é¸æŠè‚¢
+			int nextY = 840 + (int)results_.size() * 60 + 20;
+			int nextColor = (resultSelectIndex_ == (int)results_.size()) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+			SetFontSize(70);
+			DrawString(860, nextY, "æ¬¡ã¸é€²ã‚€", nextColor);
+			if (resultSelectIndex_ == (int)results_.size()) DrawString(830, nextY, ">", nextColor);
+
+
+			// æ“ä½œãƒ’ãƒ³ãƒˆ
+			SetFontSize(30);
+			DrawFormatString(500, 1180, GetColor(255, 255, 0),
+				"W/Sã‚­ãƒ¼ã§é¸æŠã€Spaceã§æ±ºå®š");
+
+			// --- ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ãŒã‚ã‚‹ã¨ãã¯ä¸€ç•ªä¸Šã«é‡ã­ã¦è¡¨ç¤º ---
+			if (!msg_.HasMessage())
+			{
+				msg_.Draw(170, 180); // è¡¨ç¤ºä½ç½®ã‚’å°‘ã—ä¸Šã«
+			}
+
 			break;
+		}
 
 		case ResultState::DETAIL:
-			// ¿–âÚ×•\¦
-			// ƒƒbƒZ[ƒWƒIƒuƒWƒFƒNƒg‚ğg‚Á‚ÄÚ×‚ğ•\¦
-			msg_.Draw(170, 120);
+			msg_.Draw(170, 430);
 
-			// ‘€ìƒqƒ“ƒg
-			SetFontSize(40);
-			DrawFormatString(170, 900, GetColor(255, 255, 0), "Space‚Åˆê——‚É–ß‚éAEscape/Tab‚Åƒ^ƒCƒgƒ‹‚Ö");
-			break;
 		}
 	}
 }
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent)
 {
-	// ‘I‘ğˆ‚Ì•`‰æ
+	// é¸æŠè‚¢ã®æç”»
 	int total = 0;
 	if (showPercent) {
 		for (auto& c : choices) total += c.count;
@@ -667,7 +617,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 
 		DrawString(choices[i].x, choices[i].y, choices[i].text.c_str(), color);
 
-		// Š„‡‚Ì•\¦
+		// å‰²åˆã®è¡¨ç¤º
 		if (showPercent &&  total > 0) {
 			float percentage_ = (choices[i].count / (float)total) * 100.0f;
 			char buf[64]{};
@@ -677,13 +627,13 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 }
 void GameScene::Release(void)
 {
-	// ”wŒi‰æ‘œ‚Ì‰ğ•ú
+	// èƒŒæ™¯ç”»åƒã®è§£æ”¾
 	if (gImage_ != -1)
 	{
 		DeleteGraph(gImage_);
 		gImage_ = -1;
 	}
-	// BGM‚Ì‰ğ•ú
+	// BGMã®è§£æ”¾
 	if (bgmHandle_ != -1)
 	{
 		StopSoundMem(bgmHandle_);
@@ -702,7 +652,7 @@ void GameScene::NextQuestion(int nextIndex_)
 	}
 	else
 	{
-		// ‘S–âI—¹ ¨ I—¹ƒƒbƒZ[ƒW‚Ö
+		// å…¨å•çµ‚äº† â†’ çµ‚äº†ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã¸
 		state_ = SceneState::END;
 	}
 }

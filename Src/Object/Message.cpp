@@ -133,6 +133,11 @@ void Message::Skip(void)
 	finished_ = true;
 }
 
+bool Message::HasMessage() const
+{
+	return !messageLines_.empty();
+}
+
 std::vector<std::string> Message::SplitMessage(const std::string& message)
 {
 	std::vector<std::string> result;

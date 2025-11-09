@@ -49,6 +49,7 @@ class GameScene : public SceneBase
 	// リザルト
 	enum class ResultState
 	{
+		TAIL,			// メッセージ
 		LIST,			// 一覧表示
 		DETAIL,		// 詳細表示
 	};
@@ -104,6 +105,9 @@ private:
 	// リザルトリスト
 	std::vector<ChoiceResult> results_;
 
+	// 解答後の会話メッセージ
+	std::string talkMessage_;
+
 	// ゲーム背景
 	int gImage_;
 	// 通常BGM
@@ -149,4 +153,6 @@ private:
 	bool resultDisplayed_;
 	int resultType_;
 
+	// 一覧表示に入った直後かどうか
+	bool justEnteredList_;
 };

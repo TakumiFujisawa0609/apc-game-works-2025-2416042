@@ -33,7 +33,8 @@ public:
 	bool IsFinished(void) const;
 	// 文章を全て表示
 	void Skip(void);
-
+	// メッセージがあるかどうか
+	bool HasMessage() const;
 private:
 	// メッセージを改行するごとに分割する関数
 	std::vector<std::string> SplitMessage(const std::string& message);
