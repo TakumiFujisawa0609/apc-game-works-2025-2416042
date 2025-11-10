@@ -35,6 +35,8 @@ public:
 	void Skip(void);
 	// メッセージがあるかどうか
 	bool HasMessage() const;
+	// カーソルの描画を有効/無効にする (追加)
+    void SetDrawCursor(bool enable);
 private:
 	// メッセージを改行するごとに分割する関数
 	std::vector<std::string> SplitMessage(const std::string& message);
@@ -73,5 +75,9 @@ private:
 	bool next_;
 	// スキップフラグ
 	bool skipped_;
+	// カーソル描画フラグ
+	bool drawCursor_;
+	// メッセージがセットされたフレーム (追加)
+	int startFrame_;
 };
 

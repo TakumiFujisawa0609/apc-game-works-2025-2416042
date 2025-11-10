@@ -49,7 +49,7 @@ class GameScene : public SceneBase
 	// リザルト
 	enum class ResultState
 	{
-		TAIL,			// メッセージ
+		TAIL,			// 変更: 結果後のメッセージ表示（会話）を追加
 		LIST,			// 一覧表示
 		DETAIL,		// 詳細表示
 	};
@@ -88,7 +88,7 @@ private:
 	SceneState stateBeforePause_;
 	// リザルトの状態
 	ResultState resultState_;
-	
+
 	// メッセージオブジェクト
 	Message msg_;
 	// 入力制御オブジェクト
@@ -97,13 +97,16 @@ private:
 	QuestionManager questionManager_;
 
 	// 文章リスト
-	std::vector<std::string> story_; 
+	std::vector<std::string> story_;
 	// 問題リスト
 	std::vector<Question> questions_;
 	// 解答後の会話リスト
 	std::vector<AfterTalk> afterTalks_;
 	// リザルトリスト
 	std::vector<ChoiceResult> results_;
+
+	// 変更: リザルト後のメッセージリスト
+	std::vector<std::string> resultTailMessages_;
 
 	// 解答後の会話メッセージ
 	std::string talkMessage_;
@@ -127,6 +130,8 @@ private:
 	int currentLineIndex_;
 	// 結果一覧の選択肢インデックス
 	int resultSelectIndex_;
+	// 変更: 現在表示しているリザルトメッセージの行インデックス
+	int resultTailIndex_;
 
 	// 結果の表示のタイマー
 	int resultTimer_;
@@ -145,7 +150,7 @@ private:
 	bool pauseUpPressed_;
 	// 一時中断中の選択肢
 	int pauseSelected_;
-	
+
 	// アフタートーク中かどうか	
 	bool isAfterTalkActive_;
 

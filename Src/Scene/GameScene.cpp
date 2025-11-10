@@ -37,7 +37,8 @@ GameScene::GameScene(void)
 	resultState_(ResultState::LIST),
 	resultSelectIndex_(0),
 	pauseDownPressed_(false),
-	justEnteredList_(true)
+	justEnteredList_(true),
+	resultTailIndex_(0)
 {
 }
 
@@ -116,6 +117,13 @@ void GameScene::Init(void)
 		"ご飯を選んでも物価の高騰で値段が上がると選びにくいよね。"}, 2, 1},
 	};*/
 
+	resultTailMessages_ = {
+		"これで全ての質問が終わったよ。",
+		"どうだった？正直に答えることはできたかい？",
+		"君の選択は全て記録され、ここから確認できるよ。",
+		"それじゃあ、君の解答結果を見てみよう。",
+	};
+
 	// メッセージの初期化
 	storyIndex_ = 0;
 	questionIndex_ = 0;
@@ -131,10 +139,12 @@ void GameScene::Init(void)
 
 	resultDisplayed_ = false;
 
+	// リザルト関連の初期化
 	resultState_ = ResultState::LIST;
 	resultSelectIndex_ = 0;
 	pauseDownPressed_ = false;
 	results_.clear();
+	resultTailIndex_ = 0;
 
 	ManagerInit();
 }
@@ -275,7 +285,9 @@ void GameScene::Update(void)
 				{
 					state_ = SceneState::RESULT;
 					resultDisplayed_ = false;
-					justEnteredList_ = true;
+					resultState_ = ResultState::TAIL;
+					resultTailIndex_ = 0;
+					msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
 				}
 			}
 		}
@@ -308,6 +320,9 @@ void GameScene::Update(void)
 				{
 					state_ = SceneState::RESULT;
 					resultDisplayed_ = false;
+					resultState_ = ResultState::TAIL;
+					resultTailIndex_ = 0;
+					msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
 				}
 			}
 			else
@@ -327,18 +342,37 @@ void GameScene::Update(void)
 			int positive = 0, calm = 0;
 		
 			resultType_ = (positive > calm) ? 0 : 1;
-			msg_.SetMessage("");
 		}
 
 
 		// --- 結果画面の状態別処理 ---
 		switch (resultState_)
 		{
+		case ResultState::TAIL: // 変更: 新しいTAIL状態の処理
+			if (!msg_.IsFinished()) break;
+
+			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+			{
+				resultTailIndex_++;
+				if (resultTailIndex_ < static_cast<int>(resultTailMessages_.size()))
+				{
+					// 次の行へ
+					msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+				}
+				else
+				{
+					// 会話終了 -> LISTへ
+					resultState_ = ResultState::LIST;
+					justEnteredList_ = true; // LISTに入ったことをマーク
+					msg_.SetMessage("結果はこちら"); // 吹き出しを空にする
+				}
+			}
+			break;
+
 		case ResultState::LIST:
 		{
-			// 遷移直後の一回だけメッセージを出す
+			// 変更: TAILで会話を終えたため、ここではメッセージを表示しない
 			if (justEnteredList_) {
-				msg_.SetMessage("お疲れさま。結果を見てみよう。");
 				justEnteredList_ = false;  // 一度だけ実行
 			}
 
@@ -388,7 +422,7 @@ void GameScene::Update(void)
 				msg_.SetMessage("");
 			}
 			break;
-			}
+		}
 		}
 		break;
 	}
@@ -441,16 +475,21 @@ void GameScene::Draw(void)
 {
 	// 背景画像の描画
 	DrawGraph(0, 0, gImage_, true);
+
 	// 吹き出しの描画
 	DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
 	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // 黒い枠線
-	// 吹き出しのメッセージ描画
-	msg_.Draw(165, 65);
-	
-	if (state_ == SceneState::QUESTION) 
+
+	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
+	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
+	{
+		msg_.Draw(165, 65);
+	}
+
+	if (state_ == SceneState::QUESTION)
 	{
 		// 問いの選択肢の背景枠(左側)	DrawBox(左側面、上、右側面、下) 
-		DrawBox(325, 490, 740, 880,  GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(325, 490, 740, 880, GetColor(255, 255, 255), true);  // 白背景
 		DrawBox(330, 495, 735, 875, GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 問いの選択肢の背景枠(右側)
@@ -514,9 +553,9 @@ void GameScene::Draw(void)
 
 				// 割合（と件数）
 				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent, count);
-				
+
 				// 次の行へ
-				y += 60; 
+				y += 60;
 			}
 		}
 	}
@@ -543,28 +582,27 @@ void GameScene::Draw(void)
 	}
 	else if (state_ == SceneState::RESULT)
 	{
-		// 背景や枠線
-		DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // 白背景
-		DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // 黒枠
-
-		DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
-		DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
-
-		SetFontSize(36);
-		DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
-		DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
-
-		switch (resultState_)
+	switch (resultState_)
 		{
+		case ResultState::TAIL: 
+			break;
+
 		case ResultState::LIST:
 		{
+			// LIST/DETAIL状態でのみ、結果一覧/詳細の大きな枠を描画
+			DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
+			DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
+
+			SetFontSize(36);
+			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
+			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
+
 			SetFontSize(32);
 			int baseY = 410;
 
 			// 回答リストの表示
 			for (size_t i = 0; i < results_.size(); i++)
 			{
-
 				int y = baseY + (int)i * 60;
 				SetFontSize(60);
 				int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
@@ -587,18 +625,22 @@ void GameScene::Draw(void)
 			DrawFormatString(500, 1180, GetColor(255, 255, 0),
 				"W/Sキーで選択、Spaceで決定");
 
-			// --- メッセージがあるときは一番上に重ねて表示 ---
-			if (!msg_.HasMessage())
-			{
-				msg_.Draw(170, 180); // 表示位置を少し上に
-			}
-
 			break;
 		}
 
 		case ResultState::DETAIL:
-			msg_.Draw(170, 430);
+		{
+			// LIST/DETAIL状態でのみ、結果一覧/詳細の大きな枠を描画
+			DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
+			DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
 
+			SetFontSize(36);
+			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
+			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
+
+			msg_.Draw(170, 430);
+			break;
+		}
 		}
 	}
 }
@@ -618,7 +660,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 		DrawString(choices[i].x, choices[i].y, choices[i].text.c_str(), color);
 
 		// 割合の表示
-		if (showPercent &&  total > 0) {
+		if (showPercent && total > 0) {
 			float percentage_ = (choices[i].count / (float)total) * 100.0f;
 			char buf[64]{};
 			DrawFormatString(choices[i].x, choices[i].x + 50, GetColor(255, 255, 0), "%d%%", percentage_);
@@ -652,7 +694,10 @@ void GameScene::NextQuestion(int nextIndex_)
 	}
 	else
 	{
-		// 全問終了 → 終了メッセージへ
-		state_ = SceneState::END;
+		// 変更: 全問終了 → RESULTのTAIL状態へ
+		state_ = SceneState::RESULT;
+		resultState_ = ResultState::TAIL;
+		resultTailIndex_ = 0;
+		msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
 	}
 }

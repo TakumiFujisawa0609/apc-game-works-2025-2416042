@@ -14,23 +14,28 @@ Message::~Message(void)
 void Message::Init(void)
 {
 	// 変数の初期化
-	currentLine_ = 0;  // 現在の行数
-	charCount_ = 0;    // 現在の文字数
-	frameCount_ = 0;   // フレームカウント
-	charSpeed_ = 1;   // 文字表示速度（フレーム数）
-	finished_ = true;  // 全て表示したか
-	blinkCounter_ = 0; // 点滅用カウンタ
+	currentLine_ = 0;		// 現在の行数
+	charCount_ = 0;		// 現在の文字数
+	frameCount_ = 0;		// フレームカウント
+	charSpeed_ = 1;		// 文字表示速度（フレーム数）
+	finished_ = true;		// 全て表示したか
+	blinkCounter_ = 0;		// 点滅用カウンタ
 	skipped_ = false;
+	drawCursor_ = true;	// カーソル表示の初期化
+	startFrame_ = 0;		// 開始フレームの初期化
 }
 
 void Message::SetMessage(const std::string& message)
 {
 	// メッセージを分割して保存
 	messageLines_ = SplitMessage(message);
-	currentLine_ = 0;  // 現在の行数
-	charCount_ = 0;    // 現在の文字数
-	frameCount_ = 0;   // フレームカウント
-	finished_ = false; // 全て表示したか
+	currentLine_ = 0;		// 現在の行数
+	charCount_ = 0;		 // 現在の文字数
+	frameCount_ = 0;		 // フレームカウント
+	finished_ = false;		// 全て表示したか
+	skipped_ = false;		// スキップフラグ
+
+
 }
 
 void Message::Update(void)
@@ -73,6 +78,12 @@ void Message::Update(void)
 
 }
 
+void Message::SetDrawCursor(bool enable)
+{
+	drawCursor_ = enable;
+}
+
+
 void Message::Draw(int x, int y)
 {
 	// フォントのサイズ
@@ -95,7 +106,7 @@ void Message::Draw(int x, int y)
 			drawY += 60; // 行間
 	}
 
-	if (finished_) {
+	if (finished_ && drawCursor_) {
 		// 点滅用にカウンタ
 		blinkCounter_++;
 
