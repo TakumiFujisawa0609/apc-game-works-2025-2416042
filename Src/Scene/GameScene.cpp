@@ -400,11 +400,36 @@ void GameScene::Update(void)
 						"\n\nSpaceキーで一覧に戻る。";
 
 					msg_.SetMessage(detailMsg);
+
+					// アフタートーク未再生なら再生
+					if (!results_[resultSelectIndex_].afterTalkDone)
+					{
+						afterTalkIndex_ = resultSelectIndex_; // ← 再生対象を記録
+						results_[resultSelectIndex_].afterTalkDone = true;
+					}
 				}
 				else if (resultSelectIndex_ == listSize)
 				{
-					state_ = SceneState::END;
-					msg_.SetMessage("それじゃあ、次に進もう。");
+					// まだアフタートークが終わっていないものがあるかチェック
+					bool allDone = true;
+					for (auto& r : results_)
+					{
+						if (!r.afterTalkDone)
+						{
+							allDone = false;
+							break;
+						}
+					}
+
+					if (allDone)
+					{
+						state_ = SceneState::END;
+						msg_.SetMessage("それじゃあ、全部終わったね。次に進もう。");
+					}
+					else
+					{
+						msg_.SetMessage("まだ全部のアフタートークが終わっていないみたい。");
+					}
 				}
 			}
 			break;
@@ -597,6 +622,13 @@ void GameScene::Draw(void)
 			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
 			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
 
+			// --- 案内文（追加部分） ---
+			SetFontSize(40);
+			DrawFormatString(1750, 110, GetColor(255, 255, 255),
+				"結果はこちら。");
+			DrawFormatString(1750, 160, GetColor(255, 255, 255),
+				"W/Sキーで選択し、Spaceキーで詳細を見れます。");
+
 			SetFontSize(32);
 			int baseY = 410;
 
@@ -618,12 +650,6 @@ void GameScene::Draw(void)
 			SetFontSize(70);
 			DrawString(860, nextY, "次へ進む", nextColor);
 			if (resultSelectIndex_ == (int)results_.size()) DrawString(830, nextY, ">", nextColor);
-
-
-			// 操作ヒント
-			SetFontSize(30);
-			DrawFormatString(500, 1180, GetColor(255, 255, 0),
-				"W/Sキーで選択、Spaceで決定");
 
 			break;
 		}

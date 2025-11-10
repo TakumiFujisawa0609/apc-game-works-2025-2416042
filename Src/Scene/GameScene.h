@@ -32,6 +32,7 @@ struct ChoiceResult {
 	int questionIndex = -1;
 	std::string questionText;
 	std::string selectedChoiceText;
+	bool afterTalkDone = false;
 };
 
 class GameScene : public SceneBase
