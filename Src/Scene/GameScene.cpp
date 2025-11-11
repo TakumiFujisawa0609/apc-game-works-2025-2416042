@@ -38,7 +38,10 @@ GameScene::GameScene(void)
 	resultSelectIndex_(0),
 	pauseDownPressed_(false),
 	justEnteredList_(true),
-	resultTailIndex_(0)
+	resultTailIndex_(0),
+	talkMessage_(""),
+	prevMouseLeft_(false),
+	isLButtonDown_(false)
 {
 }
 
@@ -50,6 +53,21 @@ void GameScene::Init(void)
 {
 	// 背景画像の読み込み
 	gImage_ = LoadGraph("Data/Image/haikei.png");
+
+	// --- リザルト背景群の読み込み ---
+	resultBgImages_.clear();
+	const int maxBgCount = 10; // 将来的に10枚くらい用意してもOK
+	for (int i = 0; i < maxBgCount; ++i)
+	{
+		std::string path = "Data/Image/Result/Title1" + std::to_string(i) + ".png";
+		int handle = LoadGraph(path.c_str());
+		if (handle != -1)
+		{
+			resultBgImages_.push_back(handle);
+		}
+	}
+	currentBgIndex_ = 0;
+
 	// BGMの読み込みと再生
 	bgmHandle_ = LoadSoundMem("Data/BGM/GameScene.mp3");
 	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
@@ -75,12 +93,12 @@ void GameScene::Init(void)
 	// 問いの内容
 	questions_ = {
 		{
-			"もし、今後人生でパンかご飯の片方だけしか\n"
+		/*	"もし、今後人生でパンかご飯の片方だけしか\n"
 		"食べられないとしたら、どちらを選ぶ？",
 		{{"パン" , -1, 470, 760} ,
 		{ "ご飯" , -1, 1330, 760 }}
-		},
-		/*"もし、今後人生でパンかご飯の片方だけしか\n"
+		},*/
+		"もし、今後人生でパンかご飯の片方だけしか\n"
 		"食べられないとしたら、どちらを選ぶ？",
 		{{"パン" , 1, 470, 760} ,
 		{ "ご飯" , 2, 1330, 760 }}
@@ -94,11 +112,11 @@ void GameScene::Init(void)
 		"値段は今の10倍となった場合、それでも君はご飯を選ぶ？",
 		{ {"選ぶ", -1, 480, 760},
 		{"選ばない", -1, 1290, 760} }
-		},*/
+		},
 	};
 
 	// 解答後の会話
-	/*afterTalks_ = {
+	afterTalks_ = {
 	{{"なるほど、君はパン派なんだね。",
 		"確かに、パンだけでも様々な種類があって美味しいよね。",
 		"なら、もし日本での製造ができない場合って考えたことある？"},0, 0},
@@ -115,7 +133,7 @@ void GameScene::Init(void)
 		"君はお金を使ってでもご飯を食べたいんだね！",}, 2, 0},
 	{{"そうなんだ。\n"
 		"ご飯を選んでも物価の高騰で値段が上がると選びにくいよね。"}, 2, 1},
-	};*/
+	};
 
 	resultTailMessages_ = {
 		"これで全ての質問が終わったよ。",
@@ -172,12 +190,18 @@ void GameScene::ManagerInit(void)
 
 void GameScene::Update(void)
 {
+	// マウスカーソルを表示
+	SetMouseDispFlag(TRUE);
+
+	// メッセージ更新
 	msg_.Update();
 
 	// --- ポーズ ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB))
 	{
-		if (state_ == SceneState::RESULT && resultState_ == ResultState::DETAIL)
+		if (state_ == SceneState::RESULT && 
+			resultState_ == ResultState::TAIL ||
+			 resultState_ == ResultState::DETAIL)
 		{
 			// 無視して何もしない
 		}
@@ -194,11 +218,18 @@ void GameScene::Update(void)
 		}
 	}
 
+	// マウス座標とボタン状態を取得
+	int mouseX, mouseY;
+	GetMousePoint(&mouseX, &mouseY);
+	int mouseButton = GetMouseInput();
+	bool isLButtonTrg = (mouseButton & MOUSE_INPUT_LEFT) && !isLButtonDown_;
+	isLButtonDown_ = (mouseButton & MOUSE_INPUT_LEFT);
+
 	switch (state_)
 	{
 #pragma region ストーリー
 	case SceneState::STORY:
-		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 		{
 			if (!msg_.IsFinished())
 			{
@@ -223,23 +254,61 @@ void GameScene::Update(void)
 
 #pragma region 問題表示
 	case SceneState::QUESTION:
+	{
 		if (!msg_.IsFinished()) break;
 
-		// --- 左右移動 ---
-		if (inputManager_.IsTrgDown(KEY_INPUT_A))
+	
+
+		// --- キーボード操作（既存） ---
+		if (inputManager_.IsTrgDown(KEY_INPUT_W))
 		{
-			selectedChoice_ =
-				(selectedChoice_ - 1 + static_cast<int>(questions_[questionIndex_].choices.size())) %
-				static_cast<int>(questions_[questionIndex_].choices.size());
+			selectedChoice_ = (selectedChoice_ == 0) ? (int)questions_[questionIndex_].choices.size() - 1 : selectedChoice_ - 1;
 		}
-		if (inputManager_.IsTrgDown(KEY_INPUT_D))
+		else if (inputManager_.IsTrgDown(KEY_INPUT_S))
 		{
-			selectedChoice_ =
-				(selectedChoice_ + 1) % static_cast<int>(questions_[questionIndex_].choices.size());
+			selectedChoice_ = (selectedChoice_ == (int)questions_[questionIndex_].choices.size() - 1) ? 0 : selectedChoice_ + 1;
 		}
 
-		// --- 決定 ---
+		// --- ★追加: マウス操作 ---
+		{
+			int newSelected = selectedChoice_;
+			bool isMouseOverChoice = false;
+
+			// マウスオーバー判定
+			for (size_t i = 0; i < choiceRects_.size(); ++i) {
+				const auto& rect = choiceRects_[i];
+				if (mouseX >= rect.left && mouseX <= rect.right &&
+					mouseY >= rect.top && mouseY <= rect.bottom)
+				{
+					newSelected = (int)i; // マウスオーバーした選択肢にカーソルを移動
+					isMouseOverChoice = true;
+					break;
+				}
+			}
+
+			if (isMouseOverChoice) {
+				selectedChoice_ = newSelected;
+			}
+
+			// マウスクリック決定処理
+			if (isLButtonTrg && isMouseOverChoice) {
+				// マウスで選択した項目が選択されている状態にし、決定処理へ
+				selectedChoice_ = newSelected;
+				// 決定処理のフラグを立てて、キー入力と同じ決定ロジックへ移行
+				goto CHOICE_DECISION;
+			}
+		}
+
+		// 選択肢決定 (キーボード操作)
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		{
+			goto CHOICE_DECISION;
+		}
+
+	CHOICE_DECISION:
+
+		// --- スペース or マウスクリックで決定 ---
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 		{
 			prevQuestionIndex_ = questionIndex_;
 			prevSelectedChoice_ = selectedChoice_;
@@ -291,14 +360,17 @@ void GameScene::Update(void)
 				}
 			}
 		}
+
 		break;
+	}
 #pragma endregion
+
 
 #pragma region 解答後の会話
 	case SceneState::ANSWER_TALK:
 		if (!msg_.IsFinished()) break;
 
-		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 		{
 			// 会話の次の行へ
 			currentLineIndex_++;
@@ -331,6 +403,7 @@ void GameScene::Update(void)
 			}
 		}
 		break;
+
 #pragma endregion
 
 #pragma region 最終結果表示
@@ -339,9 +412,12 @@ void GameScene::Update(void)
 		if (!resultDisplayed_)
 		{
 			resultDisplayed_ = true;
-			int positive = 0, calm = 0;
-		
-			resultType_ = (positive > calm) ? 0 : 1;
+			resultType_ = DetermineResultType();
+
+			// 背景を切り替え（存在する数以内で）
+			if (!resultBgImages_.empty()) {
+				currentBgIndex_ = resultType_ % resultBgImages_.size();
+			}
 		}
 
 
@@ -351,7 +427,7 @@ void GameScene::Update(void)
 		case ResultState::TAIL: // 変更: 新しいTAIL状態の処理
 			if (!msg_.IsFinished()) break;
 
-			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 			{
 				resultTailIndex_++;
 				if (resultTailIndex_ < static_cast<int>(resultTailMessages_.size()))
@@ -364,7 +440,7 @@ void GameScene::Update(void)
 					// 会話終了 -> LISTへ
 					resultState_ = ResultState::LIST;
 					justEnteredList_ = true; // LISTに入ったことをマーク
-					msg_.SetMessage("結果はこちら"); // 吹き出しを空にする
+					msg_.SetMessage("結果はこちら"); 
 				}
 			}
 			break;
@@ -385,8 +461,51 @@ void GameScene::Update(void)
 			if (inputManager_.IsTrgDown(KEY_INPUT_S))
 				resultSelectIndex_ = (resultSelectIndex_ + 1) % totalOptions;
 
-			// Spaceキーで決定
+			// マウス操作による選択肢変更・決定
+			{
+				int mouseX, mouseY;
+				GetMousePoint(&mouseX, &mouseY);
+				bool isLButtonTrg = (mouseButton & MOUSE_INPUT_LEFT) && !isLButtonDown_; // Update冒頭で取得した変数を使用
+
+				int newSelected = resultSelectIndex_;
+				bool isMouseOverChoice = false;
+
+				// マウスオーバー判定
+				for (size_t i = 0; i < choiceRects_.size(); ++i) {
+					const auto& rect = choiceRects_[i];
+					if (mouseX >= rect.left && mouseX <= rect.right &&
+						mouseY >= rect.top && mouseY <= rect.bottom)
+					{
+						newSelected = (int)i;
+						isMouseOverChoice = true;
+						break;
+					}
+				}
+
+				if (isMouseOverChoice) {
+					// ★修正点: 選択インデックスが変更されたときのみ代入する
+					if (resultSelectIndex_ != newSelected) {
+						resultSelectIndex_ = newSelected;
+					}
+				}
+
+				// マウスクリック決定処理
+				if (isLButtonTrg && isMouseOverChoice) {
+					goto RESULT_DECISION;
+				}
+			}
+
+			// 選択肢決定 (キーボード操作)
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+			{
+				goto RESULT_DECISION;
+			}
+
+			// ★追加: 決定ロジックの開始点としてラベルを定義
+		RESULT_DECISION:
+
+			// Spaceキーで決定
+			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 			{
 				if (resultSelectIndex_ < listSize)
 				{
@@ -397,7 +516,7 @@ void GameScene::Update(void)
 						"【質問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
 						results_[resultSelectIndex_].questionText + "\n\n" +
 						"あなたの選択: " + results_[resultSelectIndex_].selectedChoiceText +
-						"\n\nSpaceキーで一覧に戻る。";
+						"\n\nSpaceキーまたはクリックで一覧に戻る。";
 
 					msg_.SetMessage(detailMsg);
 
@@ -424,11 +543,7 @@ void GameScene::Update(void)
 					if (allDone)
 					{
 						state_ = SceneState::END;
-						msg_.SetMessage("それじゃあ、全部終わったね。次に進もう。");
-					}
-					else
-					{
-						msg_.SetMessage("まだ全部のアフタートークが終わっていないみたい。");
+						msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
 					}
 				}
 			}
@@ -436,18 +551,16 @@ void GameScene::Update(void)
 		}
 
 		case ResultState::DETAIL:
-		{
 			// メッセージが流れている間は入力を受け付けない
 			if (!msg_.IsFinished()) break;
 
 			// Spaceで一覧へ戻る
-			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 			{
 				resultState_ = ResultState::LIST;
 				msg_.SetMessage("");
 			}
 			break;
-		}
 		}
 		break;
 	}
@@ -456,7 +569,7 @@ void GameScene::Update(void)
 #pragma region シーン終了
 	case SceneState::END:
 		// スペースキーでクリアシーンへ
-		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 		{
 			if (!msg_.IsFinished()) msg_.Skip();
 			else
@@ -475,7 +588,46 @@ void GameScene::Update(void)
 		if (inputManager_.IsTrgDown(KEY_INPUT_S))
 			pauseSelectIndex_ = (pauseSelectIndex_ + 1) % 3;
 
+		{
+			int mouseX, mouseY;
+			GetMousePoint(&mouseX, &mouseY);
+			bool isLButtonTrg = (mouseButton & MOUSE_INPUT_LEFT) && !isLButtonDown_; // Update冒頭で取得した変数を使用
+
+			int newSelected = pauseSelectIndex_;
+			bool isMouseOverChoice = false;
+
+			// マウスオーバー判定
+			for (size_t i = 0; i < choiceRects_.size(); ++i) {
+				const auto& rect = choiceRects_[i];
+				if (mouseX >= rect.left && mouseX <= rect.right &&
+					mouseY >= rect.top && mouseY <= rect.bottom)
+				{
+					newSelected = (int)i;
+					isMouseOverChoice = true;
+					break;
+				}
+			}
+
+			if (isMouseOverChoice) {
+				pauseSelectIndex_ = newSelected;
+			}
+
+			// マウスクリック決定処理
+			if (isLButtonTrg && isMouseOverChoice) {
+				goto PAUSE_DECISION;
+			}
+		}
+
+		// 選択肢決定 (キーボード操作)
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE))
+		{
+			goto PAUSE_DECISION;
+		}
+
+		// ★追加: 決定ロジックの開始点としてラベルを定義
+	PAUSE_DECISION:
+
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 		{
 			switch (pauseSelectIndex_)
 			{
@@ -498,8 +650,19 @@ void GameScene::Update(void)
 
 void GameScene::Draw(void)
 {
-	// 背景画像の描画
-	DrawGraph(0, 0, gImage_, true);
+	// --- 背景 ---
+	int bgToDraw = gImage_;
+
+	if (state_ == SceneState::RESULT)
+	{
+		if (!resultBgImages_.empty())
+		{
+			bgToDraw = resultBgImages_[currentBgIndex_];
+		}
+	}
+
+	DrawGraph(0, 0, bgToDraw, FALSE);
+
 
 	// 吹き出しの描画
 	DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
@@ -592,18 +755,52 @@ void GameScene::Draw(void)
 		DrawBox(0, 0, 1920, 1080, GetColor(0, 0, 0), TRUE);
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-		// ポーズメニューの操作ヒント
-		SetFontSize(60);
-		DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキーで操作、Spaceで選択");
-
 		SetFontSize(100);
 		// メニュータイトル
-		DrawString(650, 300, "ポーズ中", GetColor(255, 255, 0));
+		DrawString(700, 300, "ポーズ中", GetColor(255, 255, 0));
+		const std::vector<std::string> PAUSE_MENU = { "ゲームに戻る", "タイトルに戻る", "ゲーム終了"};
+		int startX = 710;
+		int startY = 500;
+		int spacing = 100;
+		int choiceHeight = 60; // 文字の高さ+余裕
 
-		// 選択肢
-		DrawString(650, 400, pauseSelectIndex_ == 0 ? "> 続ける" : "  続ける", GetColor(255, 255, 255));
-		DrawString(650, 500, pauseSelectIndex_ == 1 ? "> タイトルへ" : "  タイトルへ", GetColor(255, 255, 255));
-		DrawString(650, 600, pauseSelectIndex_ == 2 ? "> 終了する" : "  終了する", GetColor(255, 255, 255));
+		// ★追加: 矩形リストをクリアし、設定を初期化
+		choiceRects_.clear();
+		SetFontSize(50);
+
+		for (size_t i = 0; i < PAUSE_MENU.size(); i++)
+		{
+			int currentY = startY + (int)i * spacing;
+			int color = (i == pauseSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+			const std::string& text = PAUSE_MENU[i];
+
+			// 文字列の幅を取得 (DxLib)
+			int choiceWidth = GetDrawStringWidth(text.c_str(), (int)text.size());
+
+			// 選択時の背景描画
+			if (i == pauseSelectIndex_)
+			{
+				DrawBox(startX - 10, currentY - 5, startX + choiceWidth + 10, currentY + choiceHeight + 5, GetColor(50, 50, 50), TRUE);
+			}
+
+			// 描画
+			DrawString(startX, currentY, text.c_str(), color);
+
+			// ★追加: 矩形を保存
+			choiceRects_.push_back({
+				startX - 10,
+				currentY - 5,
+				startX + choiceWidth + 10,
+				currentY + choiceHeight + 5
+				});
+		}
+
+		// ポーズメニューの操作ヒント
+		SetFontSize(60);
+		DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキーで操作、Spaceまたはクリックで選択");
+
+		
+		
 	}
 	else if (state_ == SceneState::RESULT)
 	{
@@ -618,16 +815,22 @@ void GameScene::Draw(void)
 			DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
 			DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
 
-			SetFontSize(36);
-			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
-			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
-
-			// --- 案内文（追加部分） ---
 			SetFontSize(40);
-			DrawFormatString(1750, 110, GetColor(255, 255, 255),
+			DrawFormatString(175, 65, GetColor(255, 255, 255),
 				"結果はこちら。");
-			DrawFormatString(1750, 160, GetColor(255, 255, 255),
+			DrawFormatString(175, 105, GetColor(255, 255, 255),
 				"W/Sキーで選択し、Spaceキーで詳細を見れます。");
+
+			/*SetFontSize(36);
+			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
+			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));*/
+
+			// ★追加: マウス用矩形リストをクリア
+			choiceRects_.clear();
+
+			// 共通の描画設定
+			int text_size_a = 100; // SetFontSize(60) の高さ
+			int text_size_b = 100; // SetFontSize(70) の高さ
 
 			SetFontSize(32);
 			int baseY = 410;
@@ -635,22 +838,62 @@ void GameScene::Draw(void)
 			// 回答リストの表示
 			for (size_t i = 0; i < results_.size(); i++)
 			{
-				int y = baseY + (int)i * 60;
-				SetFontSize(60);
+				int y = baseY + (int)i * 100;
+				SetFontSize(100);
 				int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-				SetFontSize(60);
+
 				std::string line = "問" + std::to_string(i + 1);
-				DrawString(210, y, line.c_str(), color);
-				if (i == resultSelectIndex_) DrawString(180, y, ">", color);
+				// 描画
+				DrawString(270, y, line.c_str(), color);
+				if (i == resultSelectIndex_) DrawString(200, y, ">", color);
+
+				// マウス当たり判定用の矩形を保存
+				// [問X]の左端(210)と > の左端(180)を考慮し、幅はリスト枠(1730)いっぱいまで利用
+
+				int rect_left = 180;
+				int rect_top = y;
+				int rect_right = 450; // 大きな枠の右端を使用
+				int rect_bottom = y + text_size_a;
+
+				// 選択時の背景描画 (カーソルがマウスで動くよう、DrawBoxも追加します)
+				if (i == resultSelectIndex_)
+				{
+					DrawBox(rect_left, rect_top, rect_right, rect_bottom, GetColor(50, 50, 50), TRUE);
+				}
+				// DrawStringの再描画（背景の上に文字が来るように）
+				DrawString(270, y, line.c_str(), color);
+				if (i == resultSelectIndex_) DrawString(200, y, ">", color);
+
+				choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
 			}
 
 			// 次へ進む選択肢
-			int nextY = 840 + (int)results_.size() * 60 + 20;
+			int nextY = 900 ;
+			SetFontSize(100);
+			std::string nextText = "次へ進む";
+			int nextX = 730;
+			int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
 			int nextColor = (resultSelectIndex_ == (int)results_.size()) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
-			SetFontSize(70);
-			DrawString(860, nextY, "次へ進む", nextColor);
-			if (resultSelectIndex_ == (int)results_.size()) DrawString(830, nextY, ">", nextColor);
+			// 選択時の背景描画
+			if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
 
+			// マウス当たり判定用の矩形を保存
+			int rect_left = nextX - 100; // > の位置(830)を考慮
+			int rect_top = nextY;
+			int rect_right = nextX + nextWidth + 40;
+			int rect_bottom = nextY + text_size_b;
+
+			// 選択時の背景描画
+			if (resultSelectIndex_ == (int)results_.size())
+			{
+				DrawBox(rect_left, rect_top, rect_right, rect_bottom, GetColor(50, 50, 50), TRUE);
+			}
+
+			// 描画
+			DrawString(nextX, nextY, nextText.c_str(), nextColor);
+			if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
+
+			choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
 			break;
 		}
 
@@ -669,6 +912,10 @@ void GameScene::Draw(void)
 		}
 		}
 	}
+	// --- マウスカーソル描画 ---
+	int mouseX, mouseY;
+	GetMousePoint(&mouseX, &mouseY);
+	DrawCircle(mouseX, mouseY, 10, GetColor(255, 255, 0), TRUE);  // 黄色い丸のカーソル
 }
 
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent)
@@ -679,8 +926,16 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 		for (auto& c : choices) total += c.count;
 	}
 
-	// 
+	// マウス用矩形リストのクリアと設定
+	choiceRects_.clear();
+	SetFontSize(50); // フォントサイズを再設定
+
+	// マウスの当たり判定に必要なサイズを定義（既存の選択肢背景サイズに合わせる）
+	int choiceHeight = 60;  // ※文字サイズ50を基準とした高さ。背景サイズに合わせて調整してください。
+
+	// 選択肢の表示
 	for (size_t i = 0; i < choices.size(); i++) {
+		int choiceWidth = GetDrawStringWidth(choices[i].text.c_str(), (int)choices[i].text.size());
 		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
 
 		DrawString(choices[i].x, choices[i].y, choices[i].text.c_str(), color);
@@ -691,6 +946,15 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 			char buf[64]{};
 			DrawFormatString(choices[i].x, choices[i].x + 50, GetColor(255, 255, 0), "%d%%", percentage_);
 		}
+		// マウス当たり判定用の矩形を保存 (choices[i].x/yを利用)
+		// ----------------------------------------------------
+			choiceRects_.push_back({
+			choices[i].x - 155,        // 左端 (背景の描画に合わせて)
+			choices[i].y - 260,         // 上端 (背景の描画に合わせて)
+			choices[i].x + choiceWidth + 155, // 右端 (文字の幅に合わせる)
+			choices[i].y + choiceHeight + 55  // 下端 (文字の高さに合わせる)
+			});
+		// ----------------------------------------------------
 	}
 }
 void GameScene::Release(void)
@@ -726,4 +990,22 @@ void GameScene::NextQuestion(int nextIndex_)
 		resultTailIndex_ = 0;
 		msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
 	}
+}
+
+int GameScene::DetermineResultType(void)
+{
+	// 結果タイプを柔軟に判定（サンプルロジック）
+	int positive = 0;
+	int calm = 0;
+	int other = 0;
+
+	for (auto& r : results_) {
+		if (r.selectedChoiceText.find("パン") != std::string::npos) positive++;
+		else if (r.selectedChoiceText.find("ご飯") != std::string::npos) calm++;
+		else other++;
+	}
+
+	if (positive > calm && positive > other) return 0;
+	if (calm > positive && calm > other) return 1;
+	return 2;
 }

@@ -14,6 +14,11 @@ struct Choice {
 	int count = 0;
 };
 
+// 選択肢の描画矩形を保存するための構造体
+struct ChoiceRect {
+	int left, top, right, bottom;
+};
+
 // 質問と選択肢のセット
 struct Question {
 	std::string text;
@@ -105,15 +110,20 @@ private:
 	std::vector<AfterTalk> afterTalks_;
 	// リザルトリスト
 	std::vector<ChoiceResult> results_;
-
-	// 変更: リザルト後のメッセージリスト
+	// リザルト後のメッセージリスト
 	std::vector<std::string> resultTailMessages_;
+	// 選択肢の描画矩形リスト
+	std::vector<ChoiceRect> choiceRects_;
 
 	// 解答後の会話メッセージ
 	std::string talkMessage_;
 
+	// 背景画像を複数管理
+	std::vector<int> resultBgImages_;
+	int currentBgIndex_; // 現在の背景
 	// ゲーム背景
 	int gImage_;
+
 	// 通常BGM
 	int bgmHandle_;
 
@@ -142,6 +152,9 @@ private:
 	// 前の選択肢
 	int prevSelectedChoice_;
 
+	// マウス左クリックの前フレーム状態
+	bool prevMouseLeft_;
+
 	// 左右キーの押下状態
 	bool leftPressed_;
 	bool rightPressed_;
@@ -149,6 +162,9 @@ private:
 	bool pauseDownPressed_;
 	// ポーズ状態での操作
 	bool pauseUpPressed_;
+	// マウス左ボタンの押下状態
+	bool isLButtonDown_;
+	
 	// 一時中断中の選択肢
 	int pauseSelected_;
 
@@ -161,4 +177,7 @@ private:
 
 	// 一覧表示に入った直後かどうか
 	bool justEnteredList_;
+
+	// 背景の切り替え
+	int DetermineResultType(void);
 };
