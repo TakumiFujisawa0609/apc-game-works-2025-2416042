@@ -7,10 +7,24 @@
 #include "../Object/Message.h"
 #include "GameScene.h"
 
+#pragma region メモ
 // 家のディレクトリ
 // "C:\DxLib\プロジェクトに追加すべきファイル_VC用"
 // 学校のディレクトリ
 // $(DXLIB_DIR)
+
+// 今後やること
+//・問いを考え、実装
+//・TabからESCに変更
+//・キーボード操作ができないところを改善
+//・最終結果を全部みなくても先に遷移できるようにする。
+//・タイトルとエンドシーンにもマウス操作の導入とポーズメニューの改善
+//・エンドシーンの画像生成
+//・enumクラスの核ソースを各シーンに振り分ける。
+//・問いによって画像を差し込んで視覚的に理解をできるようにする。
+//・最終結果後、世界の在りようを導入(背景やセリフが切り替わる)
+//・クリックの音のSEや選択肢を決めてる際のSE
+#pragma endregion
 
 GameScene::GameScene(void)
 	:inputManager_(InputManager::GetInstance()),
