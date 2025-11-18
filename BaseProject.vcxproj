@@ -36,7 +36,6 @@
     <ClCompile Include="Src\Utility\AsoUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Pause.h" />
     <ClInclude Include="Src\Manager\QuestionManager.h" />
     <ClInclude Include="Src\Object\Message.h" />
     <ClInclude Include="Src\Scene\ClearScene.h" />
