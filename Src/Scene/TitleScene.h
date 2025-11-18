@@ -1,5 +1,6 @@
 #pragma once
 #include "SceneBase.h"
+#include "PauseScene.h"
 #include "../Application.h"
 #include "../Manager/InputManager.h"
 
@@ -11,13 +12,6 @@ class TitleScene : public SceneBase
 	{
 		NORMAL,
 		PAUSE,
-	};
-
-	enum  PauseMenu
-	{
-		CANCEL,
-		EXIT,
-		COUNT
 	};
 
 public:
@@ -35,7 +29,8 @@ public:
 private:
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
-
+	// ポーズシーンオブジェクト
+	PauseScene& pauseScene_;
 	// シーンの状態
 	TitleState state_ = TitleState::NORMAL;
 

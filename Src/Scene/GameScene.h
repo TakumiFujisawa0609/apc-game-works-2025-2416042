@@ -6,6 +6,16 @@
 #include "../Manager/InputManager.h"
 #include "../Manager/QuestionManager.h"
 
+enum class SceneState
+{
+	STORY,				// メッセージ表示
+	QUESTION,		// 問題表示
+	ANSWER_TALK, // 解答後の会話
+	RESULT,			// 結果表示
+	END,					// シーン終了
+	PAUSE,				// 一時停止
+};
+
 // 選択肢と次の質問番号のペア
 struct Choice {
 	std::string text;
@@ -42,16 +52,6 @@ struct ChoiceResult {
 
 class GameScene : public SceneBase
 {
-	enum class SceneState
-	{
-		STORY,				// メッセージ表示
-		QUESTION,		// 問題表示
-		ANSWER_TALK, // 解答後の会話
-		RESULT,			// 結果表示
-		END,					// シーン終了
-		PAUSE,				// 一時停止
-	};
-
 	// リザルト
 	enum class ResultState
 	{
@@ -85,6 +85,13 @@ public:
 
 	// 次の問いをセット
 	void NextQuestion(int nextIndex_);
+
+	// インスタンスの取得
+	static GameScene& GetInstance(void);
+
+	// シーンの状態を設定
+	void SetSceneState(SceneState state) { state_ = state; }
+	
 
 private:
 #pragma region 変数宣言
@@ -135,8 +142,7 @@ private:
 	int selectedChoice_;
 	// 解答後の会話の保管庫
 	int afterTalkIndex_;
-	// ポーズメニューの選択肢インデックス
-	int pauseSelectIndex_;
+
 	// 一行ずつ表示するためのインデックス
 	int currentLineIndex_;
 	// 結果一覧の選択肢インデックス

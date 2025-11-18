@@ -12,13 +12,6 @@ class ClearScene : public SceneBase
 		PAUSE,
 	};
 
-	enum  PauseMenu
-	{
-		CANCEL,
-		EXIT,
-		COUNT
-	};
-
 public:
 #pragma region 前方宣言
 	// コンストラクタ
@@ -36,7 +29,6 @@ private:
 #pragma region 変数宣言
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
-
 	// シーンの状態
 	ClearState state_ = ClearState::NORMAL;
 
