@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Src\Manager\QuestionManager.cpp" />
     <ClCompile Include="Src\Object\Message.cpp" />
-    <ClCompile Include="Src\Object\Pause.cpp" />
+    <ClCompile Include="Src\Object\PauseScene.cpp" />
     <ClCompile Include="Src\Scene\ClearScene.cpp" />
     <ClCompile Include="Src\Scene\GameScene.cpp" />
     <ClCompile Include="Src\Application.cpp" />
@@ -38,7 +38,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Manager\QuestionManager.h" />
     <ClInclude Include="Src\Object\Message.h" />
-    <ClInclude Include="Src\Object\Pause.h" />
+    <ClInclude Include="Src\Object\PauseScene.h" />
     <ClInclude Include="Src\Scene\ClearScene.h" />
     <ClInclude Include="Src\Scene\GameScene.h" />
     <ClInclude Include="Src\Application.h" />
@@ -141,13 +141,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DXLIB_DIR)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories> "C:\DxLib\プロジェクトに追加すべきファイル_VC用"</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(DXLIB_DIR)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories> "C:\DxLib\プロジェクトに追加すべきファイル_VC用"</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -177,7 +177,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(DXLIB_DIR)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories> "C:\DxLib\プロジェクトに追加すべきファイル_VC用"</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -185,7 +185,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(DXLIB_DIR)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories> "C:\DxLib\プロジェクトに追加すべきファイル_VC用"</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
