@@ -274,11 +274,11 @@ void GameScene::Update(void)
 	
 
 		// --- キーボード操作（既存） ---
-		if (inputManager_.IsTrgDown(KEY_INPUT_A))
+		if (inputManager_.IsTrgDown(KEY_INPUT_W))
 		{
 			selectedChoice_ = (selectedChoice_ == 0) ? (int)questions_[questionIndex_].choices.size() - 1 : selectedChoice_ - 1;
 		}
-		else if (inputManager_.IsTrgDown(KEY_INPUT_D))
+		else if (inputManager_.IsTrgDown(KEY_INPUT_S))
 		{
 			selectedChoice_ = (selectedChoice_ == (int)questions_[questionIndex_].choices.size() - 1) ? 0 : selectedChoice_ + 1;
 		}

@@ -87,9 +87,6 @@
     <ClCompile Include="Src\Manager\QuestionManager.cpp">
       <Filter>ソース ファイル\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="Pause.cpp">
-      <Filter>ソース ファイル\Object</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Common\Fader.h">
@@ -133,9 +130,6 @@
     </ClInclude>
     <ClInclude Include="Src\Manager\QuestionManager.h">
       <Filter>ヘッダー ファイル\Manager</Filter>
-    </ClInclude>
-    <ClInclude Include="Pause.h">
-      <Filter>ヘッダー ファイル\Object</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

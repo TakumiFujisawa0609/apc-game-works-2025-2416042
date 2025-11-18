@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Pause.cpp" />
     <ClCompile Include="Src\Manager\QuestionManager.cpp" />
     <ClCompile Include="Src\Object\Message.cpp" />
     <ClCompile Include="Src\Scene\ClearScene.cpp" />
