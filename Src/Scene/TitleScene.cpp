@@ -21,6 +21,8 @@ void TitleScene::Init(void)
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Title1.png").c_str());
 	bgmHandle_ = LoadSoundMem((Application::PATH_DATA + "BGM/TitleScene.mp3").c_str());
 	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
+
+	SetMouseDispFlag(TRUE);
 }
 
 void TitleScene::Update(void)
@@ -38,19 +40,43 @@ void TitleScene::Update(void)
 	// --- ポーズメニュー中の処理 ---
 	if (state_ == TitleState::PAUSE)
 	{
-		
+
 		// 上下キーで選択移動（長押し対策で IsTrgDown 使用）
-		if (ins.IsTrgDown(KEY_INPUT_W) || ins.IsTrgDown(KEY_INPUT_UP))
+		if (ins.IsTrgDown(KEY_INPUT_W))
 		{
 			pauseSelect_ = (pauseSelect_ + (int)PauseMenu::COUNT - 1) % (int)PauseMenu::COUNT;
 		}
-		else if (ins.IsTrgDown(KEY_INPUT_S) || ins.IsTrgDown(KEY_INPUT_DOWN))
+		else if (ins.IsTrgDown(KEY_INPUT_S))
 		{
 			pauseSelect_ = (pauseSelect_ + 1) % (int)PauseMenu::COUNT;
 		}
 
+		// マウス位置取得
+		int mx, my;
+		GetMousePoint(&mx, &my);
+
+		// 選択肢の座標（Draw と同じ数値）
+		int selectX = 700;
+		int selectY0 = 400;
+		int selectY1 = 500;
+		int selectHeight = 80; // 適当、高さ判定
+
+		// マウスが「タイトルへ」の上にある
+		if (mx >= selectX && mx <= selectX + 400 &&
+			my >= selectY0 && my <= selectY0 + selectHeight)
+		{
+			pauseSelect_ = 0;
+		}
+
+		// マウスが「ゲーム終了」の上にある
+		if (mx >= selectX && mx <= selectX + 400 &&
+			my >= selectY1 && my <= selectY1 + selectHeight)
+		{
+			pauseSelect_ = 1;
+		}
+
 		// 決定
-		if (ins.IsTrgDown(KEY_INPUT_RETURN) || ins.IsTrgDown(KEY_INPUT_SPACE))
+		if (ins.IsTrgDown(KEY_INPUT_SPACE) || ins.IsTrgMouseLeft())
 		{
 			if (pauseSelect_ == (int)PauseMenu::EXIT)
 			{
@@ -64,6 +90,14 @@ void TitleScene::Update(void)
 		}
 
 		return; // ポーズメニュー表示中は下の処理をスキップ
+	}
+
+	int mouse = GetMouseInput();  // 今のマウス状態を取得
+	if (mouse & MOUSE_INPUT_LEFT)  // 左クリックされた？
+	{
+		StopSoundMem(bgmHandle_);
+		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
+		return;
 	}
 
 	// 全てのキーのうち、どれかを押したら画面遷移

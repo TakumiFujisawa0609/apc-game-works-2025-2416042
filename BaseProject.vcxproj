@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Pause.cpp" />
     <ClCompile Include="Src\Manager\QuestionManager.cpp" />
     <ClCompile Include="Src\Object\Message.cpp" />
     <ClCompile Include="Src\Scene\ClearScene.cpp" />
@@ -35,6 +36,7 @@
     <ClCompile Include="Src\Utility\AsoUtility.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Pause.h" />
     <ClInclude Include="Src\Manager\QuestionManager.h" />
     <ClInclude Include="Src\Object\Message.h" />
     <ClInclude Include="Src\Scene\ClearScene.h" />
