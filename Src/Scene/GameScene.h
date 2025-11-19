@@ -12,8 +12,8 @@ enum class SceneState
 	QUESTION,		// 問題表示
 	ANSWER_TALK, // 解答後の会話
 	RESULT,			// 結果表示
-	END,					// シーン終了
-	PAUSE,				// 一時停止
+	END,					// シーン終了 〇
+	PAUSE,				// 一時停止 〇
 };
 
 // 選択肢と次の質問番号のペア
@@ -42,24 +42,9 @@ struct AfterTalk {
 	int choiceIndex;
 };
 
-// 選択肢の結果
-struct ChoiceResult {
-	int questionIndex = -1;
-	std::string questionText;
-	std::string selectedChoiceText;
-	bool afterTalkDone = false;
-};
 
 class GameScene : public SceneBase
 {
-	// リザルト
-	enum class ResultState
-	{
-		TAIL,			// 変更: 結果後のメッセージ表示（会話）を追加
-		LIST,			// 一覧表示
-		DETAIL,		// 詳細表示
-	};
-
 public:
 	static const int START_Y = 740;			  // 吹き出し内の縦位置
 	static const int SPACING = 660;			  // 選択肢同士の間隔
@@ -91,7 +76,7 @@ public:
 
 	// シーンの状態を設定
 	void SetSceneState(SceneState state) { state_ = state; }
-	
+
 
 private:
 #pragma region 変数宣言
@@ -115,19 +100,15 @@ private:
 	std::vector<Question> questions_;
 	// 解答後の会話リスト
 	std::vector<AfterTalk> afterTalks_;
-	// リザルトリスト
-	std::vector<ChoiceResult> results_;
-	// リザルト後のメッセージリスト
-	std::vector<std::string> resultTailMessages_;
+
+	
 	// 選択肢の描画矩形リスト
 	std::vector<ChoiceRect> choiceRects_;
 
 	// 解答後の会話メッセージ
 	std::string talkMessage_;
 
-	// 背景画像を複数管理
-	std::vector<int> resultBgImages_;
-	int currentBgIndex_; // 現在の背景
+
 	// ゲーム背景
 	int gImage_;
 
@@ -145,10 +126,8 @@ private:
 
 	// 一行ずつ表示するためのインデックス
 	int currentLineIndex_;
-	// 結果一覧の選択肢インデックス
-	int resultSelectIndex_;
-	// 変更: 現在表示しているリザルトメッセージの行インデックス
-	int resultTailIndex_;
+
+	
 
 	// 結果の表示のタイマー
 	int resultTimer_;
@@ -170,20 +149,10 @@ private:
 	bool pauseUpPressed_;
 	// マウス左ボタンの押下状態
 	bool isLButtonDown_;
-	
+
 	// 一時中断中の選択肢
 	int pauseSelected_;
 
 	// アフタートーク中かどうか	
 	bool isAfterTalkActive_;
-
-	// リザルトの構造体
-	bool resultDisplayed_;
-	int resultType_;
-
-	// 一覧表示に入った直後かどうか
-	bool justEnteredList_;
-
-	// 背景の切り替え
-	int DetermineResultType(void);
 };
