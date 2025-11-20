@@ -7,7 +7,9 @@
 #include "PauseScene.h"
 
 PauseScene::PauseScene(void)
-	:inputManager_(InputManager::GetInstance())
+	:inputManager_(InputManager::GetInstance()),
+	pauseSelectIndex_(0),
+	isLButtonDown_(false)
 {
 }
 

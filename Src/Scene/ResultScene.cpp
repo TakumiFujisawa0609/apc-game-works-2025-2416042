@@ -159,6 +159,10 @@ void ResultScene::Update(void)
 			if (resultSelectIndex_ < listSize)
 			{
 				// 詳細表示へ
+				if (resultSelectIndex_ < 0 || resultSelectIndex_ >= listSize) {
+					// 不正なインデックスの場合は何もしないか、エラーログを出す
+					break;
+				}
 				resultState_ = ResultState::DETAIL;
 
 				std::string detailMsg =
@@ -330,6 +334,15 @@ void ResultScene::Release(void)
 {
 }
 
+void ResultScene::Transition(void)
+{
+	GameScene::GetInstance().SetSceneState(SceneState::RESULT);
+	resultDisplayed_ = false;
+	resultState_ = ResultState::TAIL;
+	resultTailIndex_ = 0;
+	msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+}
+
 ResultScene& ResultScene::GetInstance(void)
 {
 	// C++におけるシングルトンの典型的な実装
@@ -337,21 +350,9 @@ ResultScene& ResultScene::GetInstance(void)
 	return instance;
 }
 
-void ResultScene::StartResult(const std::vector<ChoiceResult>& results, const std::vector<std::string>& tailMessages, const std::vector<int>& bgImages, int resultType)
+void ResultScene::AddResult(const ChoiceResult& result)
 {
-	results_ = results;
-	resultTailMessages_ = tailMessages;
-	resultBgImages_ = bgImages;
-	resultType_ = resultType;
-
-	resultDisplayed_ = false;
-	resultState_ = ResultState::TAIL;
-	resultTailIndex_ = 0;
-
-	if (!resultTailMessages_.empty())
-	{
-		msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
-	}
+	results_.push_back(result);
 }
 
 int ResultScene::DetermineResultType(void)

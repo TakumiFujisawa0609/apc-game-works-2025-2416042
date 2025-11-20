@@ -180,10 +180,10 @@ void GameScene::Update(void)
 	// --- ポーズ ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB))
 	{
-		if (state_ == SceneState::RESULT && 
-			resultState_ == ResultState::TAIL ||
-			 resultState_ == ResultState::DETAIL)
+		if (state_ == SceneState::RESULT)
 		{
+			ResultScene::GetInstance().SetResultState(ResultState::TAIL);
+			ResultScene::GetInstance().SetResultState(ResultState::DETAIL);
 			// 無視して何もしない
 		}
 		else if (state_ != SceneState::PAUSE)
@@ -299,7 +299,7 @@ void GameScene::Update(void)
 			result.questionIndex = questionIndex_;
 			result.questionText = questions_[questionIndex_].text;
 			result.selectedChoiceText = questions_[questionIndex_].choices[selectedChoice_].text;
-		//	results_.push_back(result);
+			ResultScene::GetInstance().AddResult(result);
 
 			// --- アフタートーク判定 ---
 			afterTalkIndex_ = -1;
@@ -330,11 +330,7 @@ void GameScene::Update(void)
 				}
 				else
 				{
-					state_ = SceneState::RESULT;
-					resultDisplayed_ = false;
-					resultState_ = ResultState::TAIL;
-					resultTailIndex_ = 0;
-					msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+					ResultScene::GetInstance().Transition();
 				}
 			}
 		}
@@ -368,11 +364,7 @@ void GameScene::Update(void)
 				}
 				else
 				{
-					state_ = SceneState::RESULT;
-					resultDisplayed_ = false;
-					resultState_ = ResultState::TAIL;
-					resultTailIndex_ = 0;
-					msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+					ResultScene::GetInstance().Transition();
 				}
 			}
 			else
@@ -444,8 +436,9 @@ void GameScene::Draw(void)
 	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // 黒い枠線
 
 	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
-	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
+	if (state_ != SceneState::RESULT)
 	{
+		ResultScene::GetInstance().SetResultState(ResultState::TAIL);
 		msg_.Draw(165, 65);
 	}
 
@@ -598,11 +591,7 @@ void GameScene::NextQuestion(int nextIndex_)
 	}
 	else
 	{
-		state_ = SceneState::RESULT;
-		resultDisplayed_ = false;
-		resultState_ = ResultState::TAIL;
-		resultTailIndex_ = 0;
-		msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+		ResultScene::GetInstance().Transition();
 	}
 }
 

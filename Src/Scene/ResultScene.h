@@ -41,14 +41,15 @@ public:
 	// 解放処理
 	void Release(void) override;
 
+	// 移行処理
+	void Transition(void);
+
 	// インスタンスの取得
 	static ResultScene& GetInstance(void);
-
-	void StartResult(
-		const std::vector<ChoiceResult>& results,
-		const std::vector<std::string>& tailMessages,
-		const std::vector<int>& bgImages,
-		int resultType);
+	// シーンの状態を設定
+	void SetResultState(ResultState resultState) { resultState_ = resultState; }
+	// 結果をリストに追加
+	void AddResult(const ChoiceResult& result);
 private:
 	// メッセージオブジェクト
 	Message msg_;

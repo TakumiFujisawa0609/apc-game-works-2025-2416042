@@ -77,15 +77,12 @@ public:
 	// シーンの状態を設定
 	void SetSceneState(SceneState state) { state_ = state; }
 
-
 private:
 #pragma region 変数宣言
 	// シーンの状態
 	SceneState state_;
 	// ポーズ前の状態を記録
 	SceneState stateBeforePause_;
-	// リザルトの状態
-	ResultState resultState_;
 
 	// メッセージオブジェクト
 	Message msg_;
