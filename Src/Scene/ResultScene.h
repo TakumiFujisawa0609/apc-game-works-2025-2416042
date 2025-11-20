@@ -9,11 +9,16 @@
 #include "../Manager/SceneManager.h"
 #include "../Manager/QuestionManager.h"
 
+// 選択肢の矩形（GameScene 側と同様に定義）
+struct ChoiceRect {
+	int left, top, right, bottom;
+};
+
 enum class ResultState
 {
-	TAIL,			// 変更: 結果後のメッセージ表示（会話）を追加
-	LIST,			// 一覧表示
-	DETAIL,		// 詳細表示
+	TAIL,   // 結果前の会話
+	LIST,   // 一覧表示
+	DETAIL, // 詳細表示
 };
 
 // 選択肢の結果
@@ -24,67 +29,69 @@ struct ChoiceResult {
 	bool afterTalkDone = false;
 };
 
-
 class ResultScene : public SceneBase
 {
 public:
-	// コンストラクタ
+	// コンストラクタ / デストラクタ
 	ResultScene(void);
-	// デストラクタ
 	~ResultScene(void);
-	// 初期化処理
+
+	// ライフサイクル
 	void Init(void) override;
-	// 更新ステップ
 	void Update(void) override;
-	// 描画処理
 	void Draw(void) override;
-	// 解放処理
 	void Release(void) override;
 
-	// 移行処理
+	// 他シーンからの移行トリガ
 	void Transition(void);
 
-	// インスタンスの取得
+	// シングルトン取得
 	static ResultScene& GetInstance(void);
-	// シーンの状態を設定
+
+	// 外部から状態をセットする（既存コードで使われているため残す）
 	void SetResultState(ResultState resultState) { resultState_ = resultState; }
-	// 結果をリストに追加
+
+	// 結果を外部から追加（GameScene などが使う）
 	void AddResult(const ChoiceResult& result);
+
 private:
-	// メッセージオブジェクト
+	// 内部ユーティリティ
+	int DetermineResultType(void);
+
+	// インスタンス
 	Message msg_;
-	// 入力制御オブジェクト
 	InputManager& inputManager_;
-
-	// リザルトの状態
+	// 状態管理
 	ResultState resultState_;
-
-	// リザルトリスト
+	// 結果データ
 	std::vector<ChoiceResult> results_;
-	// 選択肢の描画矩形リスト
+	// 選択肢矩形群（マウス操作用）
 	std::vector<ChoiceRect> choiceRects_;
-
-	// リザルト後のメッセージリスト
+	// リザルト前の会話メッセージ群
 	std::vector<std::string> resultTailMessages_;
-	// 背景画像を複数管理
+	// リザルト背景群
 	std::vector<int> resultBgImages_;
-	int currentBgIndex_; // 現在の背景
-
-	// 結果一覧の選択肢インデックス
+	// 現在の背景インデックス
+	int currentBgIndex_;
+	// 選択中インデックス
 	int resultSelectIndex_;
-	// 解答後の会話の保管庫
+	// アフタートーク再生対象インデックス
 	int afterTalkIndex_;
-	// 現在表示しているリザルトメッセージの行インデックス
+	// リザルト前会話の進行インデックス
 	int resultTailIndex_;
-
-	// マウス左ボタンの押下状態
+	// マウス左ボタンダウン状態
 	bool isLButtonDown_;
-	// リザルトの構造体
+	// 結果表示済みフラグ
 	bool resultDisplayed_;
+	// 結果タイプ
 	int resultType_;
-	// 一覧表示に入った直後かどうか
+	// 一覧に入った直後フラグ
 	bool justEnteredList_;
 
-	// 背景の切り替え
-	int DetermineResultType(void);
+	// 描画レイアウト定数（Draw と Update で一致させる）
+	static constexpr int LIST_BASE_Y = 410;
+	static constexpr int LIST_ITEM_HEIGHT = 100;
+	static constexpr int LIST_RECT_LEFT = 180;
+	static constexpr int LIST_RECT_RIGHT = 1730; // 枠いっぱいまで
+	static constexpr int NEXT_ITEM_Y = 900;
 };
