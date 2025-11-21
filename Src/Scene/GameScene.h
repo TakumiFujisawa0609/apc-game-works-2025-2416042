@@ -5,16 +5,8 @@
 #include "../Object/Message.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/QuestionManager.h"
+#include "../Common/ChoiceRect.h"
 
-enum class SceneState
-{
-	STORY,				// メッセージ表示
-	QUESTION,		// 問題表示
-	ANSWER_TALK, // 解答後の会話
-	RESULT,			// 結果表示
-	END,					// シーン終了 〇
-	PAUSE,				// 一時停止 〇
-};
 
 // 選択肢と次の質問番号のペア
 struct Choice {
@@ -22,11 +14,6 @@ struct Choice {
 	int nextIndex; // 次の質問番号（-1なら終了）
 	int x, y;
 	int count = 0;
-};
-
-// 選択肢の描画矩形を保存するための構造体
-struct ChoiceRect {
-	int left, top, right, bottom;
 };
 
 // 質問と選択肢のセット
@@ -76,7 +63,8 @@ public:
 
 	// シーンの状態を設定
 	void SetSceneState(SceneState state) { state_ = state; }
-
+	// メッセージを設定 
+	void SetMessage(const std::string& msg);
 private:
 #pragma region 変数宣言
 	// シーンの状態

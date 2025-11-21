@@ -8,11 +8,8 @@
 #include "../Manager/InputManager.h"
 #include "../Manager/SceneManager.h"
 #include "../Manager/QuestionManager.h"
+#include "../Common/ChoiceRect.h"
 
-// 選択肢の矩形（GameScene 側と同様に定義）
-struct ChoiceRect {
-	int left, top, right, bottom;
-};
 
 enum class ResultState
 {
@@ -57,6 +54,9 @@ public:
 private:
 	// 内部ユーティリティ
 	int DetermineResultType(void);
+	// 追加: 選択肢の描画矩形を生成するヘルパー関数
+	void CreateChoiceRects(int listSize); // sizeを渡すことで results_.size() に依存させない
+
 
 	// インスタンス
 	Message msg_;
@@ -67,7 +67,7 @@ private:
 	std::vector<ChoiceResult> results_;
 	// 選択肢矩形群（マウス操作用）
 	std::vector<ChoiceRect> choiceRects_;
-	// リザルト前の会話メッセージ群
+	// リザルト前会話のメッセージ群
 	std::vector<std::string> resultTailMessages_;
 	// リザルト背景群
 	std::vector<int> resultBgImages_;
@@ -75,7 +75,7 @@ private:
 	int currentBgIndex_;
 	// 選択中インデックス
 	int resultSelectIndex_;
-	// アフタートーク再生対象インデックス
+	// アフタートーク再生対象インデックス (未使用だが残す)
 	int afterTalkIndex_;
 	// リザルト前会話の進行インデックス
 	int resultTailIndex_;
@@ -85,8 +85,8 @@ private:
 	bool resultDisplayed_;
 	// 結果タイプ
 	int resultType_;
-	// 一覧に入った直後フラグ
-	bool justEnteredList_;
+	// 一覧に入った直後フラグ (廃止)
+	// bool justEnteredList_; 
 
 	// 描画レイアウト定数（Draw と Update で一致させる）
 	static constexpr int LIST_BASE_Y = 410;

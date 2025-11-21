@@ -1,5 +1,37 @@
 #include "ResultScene.h"
 
+// ------------------------------------------------
+// プライベートユーティリティ関数の追加
+// ------------------------------------------------
+
+// LIST状態の選択肢と「次へ進む」ボタンの矩形を生成
+void ResultScene::CreateChoiceRects(int listSize)
+{
+	choiceRects_.clear();
+	// 質問一覧の矩形
+	for (int i = 0; i < listSize; ++i) {
+		int y = LIST_BASE_Y + i * LIST_ITEM_HEIGHT;
+		int rect_left = LIST_RECT_LEFT;
+		int rect_top = y;
+		int rect_right = LIST_RECT_RIGHT;
+		int rect_bottom = y + LIST_ITEM_HEIGHT;
+		// 描画よりも少し外側まで当たり判定を広げる
+		choiceRects_.push_back({ rect_left - 10, rect_top, rect_right + 10, rect_bottom });
+	}
+
+	// 次へ進む項目矩形 (Draw() の描画位置に合わせて広めに設定)
+	int nextLeft = 600;
+	int nextRight = 1300;
+	int nextTop = NEXT_ITEM_Y;
+	int nextBottom = NEXT_ITEM_Y + LIST_ITEM_HEIGHT;
+	choiceRects_.push_back({ nextLeft, nextTop, nextRight, nextBottom });
+}
+
+
+// ------------------------------------------------
+// 既存メソッドの修正
+// ------------------------------------------------
+
 ResultScene::ResultScene(void)
 	: inputManager_(InputManager::GetInstance()),
 	resultState_(ResultState::TAIL),
@@ -8,7 +40,7 @@ ResultScene::ResultScene(void)
 	isLButtonDown_(false),
 	resultDisplayed_(false),
 	resultType_(0),
-	justEnteredList_(true),
+	// justEnteredList_(true), // 削除
 	currentBgIndex_(0),
 	resultTailIndex_(0)
 {
@@ -38,38 +70,30 @@ void ResultScene::Init(void)
 	}
 	currentBgIndex_ = 0;
 
-	resultDisplayed_ = false;
-	resultState_ = ResultState::TAIL;
-	resultSelectIndex_ = 0;
-	results_.clear();
-	resultTailIndex_ = 0;
-	choiceRects_.clear();
-	justEnteredList_ = true;
-
-	// 初期メッセージをセット（TAIL の最初の行）
-	resultState_ = ResultState::TAIL;
-	resultTailIndex_ = 0;
-	if (!resultTailMessages_.empty()) msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+	// 初期メッセージ設定
+	if (!resultTailMessages_.empty()) {
+		msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+	}
 }
 
-void ResultScene::AddResult(const ChoiceResult& result)
-{
-	results_.push_back(result);
-}
 
 void ResultScene::Update(void)
 {
 	// マウス表示
 	SetMouseDispFlag(TRUE);
 
+	// メッセージ更新（TAIL/DETAIL状態でのみ必要）
+	msg_.Update();
+
 	// マウス座標・ボタン
 	int mouseX = 0, mouseY = 0;
 	GetMousePoint(&mouseX, &mouseY);
 	int mouseButton = GetMouseInput();
+	// isLButtonTrg: 押下された瞬間
 	bool isLButtonTrg = ((mouseButton & MOUSE_INPUT_LEFT) != 0) && !isLButtonDown_;
 	isLButtonDown_ = (mouseButton & MOUSE_INPUT_LEFT) != 0;
 
-	// 初回表示時の処理（背景タイプ決定など）
+	// 初回表示時の処理
 	if (!resultDisplayed_) {
 		resultDisplayed_ = true;
 		resultType_ = DetermineResultType();
@@ -80,59 +104,39 @@ void ResultScene::Update(void)
 
 	switch (resultState_) {
 	case ResultState::TAIL:
-		// メッセージが流れている間は入力を無視
+		// メッセージが最後まで流れるのを待つ
+		// ここで msg_.IsFinished() を使うことで、メッセージの表示完了を正確にチェック
 		if (!msg_.IsFinished()) break;
 
+		// スペースキーまたはクリックで次のメッセージへ
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg) {
 			++resultTailIndex_;
 			if (resultTailIndex_ < static_cast<int>(resultTailMessages_.size())) {
+				// 次の会話メッセージをセット
 				msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
 			}
 			else {
-				// TAIL 終了。LIST へ移行（ここで初期化）
+				// TAIL 終了。LIST へ移行
 				resultState_ = ResultState::LIST;
 				resultSelectIndex_ = 0;
-				justEnteredList_ = true; // DRAW側で矩形作成後に入力を許可するための旗
-				msg_.SetMessage("結果はこちら");
+				// 矩形を生成
+				CreateChoiceRects(static_cast<int>(results_.size()));
+				msg_.SetMessage("結果はこちら。"); // LIST状態でのメッセージをセット
 			}
 		}
 		break;
 
 	case ResultState::LIST:
 	{
-		// LIST に入った直後は 1 フレームだけ入力を無視して
-		// Draw 側で choiceRects_ を更新できる余地を与える
-		if (justEnteredList_) {
-			// ただし choiceRects_ が空の場合は Update 側で矩形を作る（Draw が呼ばれないパスに備える）
-			if (choiceRects_.empty()) {
-				// results_.size() に合わせて矩形を作る（Draw と同じロジック） 
-				choiceRects_.clear();
-				for (size_t i = 0; i < results_.size(); ++i) {
-					int y = LIST_BASE_Y + static_cast<int>(i) * LIST_ITEM_HEIGHT;
-					int rect_left = LIST_RECT_LEFT;
-					int rect_top = y;
-					int rect_right = LIST_RECT_RIGHT;
-					int rect_bottom = y + LIST_ITEM_HEIGHT;
-					choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
-				}
-				// 次へ進む項目矩形
-				{
-					int nextLeft = 730 - 100; // Draw と同じ算出
-					int nextTop = NEXT_ITEM_Y;
-					int nextRight = 730 + 300;
-					int nextBottom = NEXT_ITEM_Y + LIST_ITEM_HEIGHT;
-					choiceRects_.push_back({ nextLeft, nextTop, nextRight, nextBottom });
-				}
-			}
-			// このフレームは入力を消化しない（安全化）
-			justEnteredList_ = false;
-			break;
+		int listSize = static_cast<int>(results_.size());
+		int totalOptions = listSize + 1; // 質問一覧 + 「次へ進む」
+
+		// LISTに入った直後、まだ矩形がない場合のために再チェック
+		if (choiceRects_.empty() && listSize > 0) { // 結果が0個の場合は矩形を作らない
+			CreateChoiceRects(listSize);
 		}
 
-		// キー操作（W/S）
-		int listSize = static_cast<int>(results_.size());
-		int totalOptions = listSize + 1;
-
+		// --- カーソル移動（W/Sキー） ---
 		if (inputManager_.IsTrgDown(KEY_INPUT_W)) {
 			resultSelectIndex_ = (resultSelectIndex_ - 1 + totalOptions) % totalOptions;
 		}
@@ -140,80 +144,60 @@ void ResultScene::Update(void)
 			resultSelectIndex_ = (resultSelectIndex_ + 1) % totalOptions;
 		}
 
-		// マウスオーバー判定（choiceRects_ が未構築ならここで作る）
-		if (choiceRects_.empty()) {
-			choiceRects_.clear();
-			for (size_t i = 0; i < results_.size(); ++i) {
-				int y = LIST_BASE_Y + static_cast<int>(i) * LIST_ITEM_HEIGHT;
-				choiceRects_.push_back({ LIST_RECT_LEFT, y, LIST_RECT_RIGHT, y + LIST_ITEM_HEIGHT });
-			}
-			choiceRects_.push_back({ 730 - 100, NEXT_ITEM_Y, 730 + 300, NEXT_ITEM_Y + LIST_ITEM_HEIGHT });
-		}
-
+		// --- マウスオーバー判定 ---
+		int newSelectIndex = resultSelectIndex_;
 		bool mouseOverAny = false;
 		for (size_t i = 0; i < choiceRects_.size(); ++i) {
 			const auto& r = choiceRects_[i];
 			if (mouseX >= r.left && mouseX <= r.right && mouseY >= r.top && mouseY <= r.bottom) {
-				// 範囲内。i が最後の要素なら「次へ進む」
-				if ((int)i != resultSelectIndex_) resultSelectIndex_ = (int)i;
+				newSelectIndex = (int)i;
 				mouseOverAny = true;
 				break;
 			}
 		}
 
-		// クリックで決定（キーボード or マウス）
-		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg) {
-			// 保護：results_ が空の場合は「次へ進む」（index == listSize）扱いのみ許可
-			if (listSize == 0) {
-				// 唯一の選択は "次へ進む"
-				if (resultSelectIndex_ >= 0 && resultSelectIndex_ == 0) {
-					// ここは "次へ進む" として扱う (choiceRects_ の構成により index 0 が next になっている可能性は考慮済)
-					// だが安全のため、listSize == 0 なら常に終了扱い
-					GameScene::GetInstance().SetSceneState(SceneState::END);
-					msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
-				}
-			}
-			else {
-				// resultSelectIndex_ が一覧内か next か判定
-				if (resultSelectIndex_ < listSize) {
-					// 安全確認
-					if (resultSelectIndex_ < 0 || resultSelectIndex_ >= listSize) {
-						// 不正なら無視
-						break;
-					}
-					// 詳細表示へ
-					resultState_ = ResultState::DETAIL;
-					const auto& rr = results_[resultSelectIndex_];
-					std::string detailMsg =
-						"【質問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
-						rr.questionText + "\n\n" +
-						"あなたの選択: " + rr.selectedChoiceText +
-						"\n\nSpaceキーまたはクリックで一覧に戻る。";
-					msg_.SetMessage(detailMsg);
+		if (mouseOverAny) {
+			resultSelectIndex_ = newSelectIndex;
+		}
 
-					// アフタートーク未再生ならマーク
-					if (!results_[resultSelectIndex_].afterTalkDone) {
-						afterTalkIndex_ = resultSelectIndex_;
-						results_[resultSelectIndex_].afterTalkDone = true;
-					}
+		// --- クリック/スペースで決定 ---
+		// マウスで決定する場合、マウスオーバーしていることを条件に追加
+		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || (isLButtonTrg && mouseOverAny)) {
+
+			// 選択肢（質問）が選ばれた場合 (最後の「次へ進む」ではない)
+			if (resultSelectIndex_ < listSize) {
+				// 詳細表示へ
+				resultState_ = ResultState::DETAIL;
+				const auto& rr = results_[resultSelectIndex_];
+				std::string detailMsg =
+					"【質問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
+					rr.questionText + "\n\n" +
+					"あなたの選択: " + rr.selectedChoiceText +
+					"\n\nSpaceキーまたはクリックで一覧に戻る。";
+				msg_.SetMessage(detailMsg);
+
+				// アフタートーク未再生ならマーク
+				results_[resultSelectIndex_].afterTalkDone = true;
+			}
+			// 「次へ進む」が選ばれた場合
+			else if (resultSelectIndex_ == listSize) {
+				bool allDone = true;
+				for (auto& r : results_) {
+					if (!r.afterTalkDone) { allDone = false; break; }
 				}
-				else if (resultSelectIndex_ == listSize) {
-					// 「次へ進む」が選ばれた
-					bool allDone = true;
-					for (auto& r : results_) {
-						if (!r.afterTalkDone) { allDone = false; break; }
-					}
-					if (allDone) {
-						GameScene::GetInstance().SetSceneState(SceneState::END);
-						msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
-					}
-					else {
-						msg_.SetMessage("まだ全部のアフタートークが終わっていないみたい。");
-					}
+				// 全てのアフタートークが終わった、または結果データが空の場合
+				if (allDone || results_.empty()) {
+					GameScene::GetInstance().SetSceneState(SceneState::END);
+					// GameSceneのメッセージオブジェクトにも終了メッセージをセット
+					GameScene::GetInstance().SetMessage("これで終了だよ。遊んでくれてありがとう！");
+				}
+				else {
+					msg_.SetMessage("まだ全部のアフタートークが終わっていないみたい。");
+					// 選択インデックスを「次へ進む」以外にリセット
+					resultSelectIndex_ = 0;
 				}
 			}
 		}
-
 		break;
 	}
 
@@ -224,10 +208,8 @@ void ResultScene::Update(void)
 		// Space or click で戻る
 		if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg) {
 			resultState_ = ResultState::LIST;
-			msg_.SetMessage("");
-			// 戻った直後に LIST の矩形を再生成させる
-			justEnteredList_ = true;
-			choiceRects_.clear();
+			msg_.SetMessage("結果はこちら。");
+			// 選択をLISTの先頭にリセット
 			resultSelectIndex_ = 0;
 		}
 		break;
@@ -243,7 +225,7 @@ void ResultScene::Draw(void)
 
 	switch (resultState_) {
 	case ResultState::TAIL:
-		// TAIL 状態では msg_ を表示するだけ（msg_ は Init/Update でセットされる）
+		// TAIL 状態では msg_ を表示するだけ (GameSceneの吹き出し位置に合わせて描画)
 		msg_.Draw(165, 65);
 		break;
 
@@ -253,54 +235,72 @@ void ResultScene::Draw(void)
 		DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), TRUE);
 		DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), TRUE);
 
+		// ヘッダーテキスト
 		SetFontSize(40);
 		DrawFormatString(175, 65, GetColor(255, 255, 255), "結果はこちら。");
-		DrawFormatString(175, 105, GetColor(255, 255, 255), "W/Sキーで選択し、Spaceキーで詳細を見れます。");
+		DrawFormatString(175, 105, GetColor(255, 255, 255), "W/Sキーまたはマウスで選択し、Space/クリックで詳細を見れます。");
 
-		// ここで矩形リストを改めて作成（Update 側でも作るが Draw 側で正確に作る）
-		choiceRects_.clear();
+		// LISTのメッセージ (TAILの会話終了後に表示されるメッセージ)
+		SetFontSize(50);
+		msg_.Draw(175, 160);
+
 		int baseY = LIST_BASE_Y;
 		int listSize = static_cast<int>(results_.size());
 
-		SetFontSize(100);
+		SetFontSize(60);
+
+		// 質問一覧の描画
 		for (int i = 0; i < listSize; ++i) {
 			int y = baseY + i * LIST_ITEM_HEIGHT;
 			int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+			int baseColor = (i == resultSelectIndex_) ? GetColor(50, 50, 50) : GetColor(0, 0, 0);
 
 			// 選択時の背景
-			int rect_left = LIST_RECT_LEFT;
-			int rect_top = y;
-			int rect_right = LIST_RECT_RIGHT;
-			int rect_bottom = y + LIST_ITEM_HEIGHT;
-
-			if (i == resultSelectIndex_) {
-				DrawBox(rect_left, rect_top, rect_right, rect_bottom, GetColor(50, 50, 50), TRUE);
+			if (i == resultSelectIndex_ && i < choiceRects_.size()) {
+				const auto& rect = choiceRects_[i];
+				// 矩形が生成されている前提で描画
+				DrawBox(rect.left, rect.top, rect.right, rect.bottom, baseColor, TRUE);
 			}
 
-			std::string line = "問" + std::to_string(i + 1);
-			DrawString(270, y, line.c_str(), color);
-			if (i == resultSelectIndex_) DrawString(200, y, ">", color);
+			// 既読マーク
+			if (results_[i].afterTalkDone) {
+				DrawString(200, y, "★", GetColor(0, 255, 0));
+			}
 
-			choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
+			// 質問番号
+			std::string line = "問" + std::to_string(i + 1) + ": ";
+			DrawString(270, y, line.c_str(), color);
+
+			// 質問テキスト（省略表示）
+			std::string qText = results_[i].questionText;
+			size_t newlinePos = qText.find('\n');
+			if (newlinePos != std::string::npos) {
+				qText = qText.substr(0, newlinePos);
+			}
+			if (qText.size() > 25) {
+				qText = qText.substr(0, 25) + "...";
+			}
+			DrawString(450, y, qText.c_str(), color);
 		}
 
 		// 次へ進む
-		SetFontSize(100);
+		SetFontSize(80);
 		std::string nextText = "次へ進む";
 		int nextX = 730;
 		int nextY = NEXT_ITEM_Y;
-		int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
-		int nextLeft = nextX - 100;
-		int nextRight = nextX + nextWidth + 40;
-		int nextBottom = nextY + LIST_ITEM_HEIGHT;
+		int listIndex = listSize; // 「次へ進む」のインデックス
 
-		if (resultSelectIndex_ == listSize) {
-			DrawBox(nextLeft, nextY, nextRight, nextBottom, GetColor(50, 50, 50), TRUE);
+		int nextColor = (listIndex == resultSelectIndex_) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+		int nextBaseColor = (listIndex == resultSelectIndex_) ? GetColor(50, 50, 50) : GetColor(0, 0, 0);
+
+		// 選択時の背景
+		if (listIndex == resultSelectIndex_ && listIndex < choiceRects_.size()) {
+			const auto& rect = choiceRects_[listIndex];
+			DrawBox(rect.left, rect.top, rect.right, rect.bottom, nextBaseColor, TRUE);
 		}
-		if (resultSelectIndex_ == listSize) DrawString(680, nextY, ">", GetColor(255, 255, 0));
-		DrawString(nextX, nextY, nextText.c_str(), (resultSelectIndex_ == listSize) ? GetColor(255, 255, 0) : GetColor(255, 255, 255));
 
-		choiceRects_.push_back({ nextLeft, nextY, nextRight, nextBottom });
+		if (listIndex == resultSelectIndex_) DrawString(680, nextY, ">", nextColor);
+		DrawString(nextX, nextY, nextText.c_str(), nextColor);
 
 		break;
 	}
@@ -310,11 +310,13 @@ void ResultScene::Draw(void)
 		DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), TRUE);
 		DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), TRUE);
 
-		SetFontSize(36);
-		DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
+		SetFontSize(48);
+		DrawString(750, 345, "【質問詳細】", GetColor(255, 255, 0));
 		DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
 
-		msg_.Draw(170, 430);
+		// 詳細メッセージの描画位置調整
+		SetFontSize(36); // DETAILの文字サイズを調整
+		msg_.Draw(170, 410);
 		break;
 	}
 	}
@@ -326,23 +328,31 @@ void ResultScene::Release(void)
 	for (int h : resultBgImages_) {
 		if (h != -1) DeleteGraph(h);
 	}
+	results_.clear();
 	resultBgImages_.clear();
+	choiceRects_.clear();
 }
+
 
 void ResultScene::Transition(void)
 {
-	// GameScene を RESULT 状態にする（既存呼び出しと合わせる）
-	GameScene::GetInstance().SetSceneState(SceneState::RESULT);
-
-	resultDisplayed_ = false;
+	// ResultSceneのInitは呼ばれていないため、手動で初期状態をセット
 	resultState_ = ResultState::TAIL;
 	resultTailIndex_ = 0;
-	choiceRects_.clear();
-	resultSelectIndex_ = 0;
-	justEnteredList_ = true;
-	// msg_ に最初の TAIL メッセージをセット
-	if (!resultTailMessages_.empty()) msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+	if (!resultTailMessages_.empty()) {
+		msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+	}
+	// GameScene を RESULT 状態にする
+	GameScene::GetInstance().SetSceneState(SceneState::RESULT);
 }
+
+
+void ResultScene::AddResult(const ChoiceResult& result)
+{
+	results_.push_back(result);
+}
+
+// ... (ResultScene::GetInstance() および ResultScene::DetermineResultType(void) は変更なし)
 
 ResultScene& ResultScene::GetInstance(void)
 {
@@ -352,13 +362,12 @@ ResultScene& ResultScene::GetInstance(void)
 
 int ResultScene::DetermineResultType(void)
 {
-	int positive = 0, calm = 0, other = 0;
-	for (auto& r : results_) {
-		if (r.selectedChoiceText.find("パン") != std::string::npos) ++positive;
-		else if (r.selectedChoiceText.find("ご飯") != std::string::npos) ++calm;
-		else ++other;
+	if (results_.empty()) return 0;
+
+	// 仮のロジック: 質問インデックスの合計を計算し、結果タイプとする
+	int sum = 0;
+	for (const auto& r : results_) {
+		sum += r.questionIndex;
 	}
-	if (positive > calm && positive > other) return 0;
-	if (calm > positive && calm > other) return 1;
-	return 2;
+	return sum;
 }
