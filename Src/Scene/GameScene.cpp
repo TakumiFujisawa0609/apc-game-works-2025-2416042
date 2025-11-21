@@ -18,9 +18,7 @@
 //・問いを考え、実装
 //・TabからESCに変更
 //・最終結果を全部みなくても先に遷移できるようにする。
-//・タイトルとエンドシーンにもマウス操作の導入とポーズメニューの改善
 //・エンドシーンの画像生成
-//・enumクラスの核ソースを各シーンに振り分ける。
 //・問いによって画像を差し込んで視覚的に理解をできるようにする。
 //・最終結果後、世界の在りようを導入(背景やセリフが切り替わる)
 //・クリックの音のSEや選択肢を決めてる際のSE
@@ -106,26 +104,26 @@ void GameScene::Init(void)
 	// 問いの内容
 	questions_ = {
 		{
-		/*	"もし、今後人生でパンかご飯の片方だけしか\n"
-		"食べられないとしたら、どちらを選ぶ？",
-		{{"パン" , -1, 470, 760} ,
-		{ "ご飯" , -1, 1330, 760 }}
-		},*/
-		"もし、今後人生でパンかご飯の片方だけしか\n"
-		"食べられないとしたら、どちらを選ぶ？",
-		{{"パン" , 1, 470, 760} ,
-		{ "ご飯" , 2, 1330, 760 }}
-		},
-	 { "日本でパンの製造ができなくなり、輸入を頼るしかなくなった。\n"
-		"値段は今の10倍だけど、それでも君はパンを購入する？",
-		{ {"購入する", -1, 440, 760}, 
-		{"購入しない", -1, 1270, 760}}
-		},
-	{ "世界的にお米の生産が大幅に減少し、お米の価値が高騰した。\n"
-		"値段は今の10倍となった場合、それでも君はご飯を選ぶ？",
-		{ {"選ぶ", -1, 480, 760},
-		{"選ばない", -1, 1290, 760} }
-		},
+			/*	"もし、今後人生でパンかご飯の片方だけしか\n"
+			"食べられないとしたら、どちらを選ぶ？",
+			{{"パン" , -1, 470, 760} ,
+			{ "ご飯" , -1, 1330, 760 }}
+			},*/
+			"もし、今後人生でパンかご飯の片方だけしか\n"
+			"食べられないとしたら、どちらを選ぶ？",
+			{{"パン" , 1, 470, 760} ,
+			{ "ご飯" , 2, 1330, 760 }}
+			},
+		 { "日本でパンの製造ができなくなり、輸入を頼るしかなくなった。\n"
+			"値段は今の10倍だけど、それでも君はパンを購入する？",
+			{ {"購入する", -1, 440, 760},
+			{"購入しない", -1, 1270, 760}}
+			},
+		{ "世界的にお米の生産が大幅に減少し、お米の価値が高騰した。\n"
+			"値段は今の10倍となった場合、それでも君はご飯を選ぶ？",
+			{ {"選ぶ", -1, 480, 760},
+			{"選ばない", -1, 1290, 760} }
+			},
 	};
 
 	// 解答後の会話
@@ -212,9 +210,9 @@ void GameScene::Update(void)
 	// --- ポーズ ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB))
 	{
-		if (state_ == SceneState::RESULT && 
+		if (state_ == SceneState::RESULT &&
 			resultState_ == ResultState::TAIL ||
-			 resultState_ == ResultState::DETAIL)
+			resultState_ == ResultState::DETAIL)
 		{
 			// 無視して何もしない
 		}
@@ -269,7 +267,7 @@ void GameScene::Update(void)
 	{
 		if (!msg_.IsFinished()) break;
 
-	
+
 
 		// --- キーボード操作（既存） ---
 		if (inputManager_.IsTrgDown(KEY_INPUT_W))
@@ -452,7 +450,7 @@ void GameScene::Update(void)
 					// 会話終了 -> LISTへ
 					resultState_ = ResultState::LIST;
 					justEnteredList_ = true; // LISTに入ったことをマーク
-					msg_.SetMessage("結果はこちら"); 
+					//msg_.SetMessage("結果はこちら");
 				}
 			}
 			break;
@@ -519,7 +517,16 @@ void GameScene::Update(void)
 			// Spaceキーで決定
 			if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 			{
-				if (resultSelectIndex_ < listSize)
+				// ★ 修正箇所: カーソルが「次へ進む」の項目を指しているかチェック ★
+				if (resultSelectIndex_ == (int)results_.size())
+				{
+					// 「次へ進む」が選択された場合、すぐに END シーンへ遷移
+					//SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::END);
+					state_ = SceneState::END; // GameSceneの状態も終了へ
+					msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
+					return; // Update処理を終了
+				}
+				else
 				{
 					// 詳細表示へ
 					resultState_ = ResultState::DETAIL;
@@ -539,7 +546,7 @@ void GameScene::Update(void)
 						results_[resultSelectIndex_].afterTalkDone = true;
 					}
 				}
-				else if (resultSelectIndex_ == listSize)
+				if (resultSelectIndex_ == listSize)
 				{
 					// まだアフタートークが終わっていないものがあるかチェック
 					bool allDone = true;
@@ -555,7 +562,7 @@ void GameScene::Update(void)
 					if (allDone)
 					{
 						state_ = SceneState::END;
-						msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
+						
 					}
 				}
 			}
@@ -586,6 +593,7 @@ void GameScene::Update(void)
 			if (!msg_.IsFinished()) msg_.Skip();
 			else
 			{
+				msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
 				StopSoundMem(bgmHandle_);
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
@@ -713,9 +721,9 @@ void GameScene::Draw(void)
 	}
 	else if (state_ == SceneState::RESULT)
 	{
-	switch (resultState_)
+		switch (resultState_)
 		{
-		case ResultState::TAIL: 
+		case ResultState::TAIL:
 			break;
 
 		case ResultState::LIST:
@@ -777,7 +785,7 @@ void GameScene::Draw(void)
 			}
 
 			// 次へ進む選択肢
-			int nextY = 900 ;
+			int nextY = 900;
 			SetFontSize(100);
 			std::string nextText = "次へ進む";
 			int nextX = 730;
@@ -853,11 +861,11 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 		}
 		// マウス当たり判定用の矩形を保存 (choices[i].x/yを利用)
 		// ----------------------------------------------------
-			choiceRects_.push_back({
-			choices[i].x - 155,        // 左端 (背景の描画に合わせて)
-			choices[i].y - 260,         // 上端 (背景の描画に合わせて)
-			choices[i].x + choiceWidth + 155, // 右端 (文字の幅に合わせる)
-			choices[i].y + choiceHeight + 55  // 下端 (文字の高さに合わせる)
+		choiceRects_.push_back({
+		choices[i].x - 155,        // 左端 (背景の描画に合わせて)
+		choices[i].y - 260,         // 上端 (背景の描画に合わせて)
+		choices[i].x + choiceWidth + 155, // 右端 (文字の幅に合わせる)
+		choices[i].y + choiceHeight + 55  // 下端 (文字の高さに合わせる)
 			});
 		// ----------------------------------------------------
 	}

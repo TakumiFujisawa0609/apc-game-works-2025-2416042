@@ -91,7 +91,7 @@ public:
 
 	// シーンの状態を設定
 	void SetSceneState(SceneState state) { state_ = state; }
-	
+
 
 private:
 #pragma region 変数宣言
@@ -170,7 +170,7 @@ private:
 	bool pauseUpPressed_;
 	// マウス左ボタンの押下状態
 	bool isLButtonDown_;
-	
+
 	// 一時中断中の選択肢
 	int pauseSelected_;
 
