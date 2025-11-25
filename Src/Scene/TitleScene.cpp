@@ -32,7 +32,7 @@ void TitleScene::Update(void)
 	SetMouseDispFlag(TRUE);
 
 	// Tabキーでポーズメニュー表示
-	if (ins.IsTrgDown(KEY_INPUT_TAB))
+	if (ins.IsTrgDown(KEY_INPUT_TAB) || ins.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		state_ = TitleState::PAUSE; // ← 新しく追加した状態
 		return;
@@ -68,7 +68,7 @@ void TitleScene::Draw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(50);
-	DrawFormatString(0, 1000, GetColor(255, 255, 0), "Tabキーでポーズメニュー");
+	DrawFormatString(0, 1000, GetColor(255, 255, 0), "Tab/ESCでポーズメニュー");
 
 	if (state_ == TitleState::PAUSE)
 	{

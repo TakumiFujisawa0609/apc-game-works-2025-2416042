@@ -17,7 +17,6 @@
 // 今後やること
 //・問いを考え、実装
 //・TabからESCに変更
-//・最終結果を全部みなくても先に遷移できるようにする。
 //・エンドシーンの画像生成
 //・問いによって画像を差し込んで視覚的に理解をできるようにする。
 //・最終結果後、世界の在りようを導入(背景やセリフが切り替わる)
@@ -85,7 +84,7 @@ void GameScene::Init(void)
 
 	// 文章の初期化
 	story_ = {
-		/*"やぁ、目が覚めた？。",
+		"やぁ、目が覚めた？。",
 		"ここは精神と物質の狭間にある場所。\n"
 		"君には少し実験を手伝ってもらいたいんだ。",
 		"なに、簡単なことだよ。\n"
@@ -98,52 +97,277 @@ void GameScene::Init(void)
 		"それと、君が答えた問いは後で可視化されるから\n"
 		"楽しみにしててね。",
 		"それじゃあ、準備ができたら\n"
-		"スペースキーを押して始めよう。",*/
-		"まずは例題を出してみるね。",
+		"スペースキーを押して始めよう。",
+	
 	};
 	// 問いの内容
 	questions_ = {
 		{
-			/*	"もし、今後人生でパンかご飯の片方だけしか\n"
-			"食べられないとしたら、どちらを選ぶ？",
-			{{"パン" , -1, 470, 760} ,
-			{ "ご飯" , -1, 1330, 760 }}
-			},*/
-			"もし、今後人生でパンかご飯の片方だけしか\n"
-			"食べられないとしたら、どちらを選ぶ？",
-			{{"パン" , 1, 470, 760} ,
-			{ "ご飯" , 2, 1330, 760 }}
+#pragma region 1
+			"この先の人生で「新しい経験」と「安心感」、\n"
+			"より重きを置くべきはどっち？",
+			{{"新しい経験" , 1, 415, 760} ,
+			{ "安心感" , 2, 1310, 760 }}
 			},
-		 { "日本でパンの製造ができなくなり、輸入を頼るしかなくなった。\n"
-			"値段は今の10倍だけど、それでも君はパンを購入する？",
-			{ {"購入する", -1, 440, 760},
-			{"購入しない", -1, 1270, 760}}
+#pragma region 2
+		// 新しい経験を選んだ場合
+		 { "もし全ての新しい経験が必ず後悔すると知っていた場合でも、\n"
+		"君は「停滞」を避けるためにその選択肢を選ぶ？",
+			{ {"選ぶ", 3, 480, 760},
+			{"選ばない", 3, 1290, 760}}
 			},
-		{ "世界的にお米の生産が大幅に減少し、お米の価値が高騰した。\n"
-			"値段は今の10倍となった場合、それでも君はご飯を選ぶ？",
-			{ {"選ぶ", -1, 480, 760},
-			{"選ばない", -1, 1290, 760} }
+		// 安心感を選んだ場合
+		{"安心感が永続的に保証された環境が、\n"
+		"同時に全ての可能性を排除する檻であった場合、\n"
+		"君はそれを「幸福」と呼べる？",
+			{ {"呼べる", 3, 450, 760},
+			{"呼べない", 3, 1290, 760} }
+			},
+#pragma region 3
+		{"過去の失敗から学ぶことは、未来を恐れることにつながると思う？",
+			{{"つながる" , 4, 430, 760} ,
+			{ "つながらない" , 5, 1250, 760 }}
+			},
+#pragma region 4
+		// つながるを選んだ場合
+		 { "失敗による恐れが、成功する可能性のある行動を妨げていると\n"
+		"自覚している場合、君はその「恐れ」を克服する？\n"
+		"それとも受け入れる？",
+			{ {"克服する", 6, 440, 760},
+			{"受け入れる", 6, 1265, 760}}
+			},
+		// つながらないを選んだ場合
+		{ "過去の失敗を教訓として完全に活かし、二度と同じ過ちを\n"
+		"犯さない人は、新しい種類の失敗を恐れないと言える思う？",
+			{ {"言える", 6, 450, 760},
+			{"言えない", 6, 1290, 760} }
+			},
+//#pragma region 5(デバック用の締め)
+//		{"完璧な計画と即座の行動、より成果を生み出すのはどちらだと思う？",
+//			{{"完璧な計画" , 7, 470, 760} ,
+//			{ "即座の行動" , 8, 1330, 760 }}
+//			},
+//		#pragma region 6
+//		// 完璧な計画を選んだ場合
+//		 {"「完璧な計画」の完成を待つあまり、それを実行に移すタイミングが永久に失われた場合、\n"
+//		"その計画は「失敗」と見なすべき？",
+//			{ {"失敗と見なす",-1, 440, 760},
+//			{"失敗と見なさない", -1, 1270, 760}}
+//			},
+//		// 即座の行動を選んだ場合
+//		{"修正不可能な致命的なミスが、行動開始から1分以内に発生することが確実である場合でも、\n"
+//		"あなたは「スピード」を優先する？",
+//			{ {"優先する", -1, 480, 760},
+//			{"優先しない", -1, 1290, 760} }
+//			},
+#pragma region 5
+		{"完璧な計画と即座の行動、\n"
+		"より成果を生み出すのはどちらだと思う？",
+			{{"完璧な計画" , 7, 415, 760} ,
+			{ "即座の行動" , 8, 1265, 760 }}
+			},
+		#pragma region 6
+		// 完璧な計画を選んだ場合
+		 {"「完璧な計画」の完成を待つあまり、\n"
+		"それを実行に移すタイミングが永久に失われた場合、\n"
+		"その計画は「失敗」と見なすべき？",
+			{ {"見なす",9, 450, 760},
+			{"見なさない", 9, 1265, 760}}
+			},
+		// 即座の行動を選んだ場合
+		{"修正不可能な致命的なミスが、行動開始から1分以内に発生する\n"
+		"ことが確実である場合でも、あなたは「スピード」を優先する？",
+			{ {"優先する", 9, 430, 760},
+			{"優先しない", 9, 1265, 760} }
+			},
+#pragma region 7
+		{"もし君が無気力で夢がない場合、時間をかけて探す？\n"
+		"それとも、外部からの強制に素直に従う？",
+			{{"探す" , 10, 480, 760} ,
+			{ "素直に従う" , 11, 1265, 760 }}
+			},
+#pragma region 8
+		// 内部からの探求を選んだ場合
+		 { "「探す時間」が無限に与えられた結果、何も見つからないまま\n"
+		"人生の終わりに到達した場合、\n"
+		"その探求は有意義であったと言えるかな？",
+			{ {"言える",12, 450, 760},
+			{"言えない", 12, 1290, 760}}
+			},
+		// 外部からの強制に素直に従うを選んだ場合
+		{ "外部から与えられた目標を完全に達成し、\n"
+		"それが「君の幸せ」であると周囲が保証した場合、\n"
+		"君は本当にその人生に「自己の選択」を見出すの？",
+			{ {"見出す", 12, 450, 760},
+			{"見出さない", 12, 1265, 760} }
+			},
+#pragma region 9
+		{"もし自分が亡くなる日がわかってしまい、それが避けられない\n"
+		"運命だった場合、君はその運命に抗って長生きをしようとする？\n"
+		"それとも、おとなしく受け入れる？",
+			{{"抗う" , 13, 480, 760} ,
+			{ "受け入れる" , 13, 1265, 760 }}
+			},
+#pragma region 10
+			// 抗うを選んだ場合
+		 {"運命に抗う行為が、結果的に運命の定めた日付よりも\n"
+		"「早く」訪れた場合、その行動は正しかったと言える？",
+			{ {"言える",-1, 450, 760},
+			{"言えない", -1, 1290, 760}}
+			},
+			// 受け入れるを選んだ場合
+		{ "受け入れることを選んだ後、運命の日までの時間をただ消費するのではなく、\n"
+		"残された時間を「最大限に充実させる」努力は、運命への「抵抗」と呼べると思う？",
+			{ {"呼べる", -1, 450, 760},
+			{"呼べない", -1, 1270, 760} }
 			},
 	};
 
 	// 解答後の会話
 	afterTalks_ = {
-	{{"なるほど、君はパン派なんだね。",
-		"確かに、パンだけでも様々な種類があって美味しいよね。",
-		"なら、もし日本での製造ができない場合って考えたことある？"},0, 0},
-	{{"なるほど、君はご飯派なんだね。",
-		"確かに、ご飯をしばらく食べていないと恋しくなるくらい\n"
-		"日本人にとって欠かせない食べ物だよね。",
-		"なら、お米の生産が物凄く減った場合って考えたことはある？"},0, 1},
+#pragma region 1
+		// 新しい経験を選んだ場合
+	{{"なるほど、君は変化を恐れないチャレンジャーなんだね。",
+		"現状維持は衰退だと考える、その強い意志は尊敬できるよ！",
+		"なら、その新しい経験が、「後悔」を伴うと確実な場合でも、\n"
+		"君は立ち止まらないかな？"},0, 0},
+		// 安心感を選んだ場合
+	{{"なるほど、君は安定こそが最上の幸福だと考えているんだね。",
+		"地に足をつけた堅実な生き方だ。多くの人が望む道だろうね。",
+		"じゃあ、その安心感が、「全ての可能性を奪う檻」のようなもの\n"
+		"だとしたら、どうだろう？"},0, 1},
+
+#pragma region 2
+		// 選ぶを選んだ場合
 	{{"そうなんだね。\n"
-		"君はお金を使ってでも食べたいくらいパンが大好きなんだね。"	}, 1, 0},
+		"君は後悔を恐れるよりも、停滞を何よりも恐れるということか...",
+		"その探求心、見事！僕も学ばせてもらうね！"	}, 1, 0},
+		// 選ばないを選んだ場合
 	{{"そうなんだね。\n"
-		"やっぱり物価が高騰した状態では購入するのは厳しいよね。"}, 1, 1},
+		"やはり、確実な後悔を予期してまで飛び込むのは\n"
+		"賢明ではない、と判断したんだね。",
+		"慎重さもまた、人生を豊かにする要素だね。"}, 1, 1},
+		// 呼べるを選んだ場合
 	{{"なるほど！\n"
-		"素晴らしい！君は日本人の鑑だ！！",
-		"君はお金を使ってでもご飯を食べたいんだね！",}, 2, 0},
+		"君は「自由」よりも「平穏」を選んだんだね。",
+		"全ての可能性を閉ざしても、不安のない日々こそが\n"
+		"真の幸福だと思ってるんだね！"}, 2, 0},
+		// 呼べないを選んだ場合
 	{{"そうなんだ。\n"
-		"ご飯を選んでも物価の高騰で値段が上がると選びにくいよね。"}, 2, 1},
+		"やはり、安心感のためであっても、\n"
+		"可能性が閉ざされるのは耐えられないんだね。",
+		"人間の探求心は、決して満たされないということか..."}, 2, 1},
+#pragma region 3
+		// つながるを選んだ場合
+		{{"過去の失敗は、未来への警戒心を生む。君はそう考えているんだね。",
+			"その恐れが、「成功する可能性のある行動」を\n"
+		"妨げているとしたら、君はどうする？"},3, 0},
+		// つながらないを選んだ場合
+	{{"失敗は教訓であり、力となる。前向きな考え方だ。",
+		"でも、二度と同じ過ちを犯さない「完璧な教訓」を得た人は、\n",
+		"「新しい種類の失敗」を恐れないと言えるだろうか？"},3, 1},
+
+	#pragma region 4
+		// 克服するを選んだ場合
+	{{"君は克服するを選ぶんだね。",
+		"恐れを乗り越えた先にのみ、\n"
+		"真の成功がある。勇気ある選択だね！"	}, 4, 0},
+		//受け入れるを選んだ場合
+	{{"君は受け入れる選択をするんだね。",
+		"恐れは、君が生き残るための\n"
+		"重要な警告サインだと判断したってことかな。"}, 4, 1},
+		// 言えるを選んだ場合
+	{{"なるほど。",
+		"過去の失敗を完全に学べば、\n"
+		"どんな新しい失敗にも対応できる自信があるということだね。"}, 5, 0},
+		// 言えないを選んだ場合
+	{{"なるほど。",
+		"人生の失敗は無限にあり、過去の教訓だけでは\n"
+		"未来の全てを防げない、と君は知っているんだね。"}, 5, 1},
+
+#pragma region 5
+		// 完璧な計画を選んだ場合
+	{{"準備こそが成功の鍵。君は石橋を叩いて渡るタイプなんだね。",
+		"でも、その完璧な計画の「完成を待つあまり」、\n"
+		"実行のタイミングを永遠に失った場合、君はどう思う？"},6, 0},
+		// 即座の行動を選んだ場合
+	{{"スピードを重視する、決断力のあるタイプなんだね！",
+		"でも、「修正不可能な致命的なミス」が1分以内に起こると\n"
+		"確実な場合でも、君はスピードを優先する？"},6, 1},
+
+	#pragma region 6
+		// 失敗と見なすを選んだ場合
+	{{"君は失敗と見なすんだね。",
+		"実行されない計画は、存在しないに等しい。君の厳格な判断だ。"}, 7, 0},
+		// 失敗と見なさないを選んだ場合
+	{{"君は失敗と見なさないんだね。",
+		"計画自体は完璧であり、失敗したのは\n"
+		"実行のタイミングだけ、ということだね。"}, 7, 1},
+		// 優先するを選んだ場合
+	{{"君はスピードを優先するんだね！",
+		"致命的な結果が待っていても、\n"
+		"スピードそのものに価値を見出したんだね。"}, 8, 0},
+		// 優先しないを選んだ場合
+	{{"なるほど。スピードが大事でも優先はしないんだね。",
+		"やはり、結果の重大さを考えれば、\n"
+		"一時停止の勇気が必要ということだね。"}, 8, 1},
+#pragma region 7
+		// 内部からの探求を選んだ場合
+	{{"夢がない時こそ、立ち止まって自分と向き合う、\n"
+		"それが君の流儀なんだね。",
+		"では、その探す時間が無限に与えられ、\n"
+		"何も見つからないまま「人生の終わり」が来たら、\n"
+		"その探求は有意義だったと言えるかな？"},9, 0},
+		// 外部からの強制に素直に従うを選んだ場合
+	{{"決断のエネルギーを他者に委ねる、ある意味で合理的な判断だね。",
+		"その強制された目標を完璧に達成し、周囲が君の幸せを\n"
+		"保証した場合、君はそこに「自己の選択」を見出すだろうか？"},9, 1},
+
+#pragma region 8
+		// 内部からの探求を選んだ場合
+	{{"君は有意義であると言えるんだね。",
+		"結果ではなく、探求のプロセスそのものに、\n"
+		"君は価値を見出したってことかな。"}, 10, 0},
+		// 外部からの強制に素直に従うを選んだ場合
+	{{"そっか。君は有意義ではないという意見なんだね。",
+		"やはり、目標を持たない探求は、\n"
+		"時間という資源の浪費ということだよね。"}, 10, 1},
+		// 内部からの探求を選んだ場合
+	{{"なるほどね。",
+		"君は与えられた道でも、努力と達成を通じて、\n"
+		"それは君自身の道になったんだね。"}, 11, 0},
+		// 外部からの強制に素直に従うを選んだ場合
+	{{"そっか。見出さないというか見出せないってところかな？",
+		"他者からの評価や達成度に関わらず、\n"
+		"「自らの意志」がなければ、それは偽りの人生ということだね。"}, 11, 1},
+#pragma region 9
+		// 抗うを選んだ場合
+	{{"運命に屈しない、強い意志だね。\n"
+	"生きることに、徹底的に執着するか...",
+		"しかし、その「抵抗」が、皮肉にも運命の日より「早く」死を\n"
+		"招いた場合、その行動は無謀であったと言えるだろうか？"},12, 0},
+		// 受け入れるを選んだ場合
+	{{"受け入れることの潔さ、もしくは諦めたってことかな。",
+		"では、残された時間を「最大限に充実させる」努力は、\n"
+		"実は運命への「抵抗」と呼べると思う？"},12, 1},
+
+#pragma region 10
+		// 言えるを選んだ場合
+	{{"なるほど。",
+		"運命に抗うことは、結果的に運命を早まってしまったけど、\n"
+		"君はそれでも正しい行動だったという結論なんだね。"}, 13, 0},
+		// 言えないを選んだ場合
+	{{"言えないを選んだんだね。",
+		"結果がどうであれ、抗おうとしたこと自体に、\n"
+		"人間としての尊厳や価値があったということだね。"}, 13, 1},
+		// 呼べるを選んだ場合
+	{{"なるほど。君はこっちを選んだんだね",
+		"運命の日を変えられなくても、その中身を濃くすることは、\n"
+		"受動的な死への抵抗だということか。"}, 14, 0},
+		// 呼べないを選んだ場合
+	{{"そうだよね。呼べないよね。",
+		"運命の日を受け入れた以上、残りの時間の使い方を変えても、\n"
+		"それはあくまで運命の範疇ということだね。"}, 14, 1},
 	};
 
 	resultTailMessages_ = {
@@ -161,7 +385,16 @@ void GameScene::Init(void)
 
 	// メッセージオブジェクトの初期化
 	msg_.Init();
-	msg_.SetMessage(story_[storyIndex_]);
+	if (!story_.empty()) {
+		msg_.SetMessage(story_[storyIndex_]);
+	}
+	else if (!questions_.empty()) {
+		// 直接質問から始める場合（タイトルテキストが無いときの保険）
+		msg_.SetMessage(questions_[questionIndex_].text);
+	}
+	else {
+		msg_.SetMessage(""); // 最悪何も表示しない
+	}
 
 	leftPressed_ = false;
 	rightPressed_ = false;
@@ -208,7 +441,7 @@ void GameScene::Update(void)
 	msg_.Update();
 
 	// --- ポーズ ---
-	if (inputManager_.IsTrgDown(KEY_INPUT_TAB))
+	if (inputManager_.IsTrgDown(KEY_INPUT_TAB) || inputManager_.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		if (state_ == SceneState::RESULT &&
 			resultState_ == ResultState::TAIL ||
@@ -267,14 +500,12 @@ void GameScene::Update(void)
 	{
 		if (!msg_.IsFinished()) break;
 
-
-
 		// --- キーボード操作（既存） ---
-		if (inputManager_.IsTrgDown(KEY_INPUT_W))
+		if (inputManager_.IsTrgDown(KEY_INPUT_A))
 		{
 			selectedChoice_ = (selectedChoice_ == 0) ? (int)questions_[questionIndex_].choices.size() - 1 : selectedChoice_ - 1;
 		}
-		else if (inputManager_.IsTrgDown(KEY_INPUT_S))
+		else if (inputManager_.IsTrgDown(KEY_INPUT_D))
 		{
 			selectedChoice_ = (selectedChoice_ == (int)questions_[questionIndex_].choices.size() - 1) ? 0 : selectedChoice_ + 1;
 		}
@@ -463,13 +694,87 @@ void GameScene::Update(void)
 			}
 
 			int listSize = static_cast<int>(results_.size());
-			int totalOptions = listSize + 1;
+			int NEXT_INDEX = listSize;               // 「次へ進む」は最後のインデックス
+			int ROW_ITEMS = 5;                       // 1段あたりの数
+			int totalOptions = listSize + 1;         // +1 は「次へ進む」
+			int oldIndex = resultSelectIndex_;
 
-			// W/Sキーで選択肢移動
+			// =========================
+			// W：上の段へ移動
+			// =========================
 			if (inputManager_.IsTrgDown(KEY_INPUT_W))
-				resultSelectIndex_ = (resultSelectIndex_ - 1 + totalOptions) % totalOptions;
+			{
+				// 一番上段にいる → 変化なし
+				if (resultSelectIndex_ < ROW_ITEMS) {
+					// ただし「次へ進む」(最下段扱い) が選ばれていた場合のみ特別処理
+					if (resultSelectIndex_ == NEXT_INDEX) {
+						// 下段の一番左へ
+						resultSelectIndex_ = ROW_ITEMS;
+					}
+				}
+				else {
+					// 下段 → 上段へ
+					resultSelectIndex_ -= ROW_ITEMS;
+				}
+			}
+
+			// =========================
+			// S：下の段へ移動
+			// =========================
 			if (inputManager_.IsTrgDown(KEY_INPUT_S))
-				resultSelectIndex_ = (resultSelectIndex_ + 1) % totalOptions;
+			{
+				if (resultSelectIndex_ < ROW_ITEMS) {
+					// 上段 → 下段へ
+					int next = resultSelectIndex_ + ROW_ITEMS;
+
+					if (next >= listSize) {
+						// 下段に行けない位置 → 「次へ進む」へ
+						resultSelectIndex_ = NEXT_INDEX;
+					}
+					else {
+						resultSelectIndex_ = next;
+					}
+				}
+				else if (resultSelectIndex_ >= ROW_ITEMS && resultSelectIndex_ < listSize) {
+					// 下段 → 「次へ進む」
+					resultSelectIndex_ = NEXT_INDEX;
+				}
+				else if (resultSelectIndex_ == NEXT_INDEX) {
+					// 「次へ進む」で S → 変化なし
+				}
+			}
+
+			// =========================
+			// A：左へ移動
+			// =========================
+			if (inputManager_.IsTrgDown(KEY_INPUT_A))
+			{
+				if (resultSelectIndex_ == NEXT_INDEX) {
+					// 次へ進む → 下段の右端へ戻す
+					resultSelectIndex_ = listSize - 1;
+				}
+				else if (resultSelectIndex_ > 0) {
+					resultSelectIndex_--;
+				}
+			}
+
+			// =========================
+			// D：右へ移動
+			// =========================
+			if (inputManager_.IsTrgDown(KEY_INPUT_D))
+			{
+				if (resultSelectIndex_ == NEXT_INDEX) {
+					// 「次へ進む」なら変化なし
+				}
+				else if (resultSelectIndex_ < listSize - 1) {
+					resultSelectIndex_++;
+				}
+				else {
+					// 下段の最後 → 次へ進む
+					resultSelectIndex_ = NEXT_INDEX;
+				}
+			}
+
 
 			// マウス操作による選択肢変更・決定
 			{
@@ -535,7 +840,7 @@ void GameScene::Update(void)
 						"【質問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
 						results_[resultSelectIndex_].questionText + "\n\n" +
 						"あなたの選択: " + results_[resultSelectIndex_].selectedChoiceText +
-						"\n\nSpaceキーまたはクリックで一覧に戻る。";
+						"\n\nSpace or クリックで一覧に戻る。";
 
 					msg_.SetMessage(detailMsg);
 
@@ -633,13 +938,13 @@ void GameScene::Draw(void)
 
 
 	// 吹き出しの描画
-	DrawBox(145, 45, 1750, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
-	DrawBox(150, 50, 1745, 295, GetColor(0, 0, 0), true);        // 黒い枠線
+	DrawBox(145, 35, 1765, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
+	DrawBox(150, 40, 1760, 295, GetColor(0, 0, 0), true);        // 黒い枠線
 
 	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
 	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
 	{
-		msg_.Draw(165, 65);
+		msg_.Draw(165, 50);
 	}
 
 	if (state_ == SceneState::QUESTION)
@@ -657,7 +962,7 @@ void GameScene::Draw(void)
 
 		// 左右キーのヒント
 		SetFontSize(60);
-		DrawFormatString(0, 1000, GetColor(255, 255, 255), "A/Dキーで操作、Spaceで選択");
+		DrawFormatString(0, 1000, GetColor(255, 255, 255), "A/D or マウスで操作、Space or クリックで選択");
 	}
 	// 解答後の会話と結果表示
 	else if (state_ == SceneState::ANSWER_TALK) {
@@ -723,11 +1028,11 @@ void GameScene::Draw(void)
 	{
 		switch (resultState_)
 		{
-		case ResultState::TAIL:
+			case ResultState::TAIL:
 			break;
 
-		case ResultState::LIST:
-		{
+			case ResultState::LIST:
+			{
 			// LIST/DETAIL状態でのみ、結果一覧/詳細の大きな枠を描画
 			DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
 			DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
@@ -736,97 +1041,95 @@ void GameScene::Draw(void)
 			DrawFormatString(175, 65, GetColor(255, 255, 255),
 				"結果はこちら。");
 			DrawFormatString(175, 105, GetColor(255, 255, 255),
-				"W/Sキーで選択し、Spaceキーで詳細を見れます。");
+				"WASDで操作 or マウス操作、Spaceキー or クリックで詳細を見れます。");
 
-			/*SetFontSize(36);
-			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
-			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));*/
-
-			// ★追加: マウス用矩形リストをクリア
+			// マウス用矩形リストをクリア
 			choiceRects_.clear();
 
-			// 共通の描画設定
-			int text_size_a = 100; // SetFontSize(60) の高さ
-			int text_size_b = 100; // SetFontSize(70) の高さ
+			// 回答リストの表示（横1列 × 2段）
+			const int itemPerRow = 5;     // 1段に5個
+			const int itemWidth = 250;    // 横幅の間隔（各アイテム間の距離）
+			const int topRowY = 410;      // 上段のY座標
+			const int bottomRowY = 600;   // 下段のY座標
+			const int base2X = 350;        // 左端の開始位置
 
-			SetFontSize(32);
-			int baseY = 410;
+			SetFontSize(120);
 
-			// 回答リストの表示
 			for (size_t i = 0; i < results_.size(); i++)
 			{
-				int y = baseY + (int)i * 100;
-				SetFontSize(100);
+				// どの段か判定
+				int row = (i < itemPerRow) ? 0 : 1;
+
+				// インデックスに応じた座標計算
+				int colIndex = (int)(i % itemPerRow);  // 0〜4 の位置
+				int x = base2X + colIndex * itemWidth;
+				int y = (row == 0) ? topRowY : bottomRowY;
+
 				int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-
 				std::string line = "問" + std::to_string(i + 1);
-				// 描画
-				DrawString(270, y, line.c_str(), color);
-				if (i == resultSelectIndex_) DrawString(200, y, ">", color);
 
-				// マウス当たり判定用の矩形を保存
-				// [問X]の左端(210)と > の左端(180)を考慮し、幅はリスト枠(1730)いっぱいまで利用
+				// ===== 背景 =====
+				int rect_left = x - 30;
+				int rect_top = y - 10;
+				int rect_right = x + 210;
+				int rect_bottom = y + 120;
 
-				int rect_left = 180;
-				int rect_top = y;
-				int rect_right = 450; // 大きな枠の右端を使用
-				int rect_bottom = y + text_size_a;
-
-				// 選択時の背景描画 (カーソルがマウスで動くよう、DrawBoxも追加します)
+				// 選択中の項目は背景色を変える
 				if (i == resultSelectIndex_)
 				{
 					DrawBox(rect_left, rect_top, rect_right, rect_bottom, GetColor(50, 50, 50), TRUE);
 				}
-				// DrawStringの再描画（背景の上に文字が来るように）
-				DrawString(270, y, line.c_str(), color);
-				if (i == resultSelectIndex_) DrawString(200, y, ">", color);
 
+				// ===== 文字描画 =====
+				DrawString(x, y, line.c_str(), color);
+				if (i == resultSelectIndex_) DrawString(x - 50, y, ">", color);
+
+				// ===== マウス判定矩形登録 =====
 				choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
 			}
 
-			// 次へ進む選択肢
+			// --------------------------------------------------
+			// ★ 次へ進む（この部分は一切変更しない）
+			// --------------------------------------------------
 			int nextY = 900;
-			SetFontSize(100);
+			SetFontSize(140);
 			std::string nextText = "次へ進む";
 			int nextX = 730;
 			int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
-			int nextColor = (resultSelectIndex_ == (int)results_.size()) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
-			// 選択時の背景描画
+			int nextColor = (resultSelectIndex_ == (int)results_.size()) ?
+				GetColor(255, 255, 0) : GetColor(255, 255, 255);
+
 			if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
 
-			// マウス当たり判定用の矩形を保存
-			int rect_left = nextX - 100; // > の位置(830)を考慮
+			int rect_left = nextX - 100;
 			int rect_top = nextY;
 			int rect_right = nextX + nextWidth + 40;
-			int rect_bottom = nextY + text_size_b;
+			int rect_bottom = nextY + 145;
 
-			// 選択時の背景描画
 			if (resultSelectIndex_ == (int)results_.size())
 			{
 				DrawBox(rect_left, rect_top, rect_right, rect_bottom, GetColor(50, 50, 50), TRUE);
 			}
 
-			// 描画
 			DrawString(nextX, nextY, nextText.c_str(), nextColor);
 			if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
 
 			choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
+
 			break;
-		}
+			}
+			case ResultState::DETAIL:
+			{
+				// ====== 背景 ======
+				DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), TRUE);
+				DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), TRUE);
 
-		case ResultState::DETAIL:
-		{
-			// LIST/DETAIL状態でのみ、結果一覧/詳細の大きな枠を描画
-			DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
-			DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
+				// ====== メッセージ描画 ======
+				// DETAIL の文章は msg_.SetMessage() 済みなので、ここで描画すればOK
+				msg_.Draw(180, 340);
 
-			SetFontSize(36);
-			DrawString(816, 345, "【全問解答結果】", GetColor(255, 255, 0));
-			DrawLine(160, 390, 1735, 390, GetColor(255, 255, 255));
-
-			msg_.Draw(170, 430);
-			break;
-		}
+				break;
+			}
 		}
 	}
 }

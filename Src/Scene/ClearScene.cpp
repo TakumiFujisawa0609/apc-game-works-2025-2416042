@@ -32,7 +32,7 @@ void ClearScene::Update(void)
 	InputManager& ins = InputManager::GetInstance();
 
 	// Tabキーでポーズメニュー表示
-	if (ins.IsTrgDown(KEY_INPUT_TAB))
+	if (ins.IsTrgDown(KEY_INPUT_TAB) || ins.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		state_ = ClearState::PAUSE; // ← 新しく追加した状態
 		return;
@@ -66,7 +66,7 @@ void ClearScene::Draw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(50);
-	DrawFormatString(0, 1000, GetColor(0, 0, 0), "Tabキーでポーズメニュー");
+	DrawFormatString(0, 1000, GetColor(0, 0, 0), "Tab/ESCでポーズメニュー");
 
 	if (state_ == ClearState::PAUSE)
 	{
