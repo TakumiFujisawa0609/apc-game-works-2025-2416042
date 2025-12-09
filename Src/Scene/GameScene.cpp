@@ -84,7 +84,7 @@ void GameScene::Init(void)
 
 	// 文章の初期化
 	story_ = {
-		"やぁ、目が覚めた？。",
+		"やぁ、目が覚めた？",
 		"ここは精神と物質の狭間にある場所。\n"
 		"君には少し実験を手伝ってもらいたいんだ。",
 		"なに、簡単なことだよ。\n"
@@ -98,7 +98,6 @@ void GameScene::Init(void)
 		"楽しみにしててね。",
 		"それじゃあ、準備ができたら\n"
 		"スペースキーを押して始めよう。",
-	
 	};
 	// 問いの内容
 	questions_ = {
@@ -898,7 +897,7 @@ void GameScene::Update(void)
 			if (!msg_.IsFinished()) msg_.Skip();
 			else
 			{
-				msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
+				msg_.SetMessage("これで実験は終了だよ。遊んでくれてありがとう！");
 				StopSoundMem(bgmHandle_);
 				SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 			}
