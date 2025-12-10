@@ -20,7 +20,7 @@ ClearScene::~ClearScene(void)
 void ClearScene::Init(void)
 {
 	// 画像の読み込み
-	imgGameClear_ = LoadGraph((Application::PATH_IMAGE + "a.png").c_str());
+	imgGameClear_ = LoadGraph((Application::PATH_IMAGE + "End.png").c_str());
 	// BGMの読み込みと再生
 	 bgmHandle_ = LoadSoundMem((Application::PATH_DATA + "BGM/GameClear.mp3").c_str());
 	 PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
@@ -66,7 +66,7 @@ void ClearScene::Draw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(50);
-	DrawFormatString(0, 1000, GetColor(0, 0, 0), "Tab/ESCでポーズメニュー");
+	DrawFormatString(0, 1000, GetColor(255, 255, 0), "Tab/ESCでポーズメニュー");
 
 	if (state_ == ClearState::PAUSE)
 	{
