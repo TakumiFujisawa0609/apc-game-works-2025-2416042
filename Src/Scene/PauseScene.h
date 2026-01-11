@@ -19,12 +19,16 @@ public:
 	void TitleUpdate(void);
 	void ClearUpdate(void);
 	// 描画処理
-	 void Draw(void) override;
+	void Draw(void) override;
 	 void GameDraw(void);
 	 void TitleDraw(void);
 	 void ClearDraw(void);
 	// 解放処理
 	 void Release(void) override;
+
+	 bool IsResume(void);
+	 void ResetResume(void);
+	 void SetResume(bool resume);
 
 	 // インスタンスの取得
 	 static PauseScene& GetInstance(void);
@@ -44,4 +48,6 @@ private:
 
 	// マウス左ボタンの押下状態
 	bool isLButtonDown_;
+
+	bool isResume_;
 };

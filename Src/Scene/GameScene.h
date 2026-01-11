@@ -1,16 +1,16 @@
 #pragma once
 #include <string>
 #include <vector>
-#include "SceneBase.h"
 #include "../Object/Message.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/QuestionManager.h"
+#include "SceneBase.h"
 
 enum class SceneState
 {
 	STORY,				// メッセージ表示
 	QUESTION,		// 問題表示
-	ANSWER_TALK, // 解答後の会話
+	AFTER_TALK, // 解答後の会話
 	RESULT,			// 結果表示
 	END,					// シーン終了
 	PAUSE,				// 一時停止
@@ -45,6 +45,7 @@ struct AfterTalk {
 // 選択肢の結果
 struct ChoiceResult {
 	int questionIndex = -1;
+	int selectedChoiceIndex = -1;
 	std::string questionText;
 	std::string selectedChoiceText;
 	bool afterTalkDone = false;
@@ -76,21 +77,45 @@ public:
 	void ManagerInit(void);
 	// 更新ステップ
 	void Update(void) override;
+	// SceneStateごとの更新処理
+	void StoryUpdate(void);
+	void QuestionUpdate(void);
+	void AfterTalkUpdate(void);
+	void ResultUpdate(void);
+	void EndUpdate(void);
+	void PauseUpdate(void);
+
+	// ResultStateごとの更新処理
+	void TailUpdate(void);
+	void ListUpdate(void);
+	void DetailUpdate(void);
+
 	// 描画処理
 	void Draw(void) override;
+
+	// SceneStateごとの描画処理
+	void QuestionDraw(void);
+	void AfterTalkDraw(void);
+	void ResultDraw(void);
+	void EndDraw(void);
+	void PauseDraw(void);
+
+	// ResultStateごとの描画処理
+	void TailDraw(void);
+	void ListDraw(void);
+	void DetailDraw(void);
+
 	// 選択肢の描画
 	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent);
 	// 割合を横棒グラフで描画
 	void DrawPercentageBar(int x, int y, int width, int height, float percent, int barColor);
 	// 解放処理
 	void Release(void) override;
-
 	// 次の問いをセット
 	void NextQuestion(int nextIndex_);
 
 	// インスタンスの取得
 	static GameScene& GetInstance(void);
-
 	// シーンの状態を設定
 	void SetSceneState(SceneState state) { state_ = state; }
 
@@ -103,7 +128,6 @@ private:
 	SceneState stateBeforePause_;
 	// リザルトの状態
 	ResultState resultState_;
-
 	// メッセージオブジェクト
 	Message msg_;
 	// 入力制御オブジェクト
@@ -152,16 +176,13 @@ private:
 	// 現在表示しているリザルトメッセージ行のインデックス
 	int resultTailIndex_;
 
-	// 結果の表示のタイマー
-	int resultTimer_;
-
 	// 前の問い
 	int prevQuestionIndex_;
 	// 前の選択肢
 	int prevSelectedChoice_;
 
-	// マウス左クリックの前フレーム状態
-	bool prevMouseLeft_;
+	// 結果の表示のタイマー
+	int resultTimer_;
 
 	// 左右キーの押下状態
 	bool leftPressed_;
@@ -170,6 +191,8 @@ private:
 	bool pauseDownPressed_;
 	// ポーズ状態での操作
 	bool pauseUpPressed_;
+	// マウス左クリックの前フレーム状態
+	bool prevMouseLeft_;
 	// マウス左ボタンの押下状態
 	bool isLButtonDown_;
 
@@ -183,10 +206,18 @@ private:
 	bool resultDisplayed_;
 	int resultType_;
 
+	// ポーズ用バックアップ
+	int pauseStoryIndex_;
+	int pauseQuestionIndex_;
+	int pauseSelectedChoice_;
+	std::string pauseMessage_;
+
 	// 一覧表示に入った直後かどうか
 	bool justEnteredList_;
 	// 答えた質問の数
 	int answeredCount_;
+
+
 	// 背景の切り替え
 	int DetermineResultType(void);
 };

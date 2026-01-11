@@ -66,7 +66,7 @@ void ClearScene::Draw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(50);
-	DrawFormatString(0, 1000, GetColor(255, 255, 0), "Tab/ESCでポーズメニュー");
+//	DrawFormatString(0, 1000, GetColor(255, 255, 0), "Tab/ESCでポーズメニュー");
 
 	if (state_ == ClearState::PAUSE)
 	{

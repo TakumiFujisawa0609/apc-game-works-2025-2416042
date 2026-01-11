@@ -7,7 +7,10 @@
 #include "PauseScene.h"
 
 PauseScene::PauseScene(void)
-	:inputManager_(InputManager::GetInstance())
+	:inputManager_(InputManager::GetInstance()),
+	pauseSelectIndex_(0),
+	isLButtonDown_(false),
+	isResume_(false)
 {
 }
 
@@ -73,16 +76,19 @@ void PauseScene::GameUpdate(void)
 		goto PAUSE_DECISION;
 	}
 
-	// ★追加: 決定ロジックの開始点としてラベルを定義
+	// 決定ロジックの開始点としてラベルを定義
 	PAUSE_DECISION:
 
 	if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 	{
 		switch (pauseSelectIndex_)
 		{
-		case 0:SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME); break;
-		case 1: SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE); break;
-		case 2: DxLib_End(); break;
+		case 0: isResume_ = true; 
+			break;
+		case 1: SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE); 
+			break;
+		case 2: DxLib_End();
+			break;
 		}
 	}
 }
@@ -213,7 +219,6 @@ PAUSE_DECISION:
 
 void PauseScene::Draw(void)
 {
-	
 }
 
 void PauseScene::GameDraw(void)
@@ -266,7 +271,7 @@ void PauseScene::GameDraw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(60);
-	DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキー or マウスで操作、Spaceまたはクリックで選択");
+//	DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキー or マウスで操作、Spaceまたはクリックで選択");
 
 }
 
@@ -320,7 +325,7 @@ void PauseScene::TitleDraw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(60);
-	DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキー or マウスで操作、Spaceまたはクリックで選択");
+//	DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキー or マウスで操作、Spaceまたはクリックで選択");
 
 }
 
@@ -374,12 +379,27 @@ void PauseScene::ClearDraw(void)
 
 	// ポーズメニューの操作ヒント
 	SetFontSize(60);
-	DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキー or マウスで操作、Spaceまたはクリックで選択");
+//	DrawFormatString(0, 1000, GetColor(255, 255, 0), "W/Sキー or マウスで操作、Spaceまたはクリックで選択");
 
 }
 
 void PauseScene::Release(void)
 {
+}
+
+bool PauseScene::IsResume(void)
+{
+	return isResume_;
+}
+
+void PauseScene::ResetResume(void)
+{
+	isResume_ = false;
+}
+
+void PauseScene::SetResume(bool resume)
+{
+	isResume_ = resume;
 }
 
 PauseScene& PauseScene::GetInstance(void)

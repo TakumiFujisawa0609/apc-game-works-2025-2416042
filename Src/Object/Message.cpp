@@ -102,6 +102,7 @@ void Message::Draw(int x, int y)
 			visibleText = SubstrMBCS(messageLines_[line], charCount_);
 		}
 
+		// ï∂éöóÒÇÃï`âÊ
 		DrawFormatString(drawX, drawY, GetColor(255, 255, 255), visibleText.c_str());
 			drawY += 60; // çsä‘
 	}
@@ -113,7 +114,7 @@ void Message::Draw(int x, int y)
 		if ((blinkCounter_ / 30) % 2 == 0) {
 			// ì_ñ≈ï\é¶
 			SetFontSize(40);
-			DrawFormatString(drawX + 1550, 250, GetColor(255, 255, 255), "SPACE");
+			DrawFormatString(1740, 250, GetColor(255, 255, 255), "SPACE");
 			
 			SetFontSize(50);
 		}
