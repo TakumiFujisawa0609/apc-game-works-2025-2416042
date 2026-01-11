@@ -80,6 +80,8 @@ public:
 	void Draw(void) override;
 	// 選択肢の描画
 	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent);
+	// 割合を横棒グラフで描画
+	void DrawPercentageBar(int x, int y, int width, int height, float percent, int barColor);
 	// 解放処理
 	void Release(void) override;
 
@@ -147,7 +149,7 @@ private:
 	int currentLineIndex_;
 	// 結果一覧の選択肢インデックス
 	int resultSelectIndex_;
-	// 変更: 現在表示しているリザルトメッセージの行インデックス
+	// 現在表示しているリザルトメッセージ行のインデックス
 	int resultTailIndex_;
 
 	// 結果の表示のタイマー
@@ -183,7 +185,8 @@ private:
 
 	// 一覧表示に入った直後かどうか
 	bool justEnteredList_;
-
+	// 答えた質問の数
+	int answeredCount_;
 	// 背景の切り替え
 	int DetermineResultType(void);
 };

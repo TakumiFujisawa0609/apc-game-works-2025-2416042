@@ -15,12 +15,11 @@
 // $(DXLIB_DIR)
 
 // 今後やること
-//・問いを考え、実装
-//・TabからESCに変更
-//・エンドシーンの画像生成
-//・問いによって画像を差し込んで視覚的に理解をできるようにする。
-//・最終結果後、世界の在りようを導入(背景やセリフが切り替わる)
-//・クリックの音のSEや選択肢を決めてる際のSE
+// リスト画面にも選択肢の割合表示と棒グラフを追加
+// 選択肢に画像を追加
+// タイトルシーンのあとにゲームシーンではなく、ゲーム選択画面を実装
+// ポーズメニューからゲームに戻ったときに、選択肢がリセットされるバグを修正
+// 選択肢のテキストが長い場合に改行する機能を追加
 #pragma endregion
 
 GameScene::GameScene(void)
@@ -51,7 +50,9 @@ GameScene::GameScene(void)
 	resultTailIndex_(0),
 	talkMessage_(""),
 	prevMouseLeft_(false),
-	isLButtonDown_(false)
+	isLButtonDown_(false),
+	currentBgIndex_(0),
+	answeredCount_(0)
 {
 }
 
@@ -85,26 +86,23 @@ void GameScene::Init(void)
 	// 文章の初期化
 	story_ = {
 		"やぁ、目が覚めた？",
-		"ここは精神と物質の狭間にある場所。\n"
-		"君の心象世界だと思ってくれていいよ。",
-		"君には少し実験を手伝ってもらいたいんだ。",
+		/*"ここは精神と物質の狭間にある場所。\n"
+		"君の心象世界だと言えばわかりやすいかな。",
+		"実は君にお願いがあって、僕の実験を手伝ってもらいたいんだ。",
 		"あ、難しく考えなくて大丈夫だよ。\n"
 		"ただ、僕が出題する問いに答えてもらうだけだから。",
-		"ちょっと複雑な問いはあるかもだけど、君なら大丈夫。",
-		"それじゃあ、始める前に少し注意点を説明するね。",
+		"ちょっと複雑な問いはあるかもだけど、君なら大丈夫。",*/
+		/*"それじゃあ、始める前に少し注意点を説明するね。",
 		"まず、君が答えた問いは全て記録される。\n"
 		"だから、正直に君の価値観に沿って答えてね。",
-		"それと、君が答えた問いは後で可視化されるから\n"
-		"楽しみにしててね。",
-		"それじゃあ、準備ができたら\n"
-		"スペースキーを押して始めよう。",
+		"それと、君が答えた問いは後で可視化されるから楽しみにしててね。",
+		"それじゃあ、準備ができたらスペースキーを押して始めよう。\n"*/
 	};
 	// 問いの内容
 	questions_ = {
 		{
 #pragma region 1
-			"この先の人生で「新しい経験」と「安心感」、\n"
-			"より重きを置くべきはどっち？",
+			"この先の人生で「新しい経験」と「安心感」、より重きを置くべきはどっち？",
 			{{"新しい経験" , 1, 415, 760} ,
 			{ "安心感" , 2, 1310, 760 }}
 			},
@@ -116,110 +114,106 @@ void GameScene::Init(void)
 			{"選ばない", 3, 1290, 760}}
 			},
 		// 安心感を選んだ場合
-		{"安心感が永続的に保証された環境が、\n"
-		"同時に全ての可能性を排除する檻であった場合、\n"
-		"君はそれを「幸福」と呼べる？",
+		{"安心感が永続的に保証された環境が、同時に全ての可能性を排除する\n"
+		"檻であった場合、君はそれを「幸福」と呼べる？",
 			{ {"呼べる", 3, 450, 760},
 			{"呼べない", 3, 1290, 760} }
 			},
 #pragma region 3
-		{"過去の失敗から学ぶことは、未来を恐れることにつながると思う？",
-			{{"つながる" , 4, 430, 760} ,
-			{ "つながらない" , 5, 1250, 760 }}
+		{"もし、過去の全ての失敗や後悔を「無かったこと」にできるボタンが\n"
+		 "あったとして、君は「今の幸福な自分」を失うことを恐れず、\n"
+		"そのボタンを押せる？",
+			{{"押せる" , 4, 450, 760} ,
+			{ "押せない" , 5, 1290, 760 }}
 			},
 #pragma region 4
-		// つながるを選んだ場合
-		 { "失敗による恐れが、成功する可能性のある行動を妨げていると\n"
-		"自覚している場合、君はその「恐れ」を克服する？\n"
-		"それとも受け入れる？",
-			{ {"克服する", 6, 440, 760},
-			{"受け入れる", 6, 1265, 760}}
+		// 押せるを選んだ場合
+		 {"ボタンを押した結果、新しい人生を生きる君は「今の幸福な自分」を\n"
+		  "知らない大切な誰かに、「無かったことにした自分」の思い出を語れる？",
+			{ {"語れる", 6, 450, 760},
+			{"語れない", 6, 1265, 760}}
 			},
-		// つながらないを選んだ場合
-		{ "過去の失敗を教訓として完全に活かし、二度と同じ過ちを\n"
-		"犯さない人は、新しい種類の失敗を恐れないと言える思う？",
-			{ {"言える", 6, 450, 760},
-			{"言えない", 6, 1290, 760} }
+		// 押せないを選んだ場合
+		{"もし君の大切な誰かが、君の過去の失敗によって今も苦しみ続けていると\n"
+		"したら、君はその「誰かの痛み」を見て、なお自分の幸福を優先できる？",
+			{ {"できる", 6, 450, 760},
+			{"できない", 6, 1290, 760} }
 			},
-//#pragma region 5(デバック用の締め)
-//		{"完璧な計画と即座の行動、より成果を生み出すのはどちらだと思う？",
-//			{{"完璧な計画" , 7, 470, 760} ,
-//			{ "即座の行動" , 8, 1330, 760 }}
-//			},
-//		#pragma region 6
-//		// 完璧な計画を選んだ場合
-//		 {"「完璧な計画」の完成を待つあまり、それを実行に移すタイミングが永久に失われた場合、\n"
-//		"その計画は「失敗」と見なすべき？",
-//			{ {"失敗と見なす",-1, 440, 760},
-//			{"失敗と見なさない", -1, 1270, 760}}
-//			},
-//		// 即座の行動を選んだ場合
-//		{"修正不可能な致命的なミスが、行動開始から1分以内に発生することが確実である場合でも、\n"
-//		"あなたは「スピード」を優先する？",
-//			{ {"優先する", -1, 480, 760},
-//			{"優先しない", -1, 1290, 760} }
-//			},
-#pragma region 5
-		{"完璧な計画と即座の行動、\n"
-		"より成果を生み出すのはどちらだと思う？",
-			{{"完璧な計画" , 7, 415, 760} ,
-			{ "即座の行動" , 8, 1265, 760 }}
+#pragma region 5(デバック用の締め)
+		{"完璧な計画と即座の行動、より成果を生み出すのはどちらだと思う？",
+			{{"完璧な計画" , 7, 470, 760} ,
+			{ "即座の行動" , 8, 1330, 760 }}
 			},
 		#pragma region 6
 		// 完璧な計画を選んだ場合
-		 {"「完璧な計画」の完成を待つあまり、\n"
-		"それを実行に移すタイミングが永久に失われた場合、\n"
-		"その計画は「失敗」と見なすべき？",
-			{ {"見なす",9, 450, 760},
-			{"見なさない", 9, 1265, 760}}
+		 {"「完璧な計画」の完成を待つあまり、それを実行に移すタイミングが\n"
+		"永久に失われた場合、その計画は「失敗」と見なすべき？",
+			{ {"失敗と見なす",-1, 440, 760},
+			{"失敗と見なさない", -1, 1270, 760}}
 			},
 		// 即座の行動を選んだ場合
-		{"修正不可能な致命的なミスが、行動開始から1分以内に発生する\n"
-		"ことが確実である場合でも、あなたは「スピード」を優先する？",
-			{ {"優先する", 9, 430, 760},
-			{"優先しない", 9, 1265, 760} }
+		{"修正不可能な致命的なミスが、行動開始から1分以内に発生することが\n"
+		"確実である場合でも、あなたは「スピード」を優先する？",
+			{ {"優先する", -1, 480, 760},
+			{"優先しない", -1, 1290, 760} }
 			},
-#pragma region 7
-		{"もし君が無気力で夢がない場合、時間をかけて探す？\n"
-		"それとも、外部からの強制に素直に従う？",
-			{{"探す" , 10, 480, 760} ,
-			{ "素直に従う" , 11, 1265, 760 }}
-			},
-#pragma region 8
-		// 内部からの探求を選んだ場合
-		 { "「探す時間」が無限に与えられた結果、何も見つからないまま\n"
-		"人生の終わりに到達した場合、\n"
-		"その探求は有意義であったと言えるかな？",
-			{ {"言える",12, 450, 760},
-			{"言えない", 12, 1290, 760}}
-			},
-		// 外部からの強制に素直に従うを選んだ場合
-		{ "外部から与えられた目標を完全に達成し、\n"
-		"それが「君の幸せ」であると周囲が保証した場合、\n"
-		"君は本当にその人生に「自己の選択」を見出すの？",
-			{ {"見出す", 12, 450, 760},
-			{"見出さない", 12, 1265, 760} }
-			},
-#pragma region 9
-		{"もし自分が亡くなる日がわかってしまい、それが避けられない\n"
-		"運命だった場合、君はその運命に抗って長生きをしようとする？\n"
-		"それとも、おとなしく受け入れる？",
-			{{"抗う" , 13, 480, 760} ,
-			{ "受け入れる" , 13, 1265, 760 }}
-			},
-#pragma region 10
-			// 抗うを選んだ場合
-		 {"運命に抗う行為が、結果的に運命の定めた日付よりも\n"
-		"「早く」訪れた場合、その行動は正しかったと言える？",
-			{ {"言える",-1, 450, 760},
-			{"言えない", -1, 1290, 760}}
-			},
-			// 受け入れるを選んだ場合
-		{ "受け入れることを選んだ後、運命の日までの時間をただ消費するのではなく、\n"
-		"残された時間を「最大限に充実させる」努力は、運命への「抵抗」と呼べると思う？",
-			{ {"呼べる", -1, 450, 760},
-			{"呼べない", -1, 1270, 760} }
-			},
+//#pragma region 5
+//		{"完璧な計画と即座の行動、より成果を生み出すのはどちらだと思う？",
+//			{{"完璧な計画" , 7, 415, 760} ,
+//			{ "即座の行動" , 8, 1265, 760 }}
+//			},
+//		#pragma region 6
+//		// 完璧な計画を選んだ場合
+//		 {"「完璧な計画」の完成を待つあまり、それを実行に移すタイミングが\n"
+//		  "永久に失われた場合、その計画は「失敗」と見なすべき？",
+//			{ {"見なす",9, 450, 760},
+//			{"見なさない", 9, 1265, 760}}
+//			},
+//		// 即座の行動を選んだ場合
+//		{"修正不可能な致命的なミスが、行動開始から1分以内に発生することが\n"
+//		"確実である場合でも、あなたは「スピード」を優先する？",
+//			{ {"優先する", 9, 430, 760},
+//			{"優先しない", 9, 1265, 760} }
+//			},
+//#pragma region 7
+//		{"もし君が無気力で夢がない場合、時間をかけて探す？\n"
+//		"それとも、外部からの強制に素直に従う？",
+//			{{"探す" , 10, 480, 760} ,
+//			{ "素直に従う" , 11, 1265, 760 }}
+//			},
+//#pragma region 8
+//		// 内部からの探求を選んだ場合
+//		 { "「探す時間」が無限に与えられた結果、何も見つからないまま\n"
+//		"人生の終わりに到達した場合、その探求は有意義であったと言えるかな？",
+//			{ {"言える",12, 450, 760},
+//			{"言えない", 12, 1290, 760}}
+//			},
+//		// 外部からの強制に素直に従うを選んだ場合
+//		{ "外部から与えられた目標を完全に達成し、それが「君の幸せ」であると\n"
+//		"周囲が保証した場合、君は本当にその人生に「自己の選択」を見出すの？",
+//			{ {"見出す", 12, 450, 760},
+//			{"見出さない", 12, 1265, 760} }
+//			},
+//#pragma region 9
+//		{"もし自分が亡くなる日がわかってしまい、それが避けられない運命だった場\n"
+//		"合、君はその運命に抗って長生きをしようとする？\n"
+//		"それとも、おとなしく受け入れる？",
+//			{{"抗う" , 13, 480, 760} ,
+//			{ "受け入れる" , 14, 1265, 760 }}
+//			},
+//#pragma region 10
+//			// 抗うを選んだ場合
+//		 {"運命に抗う行為が、結果的に運命の定めた日付よりも「早く」訪れた場合、\n"
+//		 "その行動は正しかったと言える？",
+//			{ {"言える",-1, 450, 760},
+//			{"言えない", -1, 1290, 760}}
+//			},
+//			// 受け入れるを選んだ場合
+//		{ "受け入れることを選んだ後、運命の日までの時間をただ消費するのではなく、\n"
+//		"残された時間を「最大限に充実させる」努力は、運命への「抵抗」と呼べると思う？",
+//			{ {"呼べる", -1, 450, 760},
+//			{"呼べない", -1, 1270, 760} }
+//			},
 	};
 
 	// 解答後の会話
@@ -257,14 +251,18 @@ void GameScene::Init(void)
 		"可能性が閉ざされるのは耐えられないんだね。",
 		"人間の探求心は、決して満たされないということか..."}, 2, 1},
 #pragma region 3
-		// つながるを選んだ場合
-		{{"過去の失敗は、未来への警戒心を生む。君はそう考えているんだね。",
-			"その恐れが、「成功する可能性のある行動」を\n"
-		"妨げているとしたら、君はどうする？"},3, 0},
-		// つながらないを選んだ場合
-	{{"失敗は教訓であり、力となる。前向きな考え方だ。",
-		"でも、二度と同じ過ちを犯さない「完璧な教訓」を得た人は、\n",
-		"「新しい種類の失敗」を恐れないと言えるだろうか？"},3, 1},
+		// 押せるを選んだ場合
+		{{"なるほど。君はボタンを押すんだね。",
+			"つまり、君は「現在の幸福」も「過去の失敗の代償」だと捉えてるって\n"
+		"ことなんだね。",
+		"なら、もし新しくなった自分に大切な誰かができたとき、その人たちに\n"
+			"向けて「無かったことにした自分」を語ることができるのかな？"},3, 0},
+		// 押せないを選んだ場合
+	{{"君はそのボタンを押さないんだね。",
+		"つまり君は「今の自分」という存在を、過去の全ての「失敗や痛み」を\n",
+		"含めて「今の幸福な自分」だと見なしてるということか。",
+		"なら、もし君の大切な誰かが、君の過去の失敗によって苦しみ続けてる\n"
+		"としたらそれでも自分を優先できるのかな？"},3, 1},
 
 	#pragma region 4
 		// 克服するを選んだ場合
@@ -556,6 +554,7 @@ void GameScene::Update(void)
 			questionManager_.SelectChoice(questionIndex_, selectedChoice_);
 			questionManager_.SaveData();
 
+
 			// 結果を保存
 			ChoiceResult result;
 			result.questionIndex = questionIndex_;
@@ -567,6 +566,7 @@ void GameScene::Update(void)
 			afterTalkIndex_ = -1;
 			for (int i = 0; i < static_cast<int>(afterTalks_.size()); i++)
 			{
+				// 該当するアフタートークがあるか確認
 				if (afterTalks_[i].questionIndex == questionIndex_ &&
 					afterTalks_[i].choiceIndex == selectedChoice_)
 				{
@@ -574,7 +574,7 @@ void GameScene::Update(void)
 					break;
 				}
 			}
-
+			
 			if (afterTalkIndex_ >= 0)
 			{
 				state_ = SceneState::ANSWER_TALK;
@@ -619,6 +619,8 @@ void GameScene::Update(void)
 			// 会話終了判定
 			if (currentLineIndex_ >= static_cast<int>(lines.size()))
 			{
+				answeredCount_++;
+
 				// 会話終了
 				isAfterTalkActive_ = false;
 				int next = questions_[prevQuestionIndex_].choices[prevSelectedChoice_].nextIndex;
@@ -836,7 +838,7 @@ void GameScene::Update(void)
 					resultState_ = ResultState::DETAIL;
 
 					std::string detailMsg =
-						"【質問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
+						"【問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
 						results_[resultSelectIndex_].questionText + "\n\n" +
 						"あなたの選択: " + results_[resultSelectIndex_].selectedChoiceText +
 						"\n\nSpace or クリックで一覧に戻る。";
@@ -937,13 +939,13 @@ void GameScene::Draw(void)
 
 
 	// 吹き出しの描画
-	DrawBox(145, 35, 1765, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
-	DrawBox(150, 40, 1760, 295, GetColor(0, 0, 0), true);        // 黒い枠線
+	DrawBox(55, 35, 1855, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
+	DrawBox(60, 40, 1850, 295, GetColor(0, 0, 0), true);        // 黒い枠線
 
 	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
 	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
 	{
-		msg_.Draw(165, 50);
+		msg_.Draw(65, 50);
 	}
 
 	if (state_ == SceneState::QUESTION)
@@ -983,11 +985,8 @@ void GameScene::Draw(void)
 			const auto& questionData = managerQuestions[talk.questionIndex];
 
 			// 描画枠
-			DrawBox(160, 450, 1735, 950, GetColor(255, 255, 255), true);
-			DrawBox(165, 455, 1730, 945, GetColor(0, 0, 0), true);
-
-			// 元の問い（見た目）
-			DrawString(175, 470, question.text.c_str(), GetColor(255, 255, 255));
+			DrawBox(55, 380, 1855, 1050, GetColor(255, 255, 255), true);
+			DrawBox(60, 385, 1850, 1045, GetColor(0, 0, 0), true);
 
 			// 合計票数（manager 側）
 			int total = 0;
@@ -1006,16 +1005,61 @@ void GameScene::Draw(void)
 				// 割合計算
 				float percent = (total > 0) ? (100.0f * count / (float)total) : 0.0f;
 
-				int color = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+				bool isSelected = (i == talk.choiceIndex);
+
+				int textColor = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+				int barColor = (i == talk.choiceIndex) ? GetColor(255, 100, 100) : GetColor(100, 100, 255);
+				int questionNo = answeredCount_ + 1;
+
+				// 問題番号
+				SetFontSize(50);
+				DrawFormatString(
+					65,
+					400,
+					GetColor(255, 255, 255),
+					"[問%d]",
+					questionNo
+				);
+
+				// 問題文
+				DrawString(
+					65,			// X座標
+					460,			//	Y座標
+					question.text.c_str(),
+					GetColor(255, 255, 255)
+				);
 
 				// 選択肢文字
-				DrawString(400, y, cVisual.text.c_str(), color);
+				SetFontSize(80);
+				DrawString(
+					200,		// X座標
+					y,			// Y座標
+					cVisual.text.c_str(),
+					textColor
+				);
 
-				// 割合（と件数）
-				DrawFormatString(900, y, GetColor(255, 255, 0), "%.1f%%", percent, count);
+				// 棒グラフ表示
+				DrawPercentageBar(
+					640,		// X座標
+					y + 10, // Y座標
+					700,		// 幅
+					70,		// 高さ
+					percent, 
+					barColor
+				);
 
-				// 次の行へ
-				y += 60;
+				// 割合表示
+				DrawFormatString(
+					1400,
+					y,
+					textColor,
+					"%.1f%%",
+					percent,
+					count
+				);
+
+				// 行間
+				y += 100;
 			}
 		}
 	}
@@ -1033,13 +1077,13 @@ void GameScene::Draw(void)
 			case ResultState::LIST:
 			{
 			// LIST/DETAIL状態でのみ、結果一覧/詳細の大きな枠を描画
-			DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), true);
-			DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), true);
+				DrawBox(55, 320, 1855, 1050, GetColor(255, 255, 255), TRUE);
+				DrawBox(60, 325, 1850, 1045, GetColor(0, 0, 0), TRUE);
 
-			SetFontSize(40);
-			DrawFormatString(175, 65, GetColor(255, 255, 255),
+			SetFontSize(50);
+			DrawFormatString(65, 65, GetColor(255, 255, 255),
 				"結果はこちら。");
-			DrawFormatString(175, 105, GetColor(255, 255, 255),
+			DrawFormatString(75, 115, GetColor(255, 255, 255),
 				"WASDで操作 or マウス操作、Spaceキー or クリックで詳細を見れます。");
 
 			// マウス用矩形リストをクリア
@@ -1047,10 +1091,10 @@ void GameScene::Draw(void)
 
 			// 回答リストの表示（横1列 × 2段）
 			const int itemPerRow = 5;     // 1段に5個
-			const int itemWidth = 250;    // 横幅の間隔（各アイテム間の距離）
+			const int itemWidth = 300;    // 横幅の間隔（各アイテム間の距離）
 			const int topRowY = 410;      // 上段のY座標
 			const int bottomRowY = 600;   // 下段のY座標
-			const int base2X = 350;        // 左端の開始位置
+			const int base2X = 250;        // 左端の開始位置
 
 			SetFontSize(120);
 
@@ -1104,12 +1148,12 @@ void GameScene::Draw(void)
 			int rect_top = nextY;
 			int rect_right = nextX + nextWidth + 40;
 			int rect_bottom = nextY + 145;
-
+			 
 			if (resultSelectIndex_ == (int)results_.size())
 			{
 				DrawBox(rect_left, rect_top, rect_right, rect_bottom, GetColor(50, 50, 50), TRUE);
 			}
-
+			
 			DrawString(nextX, nextY, nextText.c_str(), nextColor);
 			if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
 
@@ -1119,13 +1163,14 @@ void GameScene::Draw(void)
 			}
 			case ResultState::DETAIL:
 			{
+				
 				// ====== 背景 ======
-				DrawBox(160, 320, 1735, 1050, GetColor(255, 255, 255), TRUE);
-				DrawBox(165, 325, 1730, 1045, GetColor(0, 0, 0), TRUE);
+				DrawBox(55, 320, 1855, 1050, GetColor(255, 255, 255), TRUE);
+				DrawBox(65, 325, 1850, 1045, GetColor(0, 0, 0), TRUE);
 
 				// ====== メッセージ描画 ======
 				// DETAIL の文章は msg_.SetMessage() 済みなので、ここで描画すればOK
-				msg_.Draw(180, 340);
+				msg_.Draw(65, 340);
 
 				break;
 			}
@@ -1172,22 +1217,30 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 		// ----------------------------------------------------
 	}
 }
+
+void GameScene::DrawPercentageBar(int x, int y, int width, int height, float percent, int barColor)
+{
+	// 安全対策
+	if (percent < 0.0f)  percent = 0.0f;
+	if (percent > 100.0f) percent = 100.0f;
+
+	// 割合 → 横幅
+	int w = static_cast<int>(width * (percent / 100.0f));
+
+	// 背景（空バー）
+	DrawBox(x, y, x + width, y + height, GetColor(50, 50, 50), TRUE);
+
+	// 中身（割合分）
+	DrawBox(x, y, x + w, y + height, barColor,  TRUE);
+
+	// 枠
+	DrawBox(x, y, x + width, y + height, GetColor(255, 255, 255), FALSE);
+}
+
 void GameScene::Release(void)
 {
-	// 背景画像の解放
-	if (gImage_ != -1)
-	{
-		DeleteGraph(gImage_);
-		gImage_ = -1;
-	}
-	// BGMの解放
-	if (bgmHandle_ != -1)
-	{
-		StopSoundMem(bgmHandle_);
-		DeleteSoundMem(bgmHandle_);
-		bgmHandle_ = -1;
-	}
 }
+
 
 void GameScene::NextQuestion(int nextIndex_)
 {
