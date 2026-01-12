@@ -6,6 +6,8 @@
 #include "../Manager/QuestionManager.h"
 #include "SceneBase.h"
 
+
+
 enum class SceneState
 {
 	STORY,				// メッセージ表示
@@ -168,6 +170,8 @@ private:
 	int selectedChoice_;
 	// 解答後の会話の保管庫
 	int afterTalkIndex_;
+	// 
+	int detailIndex_ = -1;
 
 	// 一行ずつ表示するためのインデックス
 	int currentLineIndex_;
@@ -217,7 +221,4 @@ private:
 	// 答えた質問の数
 	int answeredCount_;
 
-
-	// 背景の切り替え
-	int DetermineResultType(void);
 };
