@@ -55,4 +55,5 @@ private:
 	int pauseY_;
 	int pauseW_;
 	int pauseH_;
+	int fontPause_;
 };

@@ -25,11 +25,12 @@ public:
 	 void ClearDraw(void);
 	// 解放処理
 	 void Release(void) override;
-
+	 // ポーズ前の状態を設定
 	 bool IsResume(void);
 	 void ResetResume(void);
 	 void SetResume(bool resume);
 
+	 void OnEnter(void);
 	 // インスタンスの取得
 	 static PauseScene& GetInstance(void);
 
@@ -49,5 +50,8 @@ private:
 	// マウス左ボタンの押下状態
 	bool isLButtonDown_;
 
+	// ポーズ前に戻るフラグ
 	bool isResume_;
+
+	int ignoreInput_;
 };

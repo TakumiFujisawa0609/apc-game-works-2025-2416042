@@ -24,11 +24,20 @@ void PauseScene::Init(void)
 
 void PauseScene::Update(void)
 {
-	
+
 }
 
 void PauseScene::GameUpdate(void)
 {
+	if (ignoreInput_)
+	{
+		if (!InputManager::GetInstance().IsTrgMouseLeft())
+		{
+			ignoreInput_ = false;
+		}
+		return;
+	}
+
 	// マウスカーソルを表示
 	SetMouseDispFlag(TRUE);
 
@@ -95,6 +104,15 @@ void PauseScene::GameUpdate(void)
 
 void PauseScene::TitleUpdate(void)
 {
+	if (ignoreInput_)
+	{
+		if (!InputManager::GetInstance().IsTrgMouseLeft())
+		{
+			ignoreInput_ = false;
+		}
+		return;
+	}
+
 	// マウスカーソルを表示
 	SetMouseDispFlag(TRUE);
 
@@ -157,6 +175,15 @@ void PauseScene::TitleUpdate(void)
 
 void PauseScene::ClearUpdate(void)
 {
+	if (ignoreInput_)
+	{
+		if (!InputManager::GetInstance().IsTrgMouseLeft())
+		{
+			ignoreInput_ = false;
+		}
+		return;
+	}
+
 	// マウスカーソルを表示
 	SetMouseDispFlag(TRUE);
 
@@ -400,6 +427,11 @@ void PauseScene::ResetResume(void)
 void PauseScene::SetResume(bool resume)
 {
 	isResume_ = resume;
+}
+
+void PauseScene::OnEnter(void)
+{
+	ignoreInput_ = true;
 }
 
 PauseScene& PauseScene::GetInstance(void)

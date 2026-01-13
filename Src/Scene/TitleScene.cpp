@@ -44,12 +44,25 @@ void TitleScene::Init(void)
 		4,				  // 太さ
 		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
 	);
+	// ポーズボタン用フォント作成
+	fontPause_ = CreateFontToHandle(
+		"源ノ明朝",       // フォント名
+		10,				  // サイズ
+		2,				  // 太さ
+		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
+	);
 
-	// ボタン設定
+	// スタートボタン設定
 	btnW_ = 700;
 	btnH_ = 150;
 	btnX_ = Application::SCREEN_SIZE_X / 2 - btnW_ / 2;
 	btnY_ = Application::SCREEN_SIZE_Y * 2 / 3;
+
+	// ポーズメニューボタン
+	pauseX_ = 20;
+	pauseY_ = 20;
+	pauseW_ = 60;
+	pauseH_ = 60;
 }
 
 void TitleScene::Update(void)
@@ -59,41 +72,62 @@ void TitleScene::Update(void)
 	// マウスカーソルを表示
 	SetMouseDispFlag(TRUE);
 
-	// Tabキーでポーズメニュー表示
-	if (ins.IsTrgDown(KEY_INPUT_TAB) || ins.IsTrgDown(KEY_INPUT_ESCAPE))
-	{
-		state_ = TitleState::PAUSE; // ← 新しく追加した状態
-		return;
-	}
-
 	// --- ポーズメニュー中の処理 ---
 	if (state_ == TitleState::PAUSE)
 	{
 		pauseScene_.TitleUpdate();
+		// ポーズメニュー終了判定
+		if (ins.IsTrgDown(KEY_INPUT_TAB) || 
+			ins.IsTrgDown(KEY_INPUT_ESCAPE))
+		{
+			state_ = TitleState::NORMAL;
+		}
 		return; // ポーズメニュー中は以降の処理を行わない
 	}
-	
+
+   // 通常時（ここで初めて ESC を見る）
+	if (ins.IsTrgDown(KEY_INPUT_ESCAPE) ||
+		ins.IsTrgDown(KEY_INPUT_TAB))
+	{
+		state_ = TitleState::PAUSE;
+		return;
+	}
+
 	// マウス位置取得
 	int mx, my;
 	GetMousePoint(&mx, &my);
+	// ポーズボタン上にマウスがあるか判定
+	bool onPause =
+		mx >= pauseX_ && mx <= pauseX_ + pauseW_ &&
+		my >= pauseY_ && my <= pauseY_ + pauseH_;
 
+	if (onPause && InputManager::GetInstance().IsTrgMouseLeft())
+	{
+		state_ = TitleState::PAUSE;
+		pauseScene_.OnEnter();
+		return;
+	}
+
+	// ボタン上にマウスがあるか判定 
 	bool onButton =
 		mx >= btnX_ && mx <= btnX_ + btnW_ &&
 		my >= btnY_ && my <= btnY_ + btnH_;
 
-	// ボタンクリック またはスペースキーで画面遷移
+	// ボタンクリック またはスペースキーでゲームシーンに画面遷移
 	if (onButton && ins.IsTrgMouseLeft() || ins.IsTrgDown(KEY_INPUT_SPACE))
 	{
 		StopSoundMem(bgmHandle_);
 		SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::GAME);
 	}
+
+
 }
 
 void TitleScene::Draw(void)
 {
 	// --- 背景 ---
 	DrawGraph(0, 0, BgImage_, TRUE);
-
+#pragma region タイトルロゴ文字の描画
 	// --- タイトルロゴ文字の描画 ---
 	if (fontHandle_ != -1) {
 		const char* titleText = "問いのロード";
@@ -121,7 +155,9 @@ void TitleScene::Draw(void)
 		// 本体文字描画
 		DrawStringToHandle(drawX, y, titleText, textColor, fontHandle_);
 	}
+#pragma endregion
 
+#pragma region スタートボタンの描画
 	// ===== 「物語を始める」ボタン（白地） =====
 	int mx, my;
 	GetMousePoint(&mx, &my);
@@ -160,6 +196,40 @@ void TitleScene::Draw(void)
 	int textY = btnY_ + btnH_ / 2 - 35;
 
 	DrawStringToHandle(textX, textY, text, textColor, fontButton_);
+#pragma endregion
+
+#pragma region ポーズボタンの描画
+	// ===== ポーズUI（左上） =====
+
+// 半透明ON
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 160);
+
+	// 背景
+	DrawBox(
+		pauseX_, pauseY_,
+		pauseX_ + pauseW_, pauseY_ + pauseH_,
+		GetColor(0, 0, 0), TRUE
+	);
+
+	// 半透明OFF
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+	// 枠
+	DrawBox(
+		pauseX_, pauseY_,
+		pauseX_ + pauseW_, pauseY_ + pauseH_,
+		GetColor(180, 180, 180), FALSE
+	);
+
+	// 文字
+	DrawStringToHandle(
+		pauseX_ + pauseW_ / 2 - 6,
+		pauseY_ + pauseH_ / 2 - 8,
+		"||",
+		GetColor(230, 230, 230),
+		fontPause_
+	);
+#pragma endregion
 
 	if (state_ == TitleState::PAUSE)
 	{
@@ -184,5 +254,9 @@ void TitleScene::Release(void)
 	if (fontButton_ != -1) {
 		DeleteFontToHandle(fontButton_);
 		fontButton_ = -1;
+	}
+	if (fontPause_ != -1) {
+		DeleteFontToHandle(fontPause_);
+		fontPause_ = -1;
 	}
 }
