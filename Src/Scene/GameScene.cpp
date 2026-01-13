@@ -69,7 +69,7 @@ void GameScene::Init(void)
 	const int maxBgCount = 10; // 将来的に10枚くらい用意してもOK
 	for (int i = 0; i < maxBgCount; ++i)
 	{
-		std::string path = "Data/Image/Result/Title1" + std::to_string(i) + ".png";
+		std::string path = "Data/Image/Result/Title2" + std::to_string(i) + ".png";
 		int handle = LoadGraph(path.c_str());
 		if (handle != -1)
 		{

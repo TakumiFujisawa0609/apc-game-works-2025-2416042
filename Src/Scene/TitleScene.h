@@ -38,7 +38,21 @@ private:
 	int pauseSelect_;
 
 	// 画像
-	int imgTitle_;
+	int BgImage_;
 	// BGM
 	int bgmHandle_;
+	// フォントハンドル
+	int fontHandle_;
+	// ボタン変数
+	int btnX_;
+	int btnY_;
+	int btnW_;
+	int btnH_;
+	int fontButton_;
+
+	// ポーズボタン
+	int pauseX_;
+	int pauseY_;
+	int pauseW_;
+	int pauseH_;
 };

@@ -105,20 +105,37 @@ void SceneManager::Destroy(void)
 
 void SceneManager::ChangeScene(SCENE_ID nextId)
 {
+	bool noFade =
+		(sceneId_ == SCENE_ID::PAUSE) ||
+		(nextId == SCENE_ID::PAUSE);
 
-	// フェード処理が終わってからシーンを変える場合もあるため、
-	// 遷移先シーンをメンバ変数に保持
+	if (noFade)
+	{
+		DoChangeScene(nextId);
+		return;
+	}
+
 	waitSceneId_ = nextId;
-
-	// フェードアウト(暗転)を開始する
 	fader_->SetFade(Fader::STATE::FADE_OUT);
 	isSceneChanging_ = true;
+	//// フェード処理が終わってからシーンを変える場合もあるため、
+	//// 遷移先シーンをメンバ変数に保持
+	//waitSceneId_ = nextId;
+
+	//// フェードアウト(暗転)を開始する
+	//fader_->SetFade(Fader::STATE::FADE_OUT);
+	//isSceneChanging_ = true;
 
 }
 
 SceneManager::SCENE_ID SceneManager::GetSceneID(void)
 {
 	return sceneId_;
+}
+
+SceneManager::SCENE_ID SceneManager::GetPrevSceneID(void)
+{
+	return prevSceneId_	;
 }
 
 float SceneManager::GetDeltaTime(void) const
@@ -151,6 +168,8 @@ void SceneManager::ResetDeltaTime(void)
 
 void SceneManager::DoChangeScene(SCENE_ID sceneId)
 {
+	// 直前のシーンを保存
+	prevSceneId_ = sceneId_;
 
 	// シーンを変更する
 	sceneId_ = sceneId;

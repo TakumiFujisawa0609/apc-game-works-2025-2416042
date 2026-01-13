@@ -17,6 +17,7 @@ public:
 		MENU,
 		CLEAR,
 		END,
+		PAUSE,
 	};
 	
 	// インスタンスの生成
@@ -42,7 +43,7 @@ public:
 
 	// シーンIDの取得
 	SCENE_ID GetSceneID(void);
-
+	SCENE_ID GetPrevSceneID(void);
 	// デルタタイムの取得
 	float GetDeltaTime(void) const;
 
@@ -53,6 +54,7 @@ private:
 
 	SCENE_ID sceneId_;
 	SCENE_ID waitSceneId_;
+	SCENE_ID prevSceneId_;
 
 	// フェード
 	Fader* fader_;
