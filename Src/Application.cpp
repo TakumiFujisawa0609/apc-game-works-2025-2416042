@@ -16,8 +16,9 @@ void Application::CreateInstance(void)
 	if (instance_ == nullptr)
 	{
 		instance_ = new Application();
+		instance_->Init();
 	}
-	instance_->Init();
+
 }
 
 Application& Application::GetInstance(void)

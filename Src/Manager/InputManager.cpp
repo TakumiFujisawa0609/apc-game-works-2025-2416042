@@ -76,7 +76,7 @@ void InputManager::Update(void)
 	for (auto& p : mouseInfos_)
 	{
 		p.second.keyOld = p.second.keyNew;
-		p.second.keyNew = mouseInput_ == p.second.key;
+		p.second.keyNew = (mouseInput_ & p.second.key) != 0;
 		p.second.keyTrgDown = p.second.keyNew && !p.second.keyOld;
 		p.second.keyTrgUp = !p.second.keyNew && p.second.keyOld;
 	}
@@ -139,7 +139,7 @@ int InputManager::GetMouse(void) const
 
 bool InputManager::IsClickMouseLeft(void) const
 {
-	return mouseInput_ == MOUSE_INPUT_LEFT;
+	return (mouseInput_ & MOUSE_INPUT_LEFT) != 0;;
 }
 
 bool InputManager::IsClickMouseRight(void) const

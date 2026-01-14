@@ -16,7 +16,13 @@ TitleScene::TitleScene(void)
 	btnY_(0),
 	btnW_(0),
 	btnH_(0),
-	fontButton_(-1)
+	fontButton_(-1),
+	pauseX_(0),
+	pauseY_(0),
+	pauseW_(0),
+	pauseH_(0),
+	fontPause_(-1),
+	fontEscape_(-1)
 {
 }
 
@@ -44,13 +50,21 @@ void TitleScene::Init(void)
 		4,				  // 太さ
 		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
 	);
-	// ポーズボタン用フォント作成
-	fontPause_ = CreateFontToHandle(
+	// ESC用フォント作成
+	fontEscape_ = CreateFontToHandle(
 		"源ノ明朝",       // フォント名
-		10,				  // サイズ
-		2,				  // 太さ
+		30,				  // サイズ
+		10,				  // 太さ
 		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
 	);
+	// ポーズボタン用フォント作成
+	fontPause_ = CreateFontToHandle(
+		"遊ゴシック",       // フォント名
+		35,				  // サイズ
+		9,				  // 太さ
+		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
+	);
+	
 
 	// スタートボタン設定
 	btnW_ = 700;
@@ -90,6 +104,7 @@ void TitleScene::Update(void)
 		ins.IsTrgDown(KEY_INPUT_TAB))
 	{
 		state_ = TitleState::PAUSE;
+		pauseScene_.OnEnter();
 		return;
 	}
 
@@ -101,7 +116,7 @@ void TitleScene::Update(void)
 		mx >= pauseX_ && mx <= pauseX_ + pauseW_ &&
 		my >= pauseY_ && my <= pauseY_ + pauseH_;
 
-	if (onPause && InputManager::GetInstance().IsTrgMouseLeft())
+	if (onPause && ins.IsTrgMouseLeft())
 	{
 		state_ = TitleState::PAUSE;
 		pauseScene_.OnEnter();
@@ -199,38 +214,43 @@ void TitleScene::Draw(void)
 #pragma endregion
 
 #pragma region ポーズボタンの描画
-	// ===== ポーズUI（左上） =====
+	// マウス判定（mx, myは上のボタン描画で取得済みのものを使用）
+	bool onPause = mx >= pauseX_ && mx <= pauseX_ + pauseW_ &&
+		my >= pauseY_ && my <= pauseY_ + pauseH_;
 
-// 半透明ON
-	SetDrawBlendMode(DX_BLENDMODE_ALPHA, 160);
+	// 枠の太さ
+	const int thickness = 6;
 
-	// 背景
+	// 1.外側の枠
+	int frameColor = onPause ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+	DrawBox(pauseX_, pauseY_, pauseX_ + pauseW_, pauseY_ + pauseH_, frameColor, TRUE);
+
+	// 2. 内側の黒
 	DrawBox(
-		pauseX_, pauseY_,
-		pauseX_ + pauseW_, pauseY_ + pauseH_,
+		pauseX_ + thickness,
+		pauseY_ + thickness,
+		pauseX_ + pauseW_ - thickness,
+		pauseY_ + pauseH_ - thickness,
 		GetColor(0, 0, 0), TRUE
 	);
 
-	// 半透明OFF
-	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+	// 3. 文字
+	const char* pauseSymbol = "||";
+	int tw = GetDrawStringWidthToHandle(pauseSymbol, (int)strlen(pauseSymbol), fontPause_);
 
-	// 枠
-	DrawBox(
-		pauseX_, pauseY_,
-		pauseX_ + pauseW_, pauseY_ + pauseH_,
-		GetColor(180, 180, 180), FALSE
-	);
+	// 中央揃えの計算
+	int tx = pauseX_ + (pauseW_ - tw) / 2;
+	int ty = pauseY_ + (pauseH_ - 40) / 2;
 
-	// 文字
-	DrawStringToHandle(
-		pauseX_ + pauseW_ / 2 - 6,
-		pauseY_ + pauseH_ / 2 - 8,
-		"||",
-		GetColor(230, 230, 230),
-		fontPause_
-	);
+	// ESC文字
+	const char* escText = "ESC";
+	int escTw = GetDrawStringWidthToHandle(escText, (int)strlen(escText), fontEscape_);
+	int escTx = pauseX_ + (pauseW_ / 2) - (escTw / 2); // ボタンの中央に合わせる
+	int escTy = pauseY_ + pauseH_ + 5;
+
+	DrawStringToHandle(tx, ty, pauseSymbol, GetColor(255, 255, 255), fontPause_);
+	DrawStringToHandle(escTx, escTy, escText, GetColor(200, 200, 200), fontEscape_);
 #pragma endregion
-
 	if (state_ == TitleState::PAUSE)
 	{
 		pauseScene_.TitleDraw();
@@ -258,5 +278,9 @@ void TitleScene::Release(void)
 	if (fontPause_ != -1) {
 		DeleteFontToHandle(fontPause_);
 		fontPause_ = -1;
+	}
+	if (fontEscape_ != -1) {
+		DeleteFontToHandle(fontEscape_);
+		fontEscape_ = -1;
 	}
 }

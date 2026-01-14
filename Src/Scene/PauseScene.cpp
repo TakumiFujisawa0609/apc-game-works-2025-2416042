@@ -104,15 +104,6 @@ void PauseScene::GameUpdate(void)
 
 void PauseScene::TitleUpdate(void)
 {
-	if (ignoreInput_)
-	{
-		if (!InputManager::GetInstance().IsTrgMouseLeft())
-		{
-			ignoreInput_ = false;
-		}
-		return;
-	}
-
 	// マウスカーソルを表示
 	SetMouseDispFlag(TRUE);
 
@@ -120,8 +111,23 @@ void PauseScene::TitleUpdate(void)
 	int mouseX, mouseY;
 	GetMousePoint(&mouseX, &mouseY);
 	int mouseButton = GetMouseInput();
+	bool isLButtonNow = (mouseButton & MOUSE_INPUT_LEFT);
+
+	if (ignoreInput_)
+	{
+		// マウス左ボタンが離されたら入力無視解除
+		if (!isLButtonNow)
+		{
+			ignoreInput_ = false;
+		}
+		// 入力無視中は、マウスの「前回の状態」だけ更新して抜ける
+		isLButtonDown_ = isLButtonNow;
+		return;
+	}
+	// マウス左ボタンのトリガー判定
 	bool isLButtonTrg = (mouseButton & MOUSE_INPUT_LEFT) && !isLButtonDown_;
 	isLButtonDown_ = (mouseButton & MOUSE_INPUT_LEFT);
+	bool isMouseOverChoice = false;
 
 	if (inputManager_.IsTrgDown(KEY_INPUT_W))
 		pauseSelectIndex_ = (pauseSelectIndex_ - 1 + 3) % 3;
@@ -130,8 +136,7 @@ void PauseScene::TitleUpdate(void)
 
 	{
 		int newSelected = pauseSelectIndex_;
-		bool isMouseOverChoice = false;
-
+		
 		// マウスオーバー判定
 		for (size_t i = 0; i < choiceRects_.size(); ++i) {
 			const auto& rect = choiceRects_[i];
@@ -160,10 +165,10 @@ void PauseScene::TitleUpdate(void)
 		goto PAUSE_DECISION;
 	}
 
-	// ★追加: 決定ロジックの開始点としてラベルを定義
+	// 決定ロジックの開始点としてラベルを定義
 	PAUSE_DECISION:
 
-	if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
+	if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || (isLButtonTrg && isMouseOverChoice))
 	{
 		switch (pauseSelectIndex_)
 		{
@@ -258,7 +263,7 @@ void PauseScene::GameDraw(void)
 
 	SetFontSize(100);
 	// メニュータイトル
-	DrawString(700, 300, "ポーズ中", GetColor(255, 255, 0));
+	DrawString(700, 300, "ポーズ", GetColor(255, 255, 0));
 	const std::vector<std::string> PAUSE_MENU = { "ゲームに戻る", "タイトルに戻る", "ゲーム終了" };
 	int startX = 710;
 	int startY = 500;
@@ -312,7 +317,7 @@ void PauseScene::TitleDraw(void)
 
 	SetFontSize(100);
 	// メニュータイトル
-	DrawString(700, 300, "ポーズ中", GetColor(255, 255, 0));
+	DrawString(700, 300, "ポーズ", GetColor(255, 255, 0));
 	const std::vector<std::string> PAUSE_MENU = { "タイトルに戻る", "ゲーム終了" };
 	int startX = 710;
 	int startY = 500;
@@ -366,7 +371,7 @@ void PauseScene::ClearDraw(void)
 
 	SetFontSize(100);
 	// メニュータイトル
-	DrawString(700, 300, "ポーズ中", GetColor(255, 255, 0));
+	DrawString(700, 300, "ポーズ", GetColor(255, 255, 0));
 	const std::vector<std::string> PAUSE_MENU = { "タイトルに戻る", "ゲーム終了" };
 	int startX = 710;
 	int startY = 500;
@@ -432,6 +437,7 @@ void PauseScene::SetResume(bool resume)
 void PauseScene::OnEnter(void)
 {
 	ignoreInput_ = true;
+	isLButtonDown_ = (GetMouseInput() & MOUSE_INPUT_LEFT);
 }
 
 PauseScene& PauseScene::GetInstance(void)
