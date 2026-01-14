@@ -24,6 +24,7 @@ struct Choice {
 	int nextIndex; // 次の質問番号（-1なら終了）
 	int x, y;
 	int count = 0;
+	int imageHandle = -1;
 };
 
 // 選択肢の描画矩形を保存するための構造体
