@@ -241,9 +241,7 @@ void GameScene::Init(void)
 
     // region 10 - 受け入れる
     {
-        "受け入れることを選んだ後、運命の日までの時間をただ消費するのではなく、\n"
-        "残された時間を「最大限に充実させる」努力は、運命への「抵抗」と呼べると\n"
-        "思う？",
+        "おとなしく運命を受け入れるということは、君は自分の人生に一定の満足感を感じているから？",
         {
             {"呼べる",   -1, 450, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")},
             {"呼べない", -1, 1270, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")}
@@ -1559,6 +1557,13 @@ void GameScene::DrawPercentageBar(int x, int y, int width, int height, float per
 
 void GameScene::Release(void)
 {
+	// BGMを停止して削除
+	if (bgmHandle_ != -1) {
+		StopSoundMem(bgmHandle_);
+		DeleteSoundMem(bgmHandle_);
+		bgmHandle_ = -1;
+	}
+
 	for (auto& q : questions_) {
 		for (auto& c : q.choices) {
 			if (c.imageHandle != -1) {
