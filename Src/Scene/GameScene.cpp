@@ -154,7 +154,7 @@ void GameScene::Init(void)
         "君はその「誰かの痛み」を見てなお、自分の幸福を優先する？",
         {
             {"自分を優先",   6, 415, 760, 0, LoadGraph("Data/Image/Choice/自分を優先.png")},
-            {"大切な人を優先", 6, 1220, 760, 0,LoadGraph("Data/Image/Choice/大切な人を優先.png")}
+            {"相手を優先", 6, 1220, 760, 0,LoadGraph("Data/Image/Choice/大切な人を優先.png")}
         }
     },
 
@@ -210,11 +210,11 @@ void GameScene::Init(void)
 
     // region 8 - 素直に従う
     { // ここから画像生成
-        "外部から与えられた目標を完全に達成し、それが「君の幸せ」であると周囲が\n"
-        "保証した場合、君は本当にその人生に「自己の選択」を見出すの？",
+        "言われるがままに従い続け、いつか君が『何者でもない空っぽな存在』に\n"
+        "なったとき、君の人生に後悔はないのか？",
         {
-            {"見出す",     12, 450, 760, 0, LoadGraph("Data/Image/Choice/見出す.png")},
-            {"見出さない", 12, 1265, 760, 0, LoadGraph("Data/Image/Choice/見出さない.png")}
+            {"後悔はない", 12, 415, 760, 0, LoadGraph("Data/Image/Choice/見出す.png")},
+            {"少し怖い", 12, 1290, 760, 0, LoadGraph("Data/Image/Choice/見出さない.png")}
         }
     },
 
@@ -241,10 +241,12 @@ void GameScene::Init(void)
 
     // region 10 - 受け入れる
     {
-        "おとなしく運命を受け入れるということは、君は自分の人生に一定の満足感を感じているから？",
+        "おとなしく運命を受け入れるということは、君は自分の人生に一定の満足感を\n"
+		"感じているから？\n"
+		"それとも、抗うことが無意味だと悟ったから？",
         {
-            {"呼べる",   -1, 450, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")},
-            {"呼べない", -1, 1270, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")}
+            {"満足感",   -1, 450, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")},
+            {"無意味", -1, 1310, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")}
         }
     }
 };
