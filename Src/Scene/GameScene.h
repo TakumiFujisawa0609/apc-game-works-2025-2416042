@@ -221,5 +221,5 @@ private:
 	bool justEnteredList_;
 	// “š‚¦‚½¿–â‚Ì”
 	int answeredCount_;
-
+	bool skipListInput_;
 };
