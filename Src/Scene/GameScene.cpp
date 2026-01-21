@@ -1112,8 +1112,12 @@ void GameScene::Draw(void)
 	DrawGraph(0, 0, bgToDraw, FALSE);
 
 	// 吹き出しの描画
-	DrawBox(55, 35, 1855, 300, GetColor(255, 255, 255), true);   // 白い吹き出し背景
-	DrawBox(60, 40, 1850, 295, GetColor(0, 0, 0), true);        // 黒い枠線
+	DrawBox(WHITE_LEFT, WHITE_TOP, 
+		WHITE_RIGHT, WHITE_BOTTOM, 
+		GetColor(255, 255, 255), true);   // 白い吹き出し背景
+	DrawBox(BLACK_LEFT, BLACK_TOP, 
+		BLACK_RIGHT, BLACK_BOTTOM,
+		GetColor(0, 0, 0), true);        // 黒枠
 
 	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
 	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
@@ -1151,12 +1155,20 @@ void GameScene::QuestionDraw(void)
 	if (state_ == SceneState::QUESTION)
 	{
 		// 問いの選択肢の背景枠(左側)	DrawBox(左側面、上、右側面、下) 
-		DrawBox(325, 490, 740, 880, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(330, 495, 735, 875, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(CHOICE_WHITE_LEFT, CHOICE_WHITE_TOP, 
+			CHOICE_WHITE_RIGHT, CHOICE_WHITE_BOTTOM,
+			GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(CHOICE_BLACK_LEFT, CHOICE_BLACK_TOP, 
+			CHOICE_BLACK_RIGHT, CHOICE_BLACK_BOTTOM,
+			GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 問いの選択肢の背景枠(右側)
-		DrawBox(1180, 490, 1595, 880, GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(1185, 495, 1590, 875, GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(CHOICE2_WHITE_LEFT, CHOICE2_WHITE_TOP, 
+			CHOICE2_WHITE_RIGHT, CHOICE2_WHITE_BOTTOM,
+			GetColor(255, 255, 255), true);  // 白背景
+		DrawBox(CHOICE2_BLACK_LEFT, CHOICE2_BLACK_TOP, 
+			CHOICE2_BLACK_RIGHT, CHOICE2_BLACK_BOTTOM,
+			GetColor(0, 0, 0), true);       // 黒枠線
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
@@ -1189,8 +1201,12 @@ void GameScene::AfterTalkDraw(void)
 			const auto& questionData = managerQuestions[talk.questionIndex];
 
 			// 描画枠
-			DrawBox(55, 380, 1855, 1050, GetColor(255, 255, 255), true);
-			DrawBox(60, 385, 1850, 1045, GetColor(0, 0, 0), true);
+			DrawBox(RESULT_WHITE_LEFT, RESULT_WHITE_TOP,
+				RESULT_WHITE_RIGHT, RESULT_WHITE_BOTTOM,
+				GetColor(255, 255, 255), true);
+			DrawBox(RESULT_BLACK_LEFT, RESULT_BLACK_TOP,
+				RESULT_BLACK_RIGHT, RESULT_BLACK_BOTTOM,
+				GetColor(0, 0, 0), true);
 
 			// 合計票数（manager 側）
 			int total = 0;
@@ -1308,8 +1324,12 @@ void GameScene::TailDraw(void)
 void GameScene::ListDraw(void)
 {
 	// LIST/DETAIL状態でのみ、結果一覧/詳細の大きな枠を描画
-	DrawBox(55, 320, 1855, 1050, GetColor(255, 255, 255), TRUE);
-	DrawBox(60, 325, 1850, 1045, GetColor(0, 0, 0), TRUE);
+	DrawBox(LIST_WHITE_LEFT, LIST_WHITE_TOP,
+		LIST_WHITE_RIGHT, LIST_WHITE_BOTTOM,
+		GetColor(255, 255, 255), TRUE);
+	DrawBox(LIST_BLACK_LEFT, LIST_BLACK_TOP,
+		LIST_BLACK_RIGHT, LIST_BLACK_BOTTOM,
+		GetColor(0, 0, 0), TRUE);
 
 	SetFontSize(50);
 	DrawFormatString(65, 65, GetColor(255, 255, 255),
@@ -1393,8 +1413,12 @@ void GameScene::ListDraw(void)
 void GameScene::DetailDraw(void)
 {
 	// 背景 
-	DrawBox(55, 320, 1855, 1050, GetColor(255, 255, 255), TRUE);
-	DrawBox(60, 325, 1850, 1045, GetColor(0, 0, 0), TRUE);
+	DrawBox(LIST_WHITE_LEFT, LIST_WHITE_TOP,
+		LIST_WHITE_RIGHT, LIST_WHITE_BOTTOM,
+		GetColor(255, 255, 255), TRUE);
+	DrawBox(LIST_BLACK_LEFT, LIST_BLACK_TOP,
+		LIST_BLACK_RIGHT, LIST_BLACK_BOTTOM,
+		GetColor(0, 0, 0), TRUE);
 
 	//// 対象データ取得 
 	//if (resultSelectIndex_ < 0 || resultSelectIndex_ >= (int)results_.size())
@@ -1476,21 +1500,21 @@ void GameScene::DetailDraw(void)
 		int barColor = isSelected
 			? GetColor(255, 80, 80)
 			: GetColor(100, 100, 255);
-
+		// 選択肢文字描画
 		SetFontSize(80);
 		DrawString(
 			200, y,
 			question.choices[i].text.c_str(),
 			textColor
 		);
-
+		// 棒グラフ描画
 		DrawPercentageBar(
 			650, y + 6,
 			700, 70,
 			percent,
 			barColor
 		);
-
+		// 割合表示
 		DrawFormatString(
 			1400, y,
 			textColor,

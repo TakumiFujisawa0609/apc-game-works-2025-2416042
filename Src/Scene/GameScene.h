@@ -65,9 +65,78 @@ class GameScene : public SceneBase
 	};
 
 public:
-	static const int START_Y = 740;			  // 吹き出し内の縦位置
-	static const int SPACING = 660;			  // 選択肢同士の間隔
-	static const int SCREEN_W = 1920;      // 画面幅
+#pragma region 定数宣言
+	// ========================
+	// 吹き出し
+	// ========================
+	// 白枠吹き出し
+	static const int WHITE_LEFT = 55;			// 左端
+	static const int WHITE_TOP = 35;			// 上端
+	static const int WHITE_RIGHT = 1855;	// 右端
+	static const int WHITE_BOTTOM = 300;	// 下端
+	// 黒枠吹き出し
+	static const int BLACK_LEFT = 60;			// 左端 
+	static const int BLACK_TOP = 40;			// 上端
+	static const int BLACK_RIGHT = 1850;		// 右端
+	static const int BLACK_BOTTOM = 295;	// 下端
+	// ==========================
+
+	// =======================
+	// 選択肢
+	// =======================
+	// 左側の選択肢開始位置(白枠)
+	static const int CHOICE_WHITE_LEFT = 325;		// 左端
+	static const int CHOICE_WHITE_TOP = 490;			// 上端
+	static const int CHOICE_WHITE_RIGHT = 740;		// 右端
+	static const int CHOICE_WHITE_BOTTOM = 880;	// 下端
+	// 左側の選択肢開始位置(黒枠)
+	static const int CHOICE_BLACK_LEFT = 330;		// 左端
+	static const int CHOICE_BLACK_TOP = 495;			// 上端
+	static const int CHOICE_BLACK_RIGHT = 735;		// 右端
+	static const int CHOICE_BLACK_BOTTOM = 875;	// 下端
+	// 右側の選択肢開始位置(白枠)
+	static const int CHOICE2_WHITE_LEFT = 1180;	// 左端
+	static const int CHOICE2_WHITE_TOP = 490;		// 上端
+	static const int CHOICE2_WHITE_RIGHT = 1595;	// 右端
+	static const int CHOICE2_WHITE_BOTTOM = 880;// 下端
+	// 右側の選択肢開始位置(黒枠)
+	static const int CHOICE2_BLACK_LEFT = 1185;	// 左端
+	static const int CHOICE2_BLACK_TOP = 495;		// 上端
+	static const int CHOICE2_BLACK_RIGHT = 1590;	// 右端
+	static const int CHOICE2_BLACK_BOTTOM = 875;// 下端
+	// =======================
+
+	// =======================
+	// 結果表示(アフタートーク)
+	// =======================
+	// 白枠
+	static const int RESULT_WHITE_LEFT = 55;			// 左端
+	static const int RESULT_WHITE_TOP = 380;			// 上端
+	static const int RESULT_WHITE_RIGHT = 1855;	// 右端
+	static const int RESULT_WHITE_BOTTOM = 1050;// 下端
+	// 黒枠
+	static const int RESULT_BLACK_LEFT = 60;			// 左端
+	static const int RESULT_BLACK_TOP = 385;			// 上端
+	static const int RESULT_BLACK_RIGHT = 1850;	// 右端
+	static const int RESULT_BLACK_BOTTOM = 1045;	// 下端
+	// =======================
+
+	// =======================
+	// 結果表示(一覧・詳細)
+	// =======================
+	// 白枠
+	static const int LIST_WHITE_LEFT = 55;				// 左端
+	static const int LIST_WHITE_TOP = 320;				// 上端
+	static const int LIST_WHITE_RIGHT = 1855;		// 右端
+	static const int LIST_WHITE_BOTTOM = 1050;		// 下端
+	// 黒枠
+	static const int LIST_BLACK_LEFT = 60;				// 左端
+	static const int LIST_BLACK_TOP = 325;				// 上端
+	static const int LIST_BLACK_RIGHT = 1850;		// 右端
+	static const int LIST_BLACK_BOTTOM = 1045;		// 下端
+	// =======================
+	// 
+	// =======================
 
 #pragma region 前方宣言
 	// コンストラクタ
