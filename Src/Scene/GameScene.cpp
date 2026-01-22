@@ -82,6 +82,14 @@ void GameScene::Init(void)
 	// BGMの読み込みと再生
 	bgmHandle_ = LoadSoundMem("Data/BGM/GameScene.mp3");
 	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
+	
+	// フォント作成
+	fontHandle_ = CreateFontToHandle(
+		"源ノ明朝",       // フォント名
+		110,				  // サイズ
+		10,				  // 太さ
+		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
+	);
 
 	// 文章の初期化
 	story_ = {
@@ -105,7 +113,7 @@ void GameScene::Init(void)
     {
         "この先の人生で「新しい経験」と「安心感」、より重きを置くべきはどっち？",
         {
-            {"新しい経験", 1, 408, 760, 0, LoadGraph("Data/Image/Choice/新しい経験.png")},
+            {"新しい経験", 1, 408, 650, 0, LoadGraph("Data/Image/Choice/新しい経験.png")},
             {"安心感",     2, 1310, 760, 0, LoadGraph("Data/Image/Choice/安心感.png")}
         }
     },
@@ -999,7 +1007,7 @@ void GameScene::ListUpdate(void)
 		}
 
 		if (isMouseOverChoice) {
-			// ★修正点: 選択インデックスが変更されたときのみ代入する
+			// 選択インデックスが変更されたときのみ代入する
 			if (resultSelectIndex_ != newSelected) {
 				resultSelectIndex_ = newSelected;
 			}
@@ -1122,7 +1130,7 @@ void GameScene::Draw(void)
 	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
 	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
 	{
-		msg_.Draw(65, 50);
+		msg_.Draw(35, 826);
 	}
 
 	switch (state_)
@@ -1383,9 +1391,9 @@ void GameScene::ListDraw(void)
 	}
 
 	// 次へ進む（この部分は一切変更しない）
-	int nextY = 900;
 	SetFontSize(140);
 	std::string nextText = "次へ進む";
+	int nextY = 900;
 	int nextX = 730;
 	int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
 	int nextColor = (resultSelectIndex_ == (int)results_.size()) ?

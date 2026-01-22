@@ -114,7 +114,7 @@ void Message::Draw(int x, int y)
 		if ((blinkCounter_ / 30) % 2 == 0) {
 			// “_–Å•\Ž¦
 			SetFontSize(40);
-			DrawFormatString(1740, 250, GetColor(255, 255, 255), "SPACE");
+			DrawFormatString(1790, 1020, GetColor(255, 255, 255), "SPACE");
 			
 			SetFontSize(50);
 		}

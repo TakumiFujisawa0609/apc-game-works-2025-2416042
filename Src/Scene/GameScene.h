@@ -70,30 +70,30 @@ public:
 	// 吹き出し
 	// ========================
 	// 白枠吹き出し
-	static const int WHITE_LEFT = 55;			// 左端
-	static const int WHITE_TOP = 35;			// 上端
-	static const int WHITE_RIGHT = 1855;	// 右端
-	static const int WHITE_BOTTOM = 300;	// 下端
+	static const int WHITE_LEFT = 15;			// 左端
+	static const int WHITE_TOP = 800;			// 上端
+	static const int WHITE_RIGHT = 1900;	// 右端
+	static const int WHITE_BOTTOM = 1065;	// 下端
 	// 黒枠吹き出し
-	static const int BLACK_LEFT = 60;			// 左端 
-	static const int BLACK_TOP = 40;			// 上端
-	static const int BLACK_RIGHT = 1850;		// 右端
-	static const int BLACK_BOTTOM = 295;	// 下端
+	static const int BLACK_LEFT = 20;			// 左端 
+	static const int BLACK_TOP = 805;			// 上端
+	static const int BLACK_RIGHT = 1895;		// 右端
+	static const int BLACK_BOTTOM = 1060;	// 下端
 	// ==========================
 
 	// =======================
 	// 選択肢
 	// =======================
 	// 左側の選択肢開始位置(白枠)
-	static const int CHOICE_WHITE_LEFT = 325;		// 左端
-	static const int CHOICE_WHITE_TOP = 490;			// 上端
-	static const int CHOICE_WHITE_RIGHT = 740;		// 右端
-	static const int CHOICE_WHITE_BOTTOM = 880;	// 下端
+	static const int CHOICE_WHITE_LEFT = 225;		// 左端
+	static const int CHOICE_WHITE_TOP = 90;			// 上端
+	static const int CHOICE_WHITE_RIGHT = 840;		// 右端
+	static const int CHOICE_WHITE_BOTTOM = 720;	// 下端
 	// 左側の選択肢開始位置(黒枠)
-	static const int CHOICE_BLACK_LEFT = 330;		// 左端
-	static const int CHOICE_BLACK_TOP = 495;			// 上端
-	static const int CHOICE_BLACK_RIGHT = 735;		// 右端
-	static const int CHOICE_BLACK_BOTTOM = 875;	// 下端
+	static const int CHOICE_BLACK_LEFT = 230;		// 左端
+	static const int CHOICE_BLACK_TOP = 95;			// 上端
+	static const int CHOICE_BLACK_RIGHT = 835;		// 右端
+	static const int CHOICE_BLACK_BOTTOM = 715;	// 下端
 	// 右側の選択肢開始位置(白枠)
 	static const int CHOICE2_WHITE_LEFT = 1180;	// 左端
 	static const int CHOICE2_WHITE_TOP = 490;		// 上端
@@ -291,4 +291,7 @@ private:
 	// 答えた質問の数
 	int answeredCount_;
 	bool skipListInput_;
+
+	// フォントハンドル
+	int fontHandle_;
 };
