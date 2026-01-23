@@ -16,7 +16,9 @@
 
 // 今後やること
 // ポーズシーンの中を充実させる
-// 選択肢に画像を追加
+// ポーズシーンのボタンをゲームシーンにも導入させる
+// ゲームUIの配置調整
+// 案内人のキャラクター画像追加
 #pragma endregion
 
 
@@ -82,19 +84,11 @@ void GameScene::Init(void)
 	// BGMの読み込みと再生
 	bgmHandle_ = LoadSoundMem("Data/BGM/GameScene.mp3");
 	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
-	
-	// フォント作成
-	fontHandle_ = CreateFontToHandle(
-		"源ノ明朝",       // フォント名
-		110,				  // サイズ
-		10,				  // 太さ
-		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
-	);
 
 	// 文章の初期化
 	story_ = {
 		"やぁ、目が覚めた？",
-		"ここは精神と物質の狭間にある場所。\n"
+		/*"ここは精神と物質の狭間にある場所。\n"
 		"君の心象世界だと言えばわかりやすいかな。",
 		"実は君にお願いがあって、僕の実験を手伝ってもらいたいんだ。",
 		"あ、難しく考えなくて大丈夫だよ。\n"
@@ -104,7 +98,7 @@ void GameScene::Init(void)
 		"まず、君が答えた問いは全て記録される。\n"
 		"だから、君の価値観に沿って正直に答えてね。",
 		"それと、君が答えた問いは後で確認できるから楽しみにしててね。",
-		"それじゃあ、今から実験を始めるね。",
+		"それじゃあ、今から実験を始めるね。",*/
 	};
 	// 問いの内容
 	questions_ =
@@ -113,8 +107,8 @@ void GameScene::Init(void)
     {
         "この先の人生で「新しい経験」と「安心感」、より重きを置くべきはどっち？",
         {
-            {"新しい経験", 1, 408, 650, 0, LoadGraph("Data/Image/Choice/新しい経験.png")},
-            {"安心感",     2, 1310, 760, 0, LoadGraph("Data/Image/Choice/安心感.png")}
+            {"新しい経験", 1, 282, 600, 0, LoadGraph("Data/Image/Choice/新しい経験.png")},
+            {"安心感",     2, 1270, 600, 0, LoadGraph("Data/Image/Choice/安心感.png")}
         }
     },
 
@@ -123,8 +117,8 @@ void GameScene::Init(void)
         "もし全ての新しい経験がいばらの道で必ず後悔すると知っていた場合でも、\n"
         "君は「停滞」を避けるために新しい経験を選ぶ？",
         {
-            {"選ぶ",     3, 480, 760, 0, LoadGraph("Data/Image/Choice/いばらの道.png")},
-            {"選ばない", 3, 1290, 760, 0, LoadGraph("Data/Image/Choice/選ばない.png")}
+            {"選ぶ",     3, 422, 600, 0, LoadGraph("Data/Image/Choice/いばらの道.png")},
+            {"選ばない", 3, 1230, 600, 0, LoadGraph("Data/Image/Choice/選ばない.png")}
         }
     },
 
@@ -133,8 +127,8 @@ void GameScene::Init(void)
         "安心感が永続的に保証された環境が、同時に全ての可能性を否定・排除する\n"
         "檻であった場合、君はそれを「幸福」と呼べる？",
         {
-            {"呼べる",   3, 458, 760, 0, LoadGraph("Data/Image/Choice/呼べる.png")},
-            {"呼べない", 3, 1290, 760, 0, LoadGraph("Data/Image/Choice/呼べない.png")}
+            {"呼べる",   3, 377, 600, 0, LoadGraph("Data/Image/Choice/呼べる.png")},
+            {"呼べない", 3, 1230, 600, 0, LoadGraph("Data/Image/Choice/呼べない.png")}
         }
     },
 
@@ -143,8 +137,8 @@ void GameScene::Init(void)
         "もし、過去の全ての失敗や後悔を「無かったこと」にできるボタンがあった\n"
         "として、君は「今の幸福な自分」を失うことを恐れず、そのボタンを押せる？",
         {
-            {"押せる",   4, 458, 760, 0, LoadGraph("Data/Image/Choice/押せる.png")},
-            {"押せない", 5, 1290, 760, 0, LoadGraph("Data/Image/Choice/押せない.png")}
+            {"押せる",   4, 377, 600, 0, LoadGraph("Data/Image/Choice/押せる.png")},
+            {"押せない", 5, 1230, 600, 0, LoadGraph("Data/Image/Choice/押せない.png")}
         }
     },
 
@@ -153,8 +147,8 @@ void GameScene::Init(void)
         "ボタンを押した結果、新しい人生を生きる君は「今の幸福な自分」を\n"
         "知らない大切な誰かに、「無かったことにした自分」の思い出を語れる？",
         {
-            {"語れる",   6, 458, 760, 0, LoadGraph("Data/Image/Choice/語れる.png")},
-            {"語れない", 6, 1290, 760, 0, LoadGraph("Data/Image/Choice/語れない.png")}
+            {"語れる",   6, 377, 600, 0, LoadGraph("Data/Image/Choice/語れる.png")},
+            {"語れない", 6, 1230, 600, 0, LoadGraph("Data/Image/Choice/語れない.png")}
         }
     },
 
@@ -163,8 +157,8 @@ void GameScene::Init(void)
         "もし君の大切な誰かが、君の過去の失敗によって今も苦しみ続けていたら、\n"
         "君はその「誰かの痛み」を見てなお、自分の幸福を優先する？",
         {
-            {"自分を優先",   6, 408, 760, 0, LoadGraph("Data/Image/Choice/できる.png")},
-            {"相手を優先", 6, 1265, 760, 0,LoadGraph("Data/Image/Choice/大切な人を優先.png")}
+            {"自分を優先",   6, 282, 600, 0, LoadGraph("Data/Image/Choice/できる.png")},
+            {"相手を優先", 6, 1180, 600, 0,LoadGraph("Data/Image/Choice/大切な人を優先.png")}
         }
     },
 
@@ -172,8 +166,8 @@ void GameScene::Init(void)
     {
         "完璧な計画と即座の行動、より成果を生み出すのはどちらだと思う？",
         {
-            {"完璧な計画", 7, 408, 760, 0, LoadGraph("Data/Image/Choice/完璧な計画.png")},
-            {"即座の行動", 8, 1265, 760, 0, LoadGraph("Data/Image/Choice/即座の行動.png")}
+            {"完璧な計画", 7, 282, 600, 0, LoadGraph("Data/Image/Choice/完璧な計画.png")},
+            {"即座の行動", 8, 1180, 600, 0, LoadGraph("Data/Image/Choice/即座の行動.png")}
         }
     },
 
@@ -182,8 +176,8 @@ void GameScene::Init(void)
         "「完璧な計画」の完成を待つことで、それを実行に移すタイミングが\n"
         "永久に失われた場合、その計画は「失敗」と見なす？",
         {
-            {"見なす",     9, 458, 760, 0, LoadGraph("Data/Image/Choice/見なす.png")},
-            {"見なさない", 9, 1265, 760, 0, LoadGraph("Data/Image/Choice/見なさない.png")}
+            {"見なす",     9, 377, 600, 0, LoadGraph("Data/Image/Choice/見なす.png")},
+            {"見なさない", 9, 1180, 600, 0, LoadGraph("Data/Image/Choice/見なさない.png")}
         }
     },
 
@@ -193,8 +187,8 @@ void GameScene::Init(void)
         "致命的なミスが、行動開始から1分以内に発生することが確実である場合、\n"
         "それでも、あなたは「即座の行動」を優先する？",
         {
-            {"優先する",   9, 430, 760, 0, LoadGraph("Data/Image/Choice/優先する.png")},
-            {"優先しない", 9, 1265, 760, 0, LoadGraph("Data/Image/Choice/優先しない.png")}
+            {"優先する",   9, 430, 600, 0, LoadGraph("Data/Image/Choice/優先する.png")},
+            {"優先しない", 9, 1180, 600, 0, LoadGraph("Data/Image/Choice/優先しない.png")}
         }
     },
 
@@ -203,8 +197,8 @@ void GameScene::Init(void)
         "もし君が無気力で夢がない場合、時間をかけて見つかるまで探す？\n"
         "それとも、外部からの強制に素直に従う？",
         {
-            {"探す",         10, 480, 760, 0, LoadGraph("Data/Image/Choice/探す.png")},
-            {"素直に従う",   11, 1265, 760, 0, LoadGraph("Data/Image/Choice/素直に従う.png")}
+            {"探す",         10, 422, 600, 0, LoadGraph("Data/Image/Choice/探す.png")},
+            {"素直に従う",   11, 1180, 600, 0, LoadGraph("Data/Image/Choice/素直に従う.png")}
         }
     },
 
@@ -213,8 +207,8 @@ void GameScene::Init(void)
         "「探す時間」が無限に与えられた結果、何も見つからないまま人生の終わりに\n"
         "到達した場合、その探求は有意義であったと言えるかな？",
         {
-            {"言える",   12, 458, 760, 0, LoadGraph("Data/Image/Choice/言える.png")},
-            {"言えない", 12, 1290, 760, 0, LoadGraph("Data/Image/Choice/言えない.png")}
+            {"言える",   12, 377, 600, 0, LoadGraph("Data/Image/Choice/言える.png")},
+            {"言えない", 12, 1230, 600, 0, LoadGraph("Data/Image/Choice/言えない.png")}
         }
     },
 
@@ -223,8 +217,8 @@ void GameScene::Init(void)
         "言われるがままに従い続け、いつか君が『何者でもない空っぽな存在』に\n"
         "なったとき、君の人生に後悔はないのか？",
         {
-            {"後悔はない", 12, 408, 760, 0, LoadGraph("Data/Image/Choice/後悔はない.png")},
-            {"少し怖い", 12, 1290, 760, 0, LoadGraph("Data/Image/Choice/少し怖い.png")}
+            {"後悔はない", 12, 282, 600, 0, LoadGraph("Data/Image/Choice/後悔はない.png")},
+            {"少し怖い", 12, 1230, 600, 0, LoadGraph("Data/Image/Choice/少し怖い.png")}
         }
     },
 
@@ -234,8 +228,8 @@ void GameScene::Init(void)
         "君はその運命に抗って長生きをしようとする？\n"
         "それとも、おとなしく受け入れる？",
         {
-            {"抗う",       13, 480, 760, 0, LoadGraph("Data/Image/Choice/抗う.png")},
-            {"受け入れる", 14, 1265, 760, 0, LoadGraph("Data/Image/Choice/受け入れる.png")}
+            {"抗う",       13, 422, 600, 0, LoadGraph("Data/Image/Choice/抗う.png")},
+            {"受け入れる", 14, 1180, 600, 0, LoadGraph("Data/Image/Choice/受け入れる.png")}
         }
     },
 
@@ -244,8 +238,8 @@ void GameScene::Init(void)
         "運命に抗う行為が、結果的に運命の定めた日付よりも「早く」訪れた場合、\n"
         "その行動は正しかったと言える？",
         {
-            {"言える",   -1, 458, 760, 0, LoadGraph("Data/Image/Choice/言える1.png")},
-            {"言えない", -1, 1290, 760, 0, LoadGraph("Data/Image/Choice/言えない1.png")}
+            {"言える",   -1, 377, 600, 0, LoadGraph("Data/Image/Choice/言える1.png")},
+            {"言えない", -1, 1230, 600, 0, LoadGraph("Data/Image/Choice/言えない1.png")}
         }
     },
 
@@ -255,8 +249,8 @@ void GameScene::Init(void)
 		"感じているから？\n"
 		"それとも、抗うことが無意味だと悟ったから？",
         {
-            {"満足感",   -1, 458, 760, 0, LoadGraph("Data/Image/Choice/満足感.png")},
-            {"無意味", -1, 1310, 760, 0, LoadGraph("Data/Image/Choice/無意味.png")}
+            {"満足感",   -1, 377, 600, 0, LoadGraph("Data/Image/Choice/満足感.png")},
+            {"無意味", -1, 1270, 600, 0, LoadGraph("Data/Image/Choice/無意味.png")}
         }
     }
 };
@@ -1181,9 +1175,6 @@ void GameScene::QuestionDraw(void)
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
 
-		// 左右キーのヒント
-		SetFontSize(60);
-	//	DrawFormatString(0, 1000, GetColor(255, 255, 255), "A/D or マウスで操作、Space or クリックで選択");
 	}
 }
 
@@ -1221,7 +1212,7 @@ void GameScene::AfterTalkDraw(void)
 			for (int v : questionData.choiceCounts) total += v;
 
 			// 選択肢と割合の表示（manager 側の counts を使う）
-			int y = 700; // 縦の開始位置
+			int y = 400; // 縦の開始位置
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				const auto& cVisual = question.choices[i];
 
@@ -1242,8 +1233,8 @@ void GameScene::AfterTalkDraw(void)
 				// 問題番号
 				SetFontSize(50);
 				DrawFormatString(
-					65,
-					400,
+					25,		// X座標
+					60,		// Y座標
 					GetColor(255, 255, 255),
 					"[問%d]",
 					questionNo
@@ -1251,11 +1242,13 @@ void GameScene::AfterTalkDraw(void)
 
 				// 問題文
 				DrawString(
-					65,			// X座標
-					460,			//	Y座標
+					25,			// X座標
+					140,			//	Y座標
 					question.text.c_str(),
 					GetColor(255, 255, 255)
 				);
+
+
 
 				// 選択肢文字
 				SetFontSize(80);
@@ -1340,9 +1333,9 @@ void GameScene::ListDraw(void)
 		GetColor(0, 0, 0), TRUE);
 
 	SetFontSize(50);
-	DrawFormatString(65, 65, GetColor(255, 255, 255),
+	DrawFormatString(35, 820, GetColor(255, 255, 255),
 		"結果はこちら。");
-	DrawFormatString(75, 115, GetColor(255, 255, 255),
+	DrawFormatString(35, 870, GetColor(255, 255, 255),
 		"WASDで操作 or マウス操作、Spaceキー or クリックで詳細を見れます。");
 
 	// マウス用矩形リストをクリア
@@ -1351,9 +1344,9 @@ void GameScene::ListDraw(void)
 	// 回答リストの表示（横1列 × 2段）
 	const int itemPerRow = 5;     // 1段に5個
 	const int itemWidth = 300;    // 横幅の間隔（各アイテム間の距離）
-	const int topRowY = 410;      // 上段のY座標
-	const int bottomRowY = 600;   // 下段のY座標
-	const int base2X = 250;        // 左端の開始位置
+	const int topRowY = 100;      // 上段のY座標
+	const int bottomRowY = 300;   // 下段のY座標
+	const int base2X = 270;        // 左端の開始位置
 
 	SetFontSize(120);
 
@@ -1393,8 +1386,8 @@ void GameScene::ListDraw(void)
 	// 次へ進む（この部分は一切変更しない）
 	SetFontSize(140);
 	std::string nextText = "次へ進む";
-	int nextY = 900;
-	int nextX = 730;
+	int nextY = 500;
+	int nextX = 630;
 	int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
 	int nextColor = (resultSelectIndex_ == (int)results_.size()) ?
 		GetColor(255, 255, 0) : GetColor(255, 255, 255);
@@ -1554,7 +1547,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 
 	// マウス用矩形リストのクリアと設定
 	choiceRects_.clear();
-	SetFontSize(50); // フォントサイズを再設定
+	SetFontSize(90); // フォントサイズを再設定
 
 	// マウスの当たり判定に必要なサイズを定義（既存の選択肢背景サイズに合わせる）
 	int choiceHeight = 60;  // ※文字サイズ50を基準とした高さ。背景サイズに合わせて調整してください。

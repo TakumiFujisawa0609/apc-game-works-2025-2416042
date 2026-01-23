@@ -70,70 +70,70 @@ public:
 	// 吹き出し
 	// ========================
 	// 白枠吹き出し
-	static const int WHITE_LEFT = 15;			// 左端
-	static const int WHITE_TOP = 800;			// 上端
-	static const int WHITE_RIGHT = 1900;	// 右端
-	static const int WHITE_BOTTOM = 1065;	// 下端
+	static const int WHITE_LEFT = 15;				// 左端
+	static const int WHITE_TOP = 800;				// 上端
+	static const int WHITE_RIGHT = 1900;		// 右端
+	static const int WHITE_BOTTOM = 1065;		// 下端
 	// 黒枠吹き出し
-	static const int BLACK_LEFT = 20;			// 左端 
-	static const int BLACK_TOP = 805;			// 上端
-	static const int BLACK_RIGHT = 1895;		// 右端
-	static const int BLACK_BOTTOM = 1060;	// 下端
+	static const int BLACK_LEFT = 20;				// 左端 
+	static const int BLACK_TOP = 805;				// 上端
+	static const int BLACK_RIGHT = 1895;			// 右端
+	static const int BLACK_BOTTOM = 1060;		// 下端
 	// ==========================
 
 	// =======================
 	// 選択肢
 	// =======================
 	// 左側の選択肢開始位置(白枠)
-	static const int CHOICE_WHITE_LEFT = 225;		// 左端
-	static const int CHOICE_WHITE_TOP = 90;			// 上端
-	static const int CHOICE_WHITE_RIGHT = 840;		// 右端
-	static const int CHOICE_WHITE_BOTTOM = 720;	// 下端
+	static const int CHOICE_WHITE_LEFT = 205;			// 左端
+	static const int CHOICE_WHITE_TOP = 90;				// 上端
+	static const int CHOICE_WHITE_RIGHT = 820;			// 右端
+	static const int CHOICE_WHITE_BOTTOM = 720;		// 下端
 	// 左側の選択肢開始位置(黒枠)
-	static const int CHOICE_BLACK_LEFT = 230;		// 左端
-	static const int CHOICE_BLACK_TOP = 95;			// 上端
-	static const int CHOICE_BLACK_RIGHT = 835;		// 右端
-	static const int CHOICE_BLACK_BOTTOM = 715;	// 下端
+	static const int CHOICE_BLACK_LEFT = 210;			// 左端
+	static const int CHOICE_BLACK_TOP = 95;				// 上端
+	static const int CHOICE_BLACK_RIGHT = 815;			// 右端
+	static const int CHOICE_BLACK_BOTTOM = 715;		// 下端
 	// 右側の選択肢開始位置(白枠)
-	static const int CHOICE2_WHITE_LEFT = 1180;	// 左端
-	static const int CHOICE2_WHITE_TOP = 490;		// 上端
-	static const int CHOICE2_WHITE_RIGHT = 1595;	// 右端
-	static const int CHOICE2_WHITE_BOTTOM = 880;// 下端
+	static const int CHOICE2_WHITE_LEFT = 1100;		// 左端
+	static const int CHOICE2_WHITE_TOP = 90;				// 上端
+	static const int CHOICE2_WHITE_RIGHT = 1715;		// 右端
+	static const int CHOICE2_WHITE_BOTTOM = 720;	// 下端
 	// 右側の選択肢開始位置(黒枠)
-	static const int CHOICE2_BLACK_LEFT = 1185;	// 左端
-	static const int CHOICE2_BLACK_TOP = 495;		// 上端
-	static const int CHOICE2_BLACK_RIGHT = 1590;	// 右端
-	static const int CHOICE2_BLACK_BOTTOM = 875;// 下端
+	static const int CHOICE2_BLACK_LEFT = 1105;		// 左端
+	static const int CHOICE2_BLACK_TOP = 95;				// 上端
+	static const int CHOICE2_BLACK_RIGHT = 1710;		// 右端
+	static const int CHOICE2_BLACK_BOTTOM = 715;	// 下端
 	// =======================
 
 	// =======================
 	// 結果表示(アフタートーク)
 	// =======================
 	// 白枠
-	static const int RESULT_WHITE_LEFT = 55;			// 左端
-	static const int RESULT_WHITE_TOP = 380;			// 上端
-	static const int RESULT_WHITE_RIGHT = 1855;	// 右端
-	static const int RESULT_WHITE_BOTTOM = 1050;// 下端
+	static const int RESULT_WHITE_LEFT = 15;				// 左端
+	static const int RESULT_WHITE_TOP = 30;				// 上端
+	static const int RESULT_WHITE_RIGHT = 1900;		// 右端
+	static const int RESULT_WHITE_BOTTOM = 720;		// 下端
 	// 黒枠
-	static const int RESULT_BLACK_LEFT = 60;			// 左端
-	static const int RESULT_BLACK_TOP = 385;			// 上端
-	static const int RESULT_BLACK_RIGHT = 1850;	// 右端
-	static const int RESULT_BLACK_BOTTOM = 1045;	// 下端
+	static const int RESULT_BLACK_LEFT = 20;				// 左端
+	static const int RESULT_BLACK_TOP = 35;				// 上端
+	static const int RESULT_BLACK_RIGHT = 1895;		// 右端
+	static const int RESULT_BLACK_BOTTOM = 715;		// 下端
 	// =======================
 
 	// =======================
 	// 結果表示(一覧・詳細)
 	// =======================
 	// 白枠
-	static const int LIST_WHITE_LEFT = 55;				// 左端
-	static const int LIST_WHITE_TOP = 320;				// 上端
-	static const int LIST_WHITE_RIGHT = 1855;		// 右端
-	static const int LIST_WHITE_BOTTOM = 1050;		// 下端
+	static const int LIST_WHITE_LEFT = 15;					// 左端
+	static const int LIST_WHITE_TOP = 30;					// 上端
+	static const int LIST_WHITE_RIGHT = 1900;			// 右端
+	static const int LIST_WHITE_BOTTOM = 720;			// 下端
 	// 黒枠
-	static const int LIST_BLACK_LEFT = 60;				// 左端
-	static const int LIST_BLACK_TOP = 325;				// 上端
-	static const int LIST_BLACK_RIGHT = 1850;		// 右端
-	static const int LIST_BLACK_BOTTOM = 1045;		// 下端
+	static const int LIST_BLACK_LEFT = 20;					// 左端
+	static const int LIST_BLACK_TOP = 35;					// 上端
+	static const int LIST_BLACK_RIGHT = 1895;			// 右端
+	static const int LIST_BLACK_BOTTOM = 715;			// 下端
 	// =======================
 	// 
 	// =======================
