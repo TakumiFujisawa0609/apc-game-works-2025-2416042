@@ -17,7 +17,7 @@
 // 今後やること
 // ポーズシーンの中を充実させる
 // ポーズシーンのボタンをゲームシーンにも導入させる
-// ゲームUIの配置調整
+// ゲームUIの配置調整基本真ん中になるように
 // 案内人のキャラクター画像追加
 #pragma endregion
 
@@ -1046,8 +1046,7 @@ RESULT_DECISION:
 				std::string detailMsg =
 					"【問 " + std::to_string(resultSelectIndex_ + 1) + " 】\n\n" +
 					results_[resultSelectIndex_].questionText + "\n\n" +
-					"あなたの選択: " + results_[resultSelectIndex_].selectedChoiceText +
-					"\n\nSpace or クリックで一覧に戻る。";
+					"あなたの選択: " + results_[resultSelectIndex_].selectedChoiceText;
 
 				msg_.SetMessage(detailMsg);
 			}
@@ -1339,7 +1338,7 @@ void GameScene::ListDraw(void)
 		"WASDで操作 or マウス操作、Spaceキー or クリックで詳細を見れます。");
 
 	// マウス用矩形リストをクリア
-	choiceRects_.clear();
+	choiceRects_.clear();	
 
 	// 回答リストの表示（横1列 × 2段）
 	const int itemPerRow = 5;     // 1段に5個
@@ -1386,8 +1385,8 @@ void GameScene::ListDraw(void)
 	// 次へ進む（この部分は一切変更しない）
 	SetFontSize(140);
 	std::string nextText = "次へ進む";
-	int nextY = 500;
-	int nextX = 630;
+	int nextY = 560;
+	int nextX = 690;
 	int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
 	int nextColor = (resultSelectIndex_ == (int)results_.size()) ?
 		GetColor(255, 255, 0) : GetColor(255, 255, 255);
@@ -1405,7 +1404,7 @@ void GameScene::ListDraw(void)
 	}
 
 	DrawString(nextX, nextY, nextText.c_str(), nextColor);
-	if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
+	if (resultSelectIndex_ == (int)results_.size()) DrawString(580, nextY, ">", nextColor);
 
 	choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
 
@@ -1448,14 +1447,14 @@ void GameScene::DetailDraw(void)
 	// 問番号・問題文 
 	SetFontSize(50);
 	DrawFormatString(
-		65, 360,
+		35, 75,
 		GetColor(255, 255, 255),
-		"[問 %d]",
+		"[問%d]",
 		resultSelectIndex_ + 1
 	);
 
 	DrawString(
-		65, 420,
+		35, 130,
 		question.text.c_str(),
 		GetColor(255, 255, 255)
 	);
@@ -1463,24 +1462,24 @@ void GameScene::DetailDraw(void)
 	// あなたの選択
 	SetFontSize(45);
 	DrawFormatString(
-		65,
-		600,
+		35,
+		300,
 		GetColor(255, 255, 255),
 		"あなたの選択：",
 		r.selectedChoiceText.c_str()
 	);
-	// あなたの選択
+	// あなたの選択の％
 	SetFontSize(45);
 	DrawFormatString(
 		400,
-		600,
+		300,
 		GetColor(255, 0, 0),
 		"%s",
 		r.selectedChoiceText.c_str()
 	);
 
 	// ====== 選択肢＋棒グラフ ======
-	int y = 700;
+	int y = 430;
 
 	for (size_t i = 0; i < question.choices.size(); i++)
 	{
@@ -1529,7 +1528,7 @@ void GameScene::DetailDraw(void)
 	// ====== 戻る案内 ======
 	SetFontSize(50);
 	DrawString(
-		65, 50,
+		35, 820,
 		"Space or クリックで一覧に戻る。",
 		GetColor(255, 255, 255)
 	);
@@ -1581,12 +1580,21 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 		}
 		// マウス当たり判定用の矩形を保存 (choices[i].x/yを利用)
 		// ----------------------------------------------------
-		choiceRects_.push_back({
-		choices[i].x - 155,        // 左端 (背景の描画に合わせて)
-		choices[i].y - 260,         // 上端 (背景の描画に合わせて)
-		choices[i].x + choiceWidth + 155, // 右端 (文字の幅に合わせる)
-		choices[i].y + choiceHeight + 55  // 下端 (文字の高さに合わせる)
-			});
+		ChoiceRect rect;
+		if (i == 0) { // 左側の選択肢
+			rect.left = CHOICE_WHITE_LEFT;   // 左の枠の左端
+			rect.top = CHOICE_WHITE_TOP;    // 左の枠の上端
+			rect.right = CHOICE_WHITE_RIGHT;  // 左の枠の右端
+			rect.bottom = CHOICE_WHITE_BOTTOM; // 左の枠の下端
+		}
+		else {      // 右側の選択肢
+			rect.left = CHOICE2_WHITE_LEFT;   // 右の枠の左端
+			rect.top = CHOICE2_WHITE_TOP;    // 右の枠の上端
+			rect.right = CHOICE2_WHITE_RIGHT;  // 右の枠の右端
+			rect.bottom = CHOICE2_WHITE_BOTTOM; // 右の枠の下端
+		}
+
+		choiceRects_.push_back(rect);
 		// ----------------------------------------------------
 	}
 }

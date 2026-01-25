@@ -104,6 +104,12 @@ public:
 	static const int CHOICE2_BLACK_TOP = 95;				// 上端
 	static const int CHOICE2_BLACK_RIGHT = 1710;		// 右端
 	static const int CHOICE2_BLACK_BOTTOM = 715;	// 下端
+
+	// 選択肢のマウス当たり判定
+	static const int HIT_LEFT = 100;					// 左端
+	static const int HIT_TOP = 350;					// 上端
+	static const int HIT_RIGHT = 100;				// 右端
+	static const int HIT_BOTTOM = 50;			// 下端
 	// =======================
 
 	// =======================
