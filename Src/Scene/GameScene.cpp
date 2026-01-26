@@ -67,6 +67,9 @@ void GameScene::Init(void)
 	// 背景画像の読み込み
 	gImage_ = LoadGraph("Data/Image/haikei.png");
 
+	// キャラクター画像の読み込み
+	characterImage_ = LoadGraph("Data/Image/Character.png");
+
 	// --- リザルト背景群の読み込み ---
 	resultBgImages_.clear();
 	const int maxBgCount = 10; // 将来的に10枚くらい用意してもOK
@@ -826,7 +829,7 @@ void GameScene::EndUpdate(void)
 		if (!msg_.IsFinished()) msg_.Skip();
 		else
 		{
-			msg_.SetMessage("これで実験は終了だよ。遊んでくれてありがとう！");
+			//msg_.SetMessage("これで実験は終了だよ。遊んでくれてありがとう！");
 			StopSoundMem(bgmHandle_);
 			SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::CLEAR);
 		}
@@ -1101,16 +1104,17 @@ void GameScene::Draw(void)
 {
 	// --- 背景 ---
 	int bgToDraw = gImage_;
-
-	// RESULT状態なら結果用背景を描画
-	if (state_ == SceneState::RESULT)
-	{
-		if (!resultBgImages_.empty())
-		{
-			bgToDraw = resultBgImages_[currentBgIndex_];
-		}
-	}
 	DrawGraph(0, 0, bgToDraw, FALSE);
+
+	// キャラクターの描画
+	if (
+		state_ == SceneState::STORY ||
+		resultState_ == ResultState::TAIL ||
+		state_ == SceneState::END
+		)
+	{
+		DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
+	}
 
 	// 吹き出しの描画
 	DrawBox(WHITE_LEFT, WHITE_TOP, 
@@ -1211,7 +1215,7 @@ void GameScene::AfterTalkDraw(void)
 			for (int v : questionData.choiceCounts) total += v;
 
 			// 選択肢と割合の表示（manager 側の counts を使う）
-			int y = 400; // 縦の開始位置
+			int y = 390; // 縦の開始位置
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				const auto& cVisual = question.choices[i];
 
@@ -1233,7 +1237,7 @@ void GameScene::AfterTalkDraw(void)
 				SetFontSize(50);
 				DrawFormatString(
 					25,		// X座標
-					60,		// Y座標
+					80,		// Y座標
 					GetColor(255, 255, 255),
 					"[問%d]",
 					questionNo
@@ -1252,7 +1256,7 @@ void GameScene::AfterTalkDraw(void)
 				// 選択肢文字
 				SetFontSize(80);
 				DrawString(
-					200,		// X座標
+					250,		// X座標
 					y,			// Y座標
 					cVisual.text.c_str(),
 					textColor
@@ -1260,7 +1264,7 @@ void GameScene::AfterTalkDraw(void)
 
 				// 棒グラフ表示
 				DrawPercentageBar(
-					640,		// X座標
+					690,		// X座標
 					y + 6, // Y座標
 					700,		// 幅
 					75,		// 高さ
@@ -1270,7 +1274,7 @@ void GameScene::AfterTalkDraw(void)
 
 				// 割合表示
 				DrawFormatString(
-					1400,
+					1450,
 					y,
 					textColor,
 					"%.1f%%",
@@ -1391,7 +1395,7 @@ void GameScene::ListDraw(void)
 	int nextColor = (resultSelectIndex_ == (int)results_.size()) ?
 		GetColor(255, 255, 0) : GetColor(255, 255, 255);
 
-	if (resultSelectIndex_ == (int)results_.size()) DrawString(680, nextY, ">", nextColor);
+	if (resultSelectIndex_ == (int)results_.size()) DrawString(690, nextY, ">", nextColor);
 
 	int rect_left = nextX - 100;
 	int rect_top = nextY;
@@ -1404,7 +1408,7 @@ void GameScene::ListDraw(void)
 	}
 
 	DrawString(nextX, nextY, nextText.c_str(), nextColor);
-	if (resultSelectIndex_ == (int)results_.size()) DrawString(580, nextY, ">", nextColor);
+	if (resultSelectIndex_ == (int)results_.size()) DrawString(620, nextY, ">", nextColor);
 
 	choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
 
@@ -1452,7 +1456,7 @@ void GameScene::DetailDraw(void)
 		"[問%d]",
 		resultSelectIndex_ + 1
 	);
-
+	// 問題文 
 	DrawString(
 		35, 130,
 		question.text.c_str(),
@@ -1479,7 +1483,7 @@ void GameScene::DetailDraw(void)
 	);
 
 	// ====== 選択肢＋棒グラフ ======
-	int y = 430;
+	int y = 440;
 
 	for (size_t i = 0; i < question.choices.size(); i++)
 	{
@@ -1532,6 +1536,13 @@ void GameScene::DetailDraw(void)
 		"Space or クリックで一覧に戻る。",
 		GetColor(255, 255, 255)
 	);
+}
+
+void GameScene::CharacterDraw(void)
+{
+	if (characterImage_ == -1) return;
+
+	DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
 }
 
 
@@ -1620,6 +1631,19 @@ void GameScene::DrawPercentageBar(int x, int y, int width, int height, float per
 
 void GameScene::Release(void)
 {
+	// 背景画像の解放
+	if (gImage_ != -1) {
+		DeleteGraph(gImage_);
+		gImage_ = -1;
+	}
+
+	// キャラクター画像の解放
+	if (characterImage_ != -1) {
+		DeleteGraph(characterImage_);
+		characterImage_ = -1;
+	}
+
+
 	// BGMを停止して削除
 	if (bgmHandle_ != -1) {
 		StopSoundMem(bgmHandle_);
@@ -1627,6 +1651,7 @@ void GameScene::Release(void)
 		bgmHandle_ = -1;
 	}
 
+	// 質問の選択肢画像を削除
 	for (auto& q : questions_) {
 		for (auto& c : q.choices) {
 			if (c.imageHandle != -1) {

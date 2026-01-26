@@ -141,8 +141,12 @@ public:
 	static const int LIST_BLACK_RIGHT = 1895;			// 右端
 	static const int LIST_BLACK_BOTTOM = 715;			// 下端
 	// =======================
-	// 
+	// キャラクター画像描画位置
 	// =======================
+	// キャラクター画像のX座標
+	static const int CHARACTER_IMAGE_X = 340;
+	// キャラクター画像のY座標
+	static const int CHARACTER_IMAGE_Y = 150;
 
 #pragma region 前方宣言
 	// コンストラクタ
@@ -183,6 +187,9 @@ public:
 	void ListDraw(void);
 	void DetailDraw(void);
 
+	// キャラクター画像の設定
+	void CharacterDraw(void);
+	
 	// 選択肢の描画
 	void DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent);
 	// 割合を横棒グラフで描画
@@ -234,6 +241,8 @@ private:
 	int currentBgIndex_; // 現在の背景
 	// ゲーム背景
 	int gImage_;
+	// キャラクター画像
+	int characterImage_;
 
 	// 通常BGM
 	int bgmHandle_;
