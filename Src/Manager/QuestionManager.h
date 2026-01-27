@@ -27,6 +27,8 @@ public:
 
 	void SetQuestions(const std::vector<QuestionData>& questions);
 	const std::vector<QuestionData>& GetQuestions() const { return questions_; }
+	// インスタンスの取得
+	static QuestionManager& GetInstance(void);
 private:
 	std::vector<QuestionData> questions_;
 };

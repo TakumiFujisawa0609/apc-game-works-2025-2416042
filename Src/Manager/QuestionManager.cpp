@@ -134,3 +134,10 @@ void QuestionManager::SetQuestions(const std::vector<QuestionData>& questions)
 	questions_ = questions;
 }
 
+QuestionManager& QuestionManager::GetInstance(void)
+{
+    // C++におけるシングルトンの典型的な実装
+    static QuestionManager instance;
+    return instance;
+}
+

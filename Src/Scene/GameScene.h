@@ -4,9 +4,8 @@
 #include "../Object/Message.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/QuestionManager.h"
+#include "../Scene/PauseScene.h"
 #include "SceneBase.h"
-
-
 
 enum class SceneState
 {
@@ -172,6 +171,12 @@ public:
 	void ListUpdate(void);
 	void DetailUpdate(void);
 
+	// キャラクター表示状態の判定
+	bool IsCharacterTargetState(void);
+
+	// キャラクターのフェード
+	void CharacterFade(void);
+
 	// 描画処理
 	void Draw(void) override;
 
@@ -218,7 +223,7 @@ private:
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
 	// 質問管理オブジェクト
-	QuestionManager questionManager_;
+	QuestionManager& questionManager_;
 
 	// 文章リスト
 	std::vector<std::string> story_;
@@ -264,6 +269,8 @@ private:
 	int resultSelectIndex_;
 	// 現在表示しているリザルトメッセージ行のインデックス
 	int resultTailIndex_;
+	// アフタートーク中に参照する結果
+	int currentResultIndex_;
 
 	// 前の問い
 	int prevQuestionIndex_;
@@ -308,5 +315,19 @@ private:
 	bool skipListInput_;
 
 	// フォントハンドル
-	int fontHandle_;
+	int fontPause_;
+	int fontEscape_;
+
+	// キャラのフェード用
+	int characterAlpha_;     
+	bool characterVisible_;
+
+	// -------------------------------
+	// ポーズボタン
+	// --------------------------------
+	int pauseX_ = 1800; // X座標
+	int pauseY_ = 20;   // Y座標
+	int pauseW_ = 60;   // 幅
+	int pauseH_ = 60;   // 高さ
+
 };

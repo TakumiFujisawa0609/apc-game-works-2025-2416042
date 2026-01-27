@@ -17,13 +17,13 @@
 // 今後やること
 // ポーズシーンの中を充実させる
 // ポーズシーンのボタンをゲームシーンにも導入させる
-// ゲームUIの配置調整基本真ん中になるように
-// 案内人のキャラクター画像追加
+// タイトルシーンのボタンや選択肢のボックスにアニメーションをつける
 #pragma endregion
 
 
 GameScene::GameScene(void)
 	:inputManager_(InputManager::GetInstance()),
+	questionManager_(QuestionManager::GetInstance()),
 	state_(SceneState::STORY),
 	stateBeforePause_(SceneState::STORY),
 	gImage_(-1),
@@ -54,7 +54,9 @@ GameScene::GameScene(void)
 	currentBgIndex_(0),
 	answeredCount_(0),
 	detailIndex_(-1),
-	skipListInput_(false)
+	skipListInput_(false),
+	characterAlpha_(0),
+	characterVisible_(false)
 {
 }
 
@@ -522,6 +524,7 @@ void GameScene::Update(void)
 				msg_.SetMessage("");
 			}
 		}
+		
 	}
 
 // =========================
@@ -575,6 +578,9 @@ void GameScene::Update(void)
 		PauseUpdate();
 		break;
 	}
+	// --- キャラクターフェード ---
+	CharacterFade();
+
 #pragma endregion
 	// --- デバッグ用 ---
 	// Rキーで問いデータリセット
@@ -688,6 +694,7 @@ CHOICE_DECISION:
 		result.questionText = questions_[questionIndex_].text;
 		result.selectedChoiceText = questions_[questionIndex_].choices[selectedChoice_].text;
 		results_.push_back(result);
+		currentResultIndex_ = static_cast<int>(results_.size()) - 1;
 
 		// --- アフタートーク判定 ---
 		afterTalkIndex_ = -1;
@@ -1100,20 +1107,56 @@ void GameScene::DetailUpdate(void)
 	}
 }
 
+bool GameScene::IsCharacterTargetState(void)
+{
+	return state_ == SceneState::STORY ||
+			  resultState_ == ResultState::TAIL ||
+			  state_ == SceneState::END;
+}
+
+void GameScene::CharacterFade(void)
+{
+	const int FADE_SPEED = 8; // 調整用
+
+	// 今の state 的に「出したいか」
+	bool targetVisible = IsCharacterTargetState();
+
+	if (targetVisible)
+	{
+		// フェードイン
+		characterAlpha_ += FADE_SPEED;
+		if (characterAlpha_ > 255)
+			characterAlpha_ = 255;
+	}
+	else
+	{
+		// フェードアウト
+		characterAlpha_ -= FADE_SPEED;
+		if (characterAlpha_ < 0)
+			characterAlpha_ = 0;
+	}
+}
+
 void GameScene::Draw(void)
 {
 	// --- 背景 ---
 	int bgToDraw = gImage_;
 	DrawGraph(0, 0, bgToDraw, FALSE);
 
-	// キャラクターの描画
-	if (
-		state_ == SceneState::STORY ||
-		resultState_ == ResultState::TAIL ||
-		state_ == SceneState::END
-		)
+	//// キャラクターの描画
+	//if (
+	//	state_ == SceneState::STORY ||
+	//	resultState_ == ResultState::TAIL ||
+	//	state_ == SceneState::END
+	//	)
+	//{
+	//	DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
+	//}
+	if (characterAlpha_ > 0)
 	{
+		SetDrawBlendMode(DX_BLENDMODE_ALPHA, characterAlpha_);
 		DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
+		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 
 	// 吹き出しの描画
@@ -1215,7 +1258,7 @@ void GameScene::AfterTalkDraw(void)
 			for (int v : questionData.choiceCounts) total += v;
 
 			// 選択肢と割合の表示（manager 側の counts を使う）
-			int y = 390; // 縦の開始位置
+			int y = 440; // 縦の開始位置
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				const auto& cVisual = question.choices[i];
 
@@ -1251,7 +1294,7 @@ void GameScene::AfterTalkDraw(void)
 					GetColor(255, 255, 255)
 				);
 
-
+			
 
 				// 選択肢文字
 				SetFontSize(80);
@@ -1281,6 +1324,29 @@ void GameScene::AfterTalkDraw(void)
 					percent,
 					count
 				);
+
+				if (!results_.empty())
+				{
+					SetFontSize(50);
+					const auto& r = results_.back();
+
+					DrawString(
+						25,
+						290,
+						"あなたの選択：",
+						GetColor(255, 255, 255)
+					);
+
+					// ② 文字幅を取得して、その右に赤文字を描画
+					int offsetX = GetDrawStringWidth("あなたの選択：", strlen("あなたの選択："));
+
+					DrawString(
+						25 + offsetX,
+						290,
+						r.selectedChoiceText.c_str(),
+						GetColor(255, 0, 0)
+					);
+				}
 
 				// 行間
 				y += 100;
