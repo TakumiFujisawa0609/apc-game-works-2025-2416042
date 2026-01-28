@@ -58,4 +58,8 @@ private:
 	int pauseY_;
 	int pauseW_;
 	int pauseH_;
+
+	// アニメーション用
+	float buttonAnimTime_;   // 時間
+	float buttonScale_;			 // 拡大率
 };

@@ -16,6 +16,7 @@
 
 // 今後やること
 // ポーズシーンの中を充実させる
+// リザルトシーンからポーズシーンに遷移して戻った際にクリックの判定を残さないようにする方法
 // タイトルシーンのボタンや選択肢のボックスにアニメーションをつける
 #pragma endregion
 
@@ -559,13 +560,13 @@ void GameScene::Update(void)
 	// --- キーボード判定 ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB) || inputManager_.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
-		if (state_ == SceneState::RESULT &&
-			resultState_ == ResultState::TAIL ||
-			resultState_ == ResultState::DETAIL)
-		{
-			// 無視して何もしない
-		}
-		else if (state_ != SceneState::PAUSE)
+		//if (state_ == SceneState::RESULT &&
+		//	resultState_ == ResultState::TAIL ||
+		//	resultState_ == ResultState::DETAIL)
+		//{
+		//	// 無視して何もしない
+		//}
+		 if (state_ != SceneState::PAUSE)
 		{
 			stateBeforePause_ = state_;
 
@@ -1301,6 +1302,8 @@ void GameScene::QuestionDraw(void)
 {
 	if (state_ == SceneState::QUESTION)
 	{
+
+
 		// 問いの選択肢の背景枠(左側)	DrawBox(左側面、上、右側面、下) 
 		DrawBox(CHOICE_WHITE_LEFT, CHOICE_WHITE_TOP, 
 			CHOICE_WHITE_RIGHT, CHOICE_WHITE_BOTTOM,
@@ -1319,6 +1322,8 @@ void GameScene::QuestionDraw(void)
 
 		// 選択肢の描画
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
+
+
 
 	}
 }
