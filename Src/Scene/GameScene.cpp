@@ -16,7 +16,6 @@
 
 // 今後やること
 // ポーズシーンの中を充実させる
-// ポーズシーンのボタンをゲームシーンにも導入させる
 // タイトルシーンのボタンや選択肢のボックスにアニメーションをつける
 #pragma endregion
 
@@ -24,8 +23,10 @@
 GameScene::GameScene(void)
 	:inputManager_(InputManager::GetInstance()),
 	questionManager_(QuestionManager::GetInstance()),
+//	pauseScene_(PauseScene::GetInstance()),
 	state_(SceneState::STORY),
 	stateBeforePause_(SceneState::STORY),
+	resultState_(ResultState::LIST),
 	gImage_(-1),
 	bgmHandle_(-1),
 	storyIndex_(0),
@@ -43,7 +44,6 @@ GameScene::GameScene(void)
 	isAfterTalkActive_(false),
 	resultDisplayed_(false),
 	resultType_(0),
-	resultState_(ResultState::LIST),
 	resultSelectIndex_(0),
 	pauseDownPressed_(false),
 	justEnteredList_(true),
@@ -56,7 +56,13 @@ GameScene::GameScene(void)
 	detailIndex_(-1),
 	skipListInput_(false),
 	characterAlpha_(0),
-	characterVisible_(false)
+	characterVisible_(false),
+	pauseX_(0),
+	pauseY_(0),
+	pauseW_(0),
+	pauseH_(0),
+	fontPause_(-1),
+	fontEscape_(-1)
 {
 }
 
@@ -72,23 +78,33 @@ void GameScene::Init(void)
 	// キャラクター画像の読み込み
 	characterImage_ = LoadGraph("Data/Image/Character.png");
 
-	// --- リザルト背景群の読み込み ---
-	resultBgImages_.clear();
-	const int maxBgCount = 10; // 将来的に10枚くらい用意してもOK
-	for (int i = 0; i < maxBgCount; ++i)
-	{
-		std::string path = "Data/Image/Result/Title2" + std::to_string(i) + ".png";
-		int handle = LoadGraph(path.c_str());
-		if (handle != -1)
-		{
-			resultBgImages_.push_back(handle);
-		}
-	}
-	currentBgIndex_ = 0;
-
 	// BGMの読み込みと再生
 	bgmHandle_ = LoadSoundMem("Data/BGM/GameScene.mp3");
 	PlaySoundMem(bgmHandle_, DX_PLAYTYPE_LOOP);
+
+	// ------------------------------------
+	// ポーズボタンの位置とサイズ
+	// ------------------------------------
+	pauseX_ = 0;
+	pauseY_ = 0;
+	pauseW_ = 60;
+	pauseH_ = 60;
+
+	// フォントの作成
+	fontPause_ = CreateFontToHandle(
+		"遊ゴシック",
+		35,
+		9,
+		DX_FONTTYPE_ANTIALIASING
+	);
+	// Escape表示用フォントの作成
+	fontEscape_ = CreateFontToHandle(
+		"源ノ明朝",
+		20,
+		10,
+		DX_FONTTYPE_ANTIALIASING
+	);
+	// ------------------------------------
 
 	// 文章の初期化
 	story_ = {
@@ -500,7 +516,47 @@ void GameScene::Update(void)
 	// メッセージ更新
 	msg_.Update();
 
-	// --- ポーズ ---
+#pragma region ポーズ処理
+	//// --- ポーズメニュー中 ---
+	//if (state_ == SceneState::PAUSE)
+	//{
+	//	 PauseScene::GetInstance().GameUpdate();
+
+	//	if (inputManager_.IsTrgDown(KEY_INPUT_ESCAPE) ||
+	//		inputManager_.IsTrgDown(KEY_INPUT_TAB))
+	//	{
+	//		state_ = stateBeforePause_;
+	//	}
+	//	return;
+	//}
+
+	//// --- 通常時のポーズ遷移 ---
+	//if (inputManager_.IsTrgDown(KEY_INPUT_ESCAPE) ||
+	//	inputManager_.IsTrgDown(KEY_INPUT_TAB))
+	//{
+	//	stateBeforePause_ = state_;
+	//	state_ = SceneState::PAUSE;
+	//	PauseScene::GetInstance().OnEnter();
+	//	return;
+	//}
+
+	// --- マウス判定 ---
+	int mx, my;
+	GetMousePoint(&mx, &my);
+
+	bool onPause =
+		mx >= pauseX_ && mx <= pauseX_ + pauseW_ &&
+		my >= pauseY_ && my <= pauseY_ + pauseH_;
+
+	if (onPause && inputManager_.IsTrgMouseLeft())
+	{
+		stateBeforePause_ = state_;
+		state_ = SceneState::PAUSE;
+		PauseScene::GetInstance().OnEnter();
+		return;
+	}
+
+	// --- キーボード判定 ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB) || inputManager_.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		if (state_ == SceneState::RESULT &&
@@ -524,9 +580,9 @@ void GameScene::Update(void)
 				msg_.SetMessage("");
 			}
 		}
-		
 	}
-
+		
+#pragma endregion
 // =========================
 // デバッグ用：強制リスト画面へ
 // =========================
@@ -1143,15 +1199,6 @@ void GameScene::Draw(void)
 	int bgToDraw = gImage_;
 	DrawGraph(0, 0, bgToDraw, FALSE);
 
-	//// キャラクターの描画
-	//if (
-	//	state_ == SceneState::STORY ||
-	//	resultState_ == ResultState::TAIL ||
-	//	state_ == SceneState::END
-	//	)
-	//{
-	//	DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
-	//}
 	if (characterAlpha_ > 0)
 	{
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, characterAlpha_);
@@ -1170,7 +1217,7 @@ void GameScene::Draw(void)
 	// 吹き出しのメッセージ描画 (RESULT/PAUSE以外、またはRESULTのTAIL状態でのみ描画)
 	if (state_ != SceneState::RESULT || resultState_ == ResultState::TAIL)
 	{
-		msg_.Draw(35, 826);
+		msg_.Draw(10, 826);
 	}
 
 	switch (state_)
@@ -1195,6 +1242,58 @@ void GameScene::Draw(void)
 	default:
 		break;
 	}
+
+	// --- ポーズボタンの描画 ---
+	if (state_ == SceneState::PAUSE)
+	{
+		PauseScene::GetInstance().GameDraw();
+	}
+
+#pragma region ポーズボタンの描画
+	// --- ポーズボタン描画 ---
+	int mx, my;
+	GetMousePoint(&mx, &my);
+
+	bool onPause =
+		mx >= pauseX_ && mx <= pauseX_ + pauseW_ &&
+		my >= pauseY_ && my <= pauseY_ + pauseH_;
+
+	const int thickness = 6;
+
+	// 外枠
+	int frameColor = onPause ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+	DrawBox(
+		pauseX_, pauseY_,
+		pauseX_ + pauseW_, pauseY_ + pauseH_,
+		frameColor, TRUE
+	);
+
+	// 内側
+	DrawBox(
+		pauseX_ + thickness,
+		pauseY_ + thickness,
+		pauseX_ + pauseW_ - thickness,
+		pauseY_ + pauseH_ - thickness,
+		GetColor(0, 0, 0), TRUE
+	);
+
+	// || 表示
+	const char* pauseSymbol = "||";
+	int tw = GetDrawStringWidthToHandle(pauseSymbol, strlen(pauseSymbol), fontPause_);
+	int tx = pauseX_ + (pauseW_ - tw) / 2;
+	int ty = pauseY_ + (pauseH_ - 40) / 2;
+
+	DrawStringToHandle(tx, ty, pauseSymbol, GetColor(255, 255, 255), fontPause_);
+
+	// ESC 表示
+	const char* escText = "ESC";
+	int escTw = GetDrawStringWidthToHandle(escText, strlen(escText), fontEscape_);
+	int escTx = pauseX_ + pauseW_ / 2 - escTw / 2;
+	int escTy = pauseY_ + pauseH_ + 5;
+
+	DrawStringToHandle(escTx, escTy, escText, GetColor(200, 200, 200), fontEscape_);
+
+#pragma endregion
 
 }
 
@@ -1258,7 +1357,7 @@ void GameScene::AfterTalkDraw(void)
 			for (int v : questionData.choiceCounts) total += v;
 
 			// 選択肢と割合の表示（manager 側の counts を使う）
-			int y = 440; // 縦の開始位置
+			int y = 490; // 縦の開始位置
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				const auto& cVisual = question.choices[i];
 
@@ -1280,7 +1379,7 @@ void GameScene::AfterTalkDraw(void)
 				SetFontSize(50);
 				DrawFormatString(
 					25,		// X座標
-					80,		// Y座標
+					130,		// Y座標
 					GetColor(255, 255, 255),
 					"[問%d]",
 					questionNo
@@ -1289,7 +1388,7 @@ void GameScene::AfterTalkDraw(void)
 				// 問題文
 				DrawString(
 					25,			// X座標
-					140,			//	Y座標
+					190,			//	Y座標
 					question.text.c_str(),
 					GetColor(255, 255, 255)
 				);
@@ -1332,7 +1431,7 @@ void GameScene::AfterTalkDraw(void)
 
 					DrawString(
 						25,
-						290,
+						340,
 						"あなたの選択：",
 						GetColor(255, 255, 255)
 					);
@@ -1342,7 +1441,7 @@ void GameScene::AfterTalkDraw(void)
 
 					DrawString(
 						25 + offsetX,
-						290,
+						340,
 						r.selectedChoiceText.c_str(),
 						GetColor(255, 0, 0)
 					);
@@ -1402,9 +1501,9 @@ void GameScene::ListDraw(void)
 		GetColor(0, 0, 0), TRUE);
 
 	SetFontSize(50);
-	DrawFormatString(35, 820, GetColor(255, 255, 255),
+	DrawFormatString(15, 820, GetColor(255, 255, 255),
 		"結果はこちら。");
-	DrawFormatString(35, 870, GetColor(255, 255, 255),
+	DrawFormatString(15, 870, GetColor(255, 255, 255),
 		"WASDで操作 or マウス操作、Spaceキー or クリックで詳細を見れます。");
 
 	// マウス用矩形リストをクリア
@@ -1413,8 +1512,8 @@ void GameScene::ListDraw(void)
 	// 回答リストの表示（横1列 × 2段）
 	const int itemPerRow = 5;     // 1段に5個
 	const int itemWidth = 300;    // 横幅の間隔（各アイテム間の距離）
-	const int topRowY = 100;      // 上段のY座標
-	const int bottomRowY = 300;   // 下段のY座標
+	const int topRowY = 150;      // 上段のY座標
+	const int bottomRowY = 350;   // 下段のY座標
 	const int base2X = 270;        // 左端の開始位置
 
 	SetFontSize(120);
@@ -1455,7 +1554,7 @@ void GameScene::ListDraw(void)
 	// 次へ進む（この部分は一切変更しない）
 	SetFontSize(140);
 	std::string nextText = "次へ進む";
-	int nextY = 560;
+	int nextY = 610;
 	int nextX = 690;
 	int nextWidth = GetDrawStringWidth(nextText.c_str(), (int)nextText.size());
 	int nextColor = (resultSelectIndex_ == (int)results_.size()) ?
@@ -1517,14 +1616,14 @@ void GameScene::DetailDraw(void)
 	// 問番号・問題文 
 	SetFontSize(50);
 	DrawFormatString(
-		35, 75,
+		25, 125,
 		GetColor(255, 255, 255),
 		"[問%d]",
 		resultSelectIndex_ + 1
 	);
 	// 問題文 
 	DrawString(
-		35, 130,
+		25, 180,
 		question.text.c_str(),
 		GetColor(255, 255, 255)
 	);
@@ -1532,8 +1631,8 @@ void GameScene::DetailDraw(void)
 	// あなたの選択
 	SetFontSize(45);
 	DrawFormatString(
-		35,
-		300,
+		25,
+		350,
 		GetColor(255, 255, 255),
 		"あなたの選択：",
 		r.selectedChoiceText.c_str()
@@ -1542,14 +1641,14 @@ void GameScene::DetailDraw(void)
 	SetFontSize(45);
 	DrawFormatString(
 		400,
-		300,
+		350,
 		GetColor(255, 0, 0),
 		"%s",
 		r.selectedChoiceText.c_str()
 	);
 
 	// ====== 選択肢＋棒グラフ ======
-	int y = 440;
+	int y = 490;
 
 	for (size_t i = 0; i < question.choices.size(); i++)
 	{
@@ -1598,7 +1697,7 @@ void GameScene::DetailDraw(void)
 	// ====== 戻る案内 ======
 	SetFontSize(50);
 	DrawString(
-		35, 820,
+		10, 820,
 		"Space or クリックで一覧に戻る。",
 		GetColor(255, 255, 255)
 	);
@@ -1607,7 +1706,7 @@ void GameScene::DetailDraw(void)
 void GameScene::CharacterDraw(void)
 {
 	if (characterImage_ == -1) return;
-
+	 
 	DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
 }
 
@@ -1709,7 +1808,6 @@ void GameScene::Release(void)
 		characterImage_ = -1;
 	}
 
-
 	// BGMを停止して削除
 	if (bgmHandle_ != -1) {
 		StopSoundMem(bgmHandle_);
@@ -1726,6 +1824,19 @@ void GameScene::Release(void)
 			}
 		}
 	}
+
+	// フォントの解放
+	if (fontPause_ != -1)
+	{
+		DeleteFontToHandle(fontPause_);
+		fontPause_ = -1;
+	}
+	if (fontEscape_ != -1)
+	{
+		DeleteFontToHandle(fontEscape_);
+		fontEscape_ = -1;
+	}
+
 }
 
 

@@ -263,9 +263,9 @@ void PauseScene::GameDraw(void)
 
 	SetFontSize(100);
 	// メニュータイトル
-	DrawString(700, 300, "ポーズ", GetColor(255, 255, 0));
+	DrawString(810, 300, "ポーズ", GetColor(255, 255, 0));
 	const std::vector<std::string> PAUSE_MENU = { "ゲームに戻る", "タイトルに戻る", "ゲーム終了" };
-	int startX = 710;
+	int startX = 780;
 	int startY = 500;
 	int spacing = 100;
 	int choiceHeight = 60; // 文字の高さ+余裕
@@ -317,9 +317,9 @@ void PauseScene::TitleDraw(void)
 
 	SetFontSize(100);
 	// メニュータイトル
-	DrawString(700, 300, "ポーズ", GetColor(255, 255, 0));
+	DrawString(810, 300, "ポーズ", GetColor(255, 255, 0));
 	const std::vector<std::string> PAUSE_MENU = { "タイトルに戻る", "ゲーム終了" };
-	int startX = 710;
+	int startX = 780;
 	int startY = 500;
 	int spacing = 100;
 	int choiceHeight = 60; // 文字の高さ+余裕
@@ -371,9 +371,9 @@ void PauseScene::ClearDraw(void)
 
 	SetFontSize(100);
 	// メニュータイトル
-	DrawString(700, 300, "ポーズ", GetColor(255, 255, 0));
+	DrawString(810, 300, "ポーズ", GetColor(255, 255, 0));
 	const std::vector<std::string> PAUSE_MENU = { "タイトルに戻る", "ゲーム終了" };
-	int startX = 710;
+	int startX = 780;
 	int startY = 500;
 	int spacing = 100;
 	int choiceHeight = 60; // 文字の高さ+余裕

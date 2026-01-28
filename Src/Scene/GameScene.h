@@ -4,7 +4,6 @@
 #include "../Object/Message.h"
 #include "../Manager/InputManager.h"
 #include "../Manager/QuestionManager.h"
-#include "../Scene/PauseScene.h"
 #include "SceneBase.h"
 
 enum class SceneState
@@ -69,15 +68,15 @@ public:
 	// 吹き出し
 	// ========================
 	// 白枠吹き出し
-	static const int WHITE_LEFT = 15;				// 左端
-	static const int WHITE_TOP = 800;				// 上端
-	static const int WHITE_RIGHT = 1900;		// 右端
-	static const int WHITE_BOTTOM = 1065;		// 下端
+	static const int WHITE_LEFT = 0;				// 左端
+	static const int WHITE_TOP = 810;				// 上端
+	static const int WHITE_RIGHT = 1920;		// 右端
+	static const int WHITE_BOTTOM = 1080;		// 下端
 	// 黒枠吹き出し
-	static const int BLACK_LEFT = 20;				// 左端 
-	static const int BLACK_TOP = 805;				// 上端
-	static const int BLACK_RIGHT = 1895;			// 右端
-	static const int BLACK_BOTTOM = 1060;		// 下端
+	static const int BLACK_LEFT = 5;				// 左端 
+	static const int BLACK_TOP = 815;				// 上端
+	static const int BLACK_RIGHT = 1915;			// 右端
+	static const int BLACK_BOTTOM = 1075;		// 下端
 	// ==========================
 
 	// =======================
@@ -85,30 +84,25 @@ public:
 	// =======================
 	// 左側の選択肢開始位置(白枠)
 	static const int CHOICE_WHITE_LEFT = 205;			// 左端
-	static const int CHOICE_WHITE_TOP = 90;				// 上端
+	static const int CHOICE_WHITE_TOP = 100;				// 上端
 	static const int CHOICE_WHITE_RIGHT = 820;			// 右端
-	static const int CHOICE_WHITE_BOTTOM = 720;		// 下端
+	static const int CHOICE_WHITE_BOTTOM = 730;		// 下端
 	// 左側の選択肢開始位置(黒枠)
 	static const int CHOICE_BLACK_LEFT = 210;			// 左端
-	static const int CHOICE_BLACK_TOP = 95;				// 上端
+	static const int CHOICE_BLACK_TOP = 105;				// 上端
 	static const int CHOICE_BLACK_RIGHT = 815;			// 右端
-	static const int CHOICE_BLACK_BOTTOM = 715;		// 下端
+	static const int CHOICE_BLACK_BOTTOM = 725;		// 下端
 	// 右側の選択肢開始位置(白枠)
 	static const int CHOICE2_WHITE_LEFT = 1100;		// 左端
-	static const int CHOICE2_WHITE_TOP = 90;				// 上端
+	static const int CHOICE2_WHITE_TOP = 100;				// 上端
 	static const int CHOICE2_WHITE_RIGHT = 1715;		// 右端
-	static const int CHOICE2_WHITE_BOTTOM = 720;	// 下端
+	static const int CHOICE2_WHITE_BOTTOM = 730;	// 下端
 	// 右側の選択肢開始位置(黒枠)
 	static const int CHOICE2_BLACK_LEFT = 1105;		// 左端
-	static const int CHOICE2_BLACK_TOP = 95;				// 上端
+	static const int CHOICE2_BLACK_TOP = 105;				// 上端
 	static const int CHOICE2_BLACK_RIGHT = 1710;		// 右端
-	static const int CHOICE2_BLACK_BOTTOM = 715;	// 下端
+	static const int CHOICE2_BLACK_BOTTOM = 725;	// 下端
 
-	// 選択肢のマウス当たり判定
-	static const int HIT_LEFT = 100;					// 左端
-	static const int HIT_TOP = 350;					// 上端
-	static const int HIT_RIGHT = 100;				// 右端
-	static const int HIT_BOTTOM = 50;			// 下端
 	// =======================
 
 	// =======================
@@ -116,14 +110,14 @@ public:
 	// =======================
 	// 白枠
 	static const int RESULT_WHITE_LEFT = 15;				// 左端
-	static const int RESULT_WHITE_TOP = 30;				// 上端
+	static const int RESULT_WHITE_TOP = 90;				// 上端
 	static const int RESULT_WHITE_RIGHT = 1900;		// 右端
-	static const int RESULT_WHITE_BOTTOM = 720;		// 下端
+	static const int RESULT_WHITE_BOTTOM = 780;		// 下端
 	// 黒枠
 	static const int RESULT_BLACK_LEFT = 20;				// 左端
-	static const int RESULT_BLACK_TOP = 35;				// 上端
+	static const int RESULT_BLACK_TOP = 95;				// 上端
 	static const int RESULT_BLACK_RIGHT = 1895;		// 右端
-	static const int RESULT_BLACK_BOTTOM = 715;		// 下端
+	static const int RESULT_BLACK_BOTTOM = 775;		// 下端
 	// =======================
 
 	// =======================
@@ -131,21 +125,21 @@ public:
 	// =======================
 	// 白枠
 	static const int LIST_WHITE_LEFT = 15;					// 左端
-	static const int LIST_WHITE_TOP = 30;					// 上端
+	static const int LIST_WHITE_TOP = 90;					// 上端
 	static const int LIST_WHITE_RIGHT = 1900;			// 右端
-	static const int LIST_WHITE_BOTTOM = 720;			// 下端
+	static const int LIST_WHITE_BOTTOM = 780;			// 下端
 	// 黒枠
 	static const int LIST_BLACK_LEFT = 20;					// 左端
-	static const int LIST_BLACK_TOP = 35;					// 上端
+	static const int LIST_BLACK_TOP = 95;					// 上端
 	static const int LIST_BLACK_RIGHT = 1895;			// 右端
-	static const int LIST_BLACK_BOTTOM = 715;			// 下端
+	static const int LIST_BLACK_BOTTOM = 775;			// 下端
 	// =======================
 	// キャラクター画像描画位置
 	// =======================
 	// キャラクター画像のX座標
 	static const int CHARACTER_IMAGE_X = 340;
 	// キャラクター画像のY座標
-	static const int CHARACTER_IMAGE_Y = 150;
+	static const int CHARACTER_IMAGE_Y = 160;
 
 #pragma region 前方宣言
 	// コンストラクタ
@@ -224,6 +218,8 @@ private:
 	InputManager& inputManager_;
 	// 質問管理オブジェクト
 	QuestionManager& questionManager_;
+	// ポーズシーンオブジェクト
+	//PauseScene& pauseScene_;
 
 	// 文章リスト
 	std::vector<std::string> story_;
@@ -325,9 +321,9 @@ private:
 	// -------------------------------
 	// ポーズボタン
 	// --------------------------------
-	int pauseX_ = 1800; // X座標
-	int pauseY_ = 20;   // Y座標
-	int pauseW_ = 60;   // 幅
-	int pauseH_ = 60;   // 高さ
-
+	int pauseX_; // X座標
+	int pauseY_;   // Y座標
+	int pauseW_;   // 幅
+	int pauseH_;   // 高さ
+	// -------------------------------
 };

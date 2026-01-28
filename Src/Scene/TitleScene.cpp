@@ -53,7 +53,7 @@ void TitleScene::Init(void)
 	// ESC用フォント作成
 	fontEscape_ = CreateFontToHandle(
 		"源ノ明朝",       // フォント名
-		30,				  // サイズ
+		20,				  // サイズ
 		10,				  // 太さ
 		DX_FONTTYPE_ANTIALIASING // アンチエイリアス
 	);
@@ -73,8 +73,8 @@ void TitleScene::Init(void)
 	btnY_ = Application::SCREEN_SIZE_Y * 2 / 3;
 
 	// ポーズメニューボタン
-	pauseX_ = 20;
-	pauseY_ = 20;
+	pauseX_ = 0;
+	pauseY_ = 0;
 	pauseW_ = 60;
 	pauseH_ = 60;
 }
