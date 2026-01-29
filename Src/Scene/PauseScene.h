@@ -53,5 +53,9 @@ private:
 	// ポーズ前に戻るフラグ
 	bool isResume_;
 
+	// フォントハンドル
+	int fontHandle_;
+	int PauseHandle_;
+	// 
 	int ignoreInput_;
 };

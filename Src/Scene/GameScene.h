@@ -275,6 +275,8 @@ private:
 
 	// 結果の表示のタイマー
 	int resultTimer_;
+	// アニメーション用タイマー
+	int animTimer_;
 
 	// 左右キーの押下状態
 	bool leftPressed_;
@@ -287,7 +289,8 @@ private:
 	bool prevMouseLeft_;
 	// マウス左ボタンの押下状態
 	bool isLButtonDown_;
-
+	// 復帰直後かどうか
+	bool isResumed_;
 	// 一時中断中の選択肢
 	int pauseSelected_;
 

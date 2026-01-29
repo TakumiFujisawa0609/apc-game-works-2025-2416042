@@ -32,7 +32,7 @@ void ClearScene::Update(void)
 	InputManager& ins = InputManager::GetInstance();
 
 	// Tabキーでポーズメニュー表示
-	if (ins.IsTrgDown(KEY_INPUT_TAB) || ins.IsTrgDown(KEY_INPUT_ESCAPE))
+	if (ins.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		state_ = ClearState::PAUSE; // ← 新しく追加した状態
 		return;

@@ -149,8 +149,7 @@ void TitleScene::Update(void)
 	{
 		pauseScene_.TitleUpdate();
 
-		if (ins.IsTrgDown(KEY_INPUT_TAB) ||
-			ins.IsTrgDown(KEY_INPUT_ESCAPE))
+		if (ins.IsTrgDown(KEY_INPUT_ESCAPE))
 		{
 			state_ = TitleState::NORMAL;
 		}
@@ -158,8 +157,7 @@ void TitleScene::Update(void)
 	}
 
 	// ===== 通常時 =====
-	if (ins.IsTrgDown(KEY_INPUT_ESCAPE) ||
-		ins.IsTrgDown(KEY_INPUT_TAB))
+	if (ins.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
 		state_ = TitleState::PAUSE;
 		pauseScene_.OnEnter();
@@ -377,13 +375,13 @@ void TitleScene::Draw(void)
 
 	// --- 色 ---
 	int outerColor = onButton
-		? GetColor(220, 60, 60)     // 赤（外枠）
+		? GetColor(255, 255, 0)     // 赤（外枠）
 		: GetColor(210, 195, 160);  // 通常
 
 	int innerColor = GetColor(30, 15, 10); // 黒は固定
 
 	int textColor = onButton
-		? GetColor(255, 200, 200)
+		? GetColor(255, 255, 200)
 		: GetColor(235, 225, 200);
 
 	// --- 枠描画（順番が命） ---
@@ -421,8 +419,6 @@ void TitleScene::Draw(void)
 
 #pragma endregion
 
-
-
 #pragma region ポーズボタンの描画
 
 		// マウス判定（mx, myは上のボタン描画で取得済みのものを使用）
@@ -433,7 +429,7 @@ void TitleScene::Draw(void)
 		const int thickness = 6;
 	
 		// 1.外側の枠
-		int frameColor = onPause ? GetColor(220, 60, 60) : GetColor(255, 255, 255);
+		int frameColor = onPause ? GetColor(255, 255, 0) : GetColor(235, 225, 200);
 		DrawBox(pauseX_, pauseY_, pauseX_ + pauseW_, pauseY_ + pauseH_, frameColor, TRUE);
 	
 		// 2. 内側の黒
@@ -459,7 +455,7 @@ void TitleScene::Draw(void)
 		int escTx = pauseX_ + (pauseW_ / 2) - (escTw / 2); // ボタンの中央に合わせる
 		int escTy = pauseY_ + pauseH_ + 5;
 	
-		DrawStringToHandle(tx, ty, pauseSymbol, GetColor(255, 255, 255), fontPause_);
+		DrawStringToHandle(tx, ty, pauseSymbol, GetColor(255, 255, 200), fontPause_);
 		DrawStringToHandle(escTx, escTy, escText, GetColor(200, 200, 200), fontEscape_);
 	#pragma endregion
 		if (state_ == TitleState::PAUSE)

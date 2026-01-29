@@ -16,15 +16,12 @@
 
 // 今後やること
 // ポーズシーンの中を充実させる
-// リザルトシーンからポーズシーンに遷移して戻った際にクリックの判定を残さないようにする方法
-// タイトルシーンのボタンや選択肢のボックスにアニメーションをつける
 #pragma endregion
 
 
 GameScene::GameScene(void)
 	:inputManager_(InputManager::GetInstance()),
 	questionManager_(QuestionManager::GetInstance()),
-//	pauseScene_(PauseScene::GetInstance()),
 	state_(SceneState::STORY),
 	stateBeforePause_(SceneState::STORY),
 	resultState_(ResultState::LIST),
@@ -63,7 +60,9 @@ GameScene::GameScene(void)
 	pauseW_(0),
 	pauseH_(0),
 	fontPause_(-1),
-	fontEscape_(-1)
+	fontEscape_(-1),
+	animTimer_(0),
+	isResumed_(false)
 {
 }
 
@@ -109,18 +108,24 @@ void GameScene::Init(void)
 
 	// 文章の初期化
 	story_ = {
-		"やぁ、目が覚めた？",
-		/*"ここは精神と物質の狭間にある場所。\n"
-		"君の心象世界だと言えばわかりやすいかな。",
-		"実は君にお願いがあって、僕の実験を手伝ってもらいたいんだ。",
-		"あ、難しく考えなくて大丈夫だよ。\n"
-		"ただ、僕が出題する問いに答えてもらうだけだから。",
-		"ちょっと複雑な問いはあるかもだけど、君なら大丈夫。",
-		"それじゃあ、始める前に少し注意点を説明するね。",
-		"まず、君が答えた問いは全て記録される。\n"
-		"だから、君の価値観に沿って正直に答えてね。",
-		"それと、君が答えた問いは後で確認できるから楽しみにしててね。",
-		"それじゃあ、今から実験を始めるね。",*/
+		"やぁ、目が覚めたみたいだな。",
+		"ここは精神と物質の狭間にある場所。\n"
+		"人の心象世界だと言えばわかりやすいだろう。",
+		"君は今、現実世界で色々と悩みを抱えているようだな。",
+		"そんな君にお願いがあるんだが、ここを訪れてくる人たちはみんな俺の実験に\n"
+		"協力してもらっている。だから君にもこの実験に協力してもらいたい。",
+		"ただ、残念ながらこの実験に参加しない限り、君はここから出られない。",
+		"だから、君に拒否権はないんだ。",
+		"難しく考える必要はない。\n"
+		"ただ、俺が出題する問いに答えるだけだ。",
+		"ちょっと複雑な問いはあるだろうが、君なら大丈夫だろう。",
+		"では、始める前にこの実験に参加するにあたって、注意点を説明する。",
+		"自分の価値観に沿って嘘偽りなく答えること。",
+		"問いによっては選択肢の両方とも自分の価値観に合わない場合があるだろう。",
+		"その時は、より自分の価値観に近い方を選んでくれればいい。",
+		"また、回答は一度選択すると変更できないため、慎重に選んでほしい。",
+		"以上が注意点だ。",
+		"では、今から実験を始めよう。",
 	};
 	// 問いの内容
 	questions_ =
@@ -227,7 +232,7 @@ void GameScene::Init(void)
     // region 8 - 探す
     {
         "「探す時間」が無限に与えられた結果、何も見つからないまま人生の終わりに\n"
-        "到達した場合、その探求は有意義であったと言えるかな？",
+        "到達した場合、その探求は有意義であったと言えるのか？",
         {
             {"言える",   12, 377, 600, 0, LoadGraph("Data/Image/Choice/言える.png")},
             {"言えない", 12, 1230, 600, 0, LoadGraph("Data/Image/Choice/言えない.png")}
@@ -268,8 +273,7 @@ void GameScene::Init(void)
     // region 10 - 受け入れる
     {
         "おとなしく運命を受け入れるということは、君は自分の人生に一定の満足感を\n"
-		"感じているから？\n"
-		"それとも、抗うことが無意味だと悟ったから？",
+		"感じているから？それとも、抗うことが無意味だと悟ったから？",
         {
             {"満足感",   -1, 377, 600, 0, LoadGraph("Data/Image/Choice/満足感.png")},
             {"無意味", -1, 1270, 600, 0, LoadGraph("Data/Image/Choice/無意味.png")}
@@ -282,154 +286,154 @@ void GameScene::Init(void)
 	afterTalks_ = {
 #pragma region 1
 		// 新しい経験を選んだ場合
-	{{"なるほど、君は変化を恐れないチャレンジャーなんだね。",
-		"現状維持は衰退だと考える、その強い意志は尊敬できるよ！",
-		"なら、その新しい経験が、「後悔」を伴うと確実な場合でも、\n"
-		"君は立ち止まらないのかな？"},0, 0},
+	{{"なるほど、君は変化を恐れないチャレンジャーか。",
+		"現状維持は衰退だと考える、その強い意志を持っているか。",
+		"なら、その新しい経験が、確実に「後悔」を伴う場合でも、\n"
+		"君は立ち止まらないのか？"},0, 0},
 		// 安心感を選んだ場合
-	{{"なるほど、君は安定こそが最上の幸福だと考えているんだね。",
-		"地に足をつけた堅実な生き方だ。多くの人が望む道だろうね。",
-		"じゃあ、その安心感が、「全ての可能性を奪う檻」のようなものだとしたら、\n"
+	{{"なるほど、君は安定こそが最上の幸福だと考えているんだな。",
+		"地に足をつけた堅実な生き方か。多くの人が望む道だろう。",
+		"であれば、その安心感が、「全ての可能性を奪う檻」のようなものだとしたら、\n"
 		"どうだろう？"},0, 1},
 
 #pragma region 2
 		// 選ぶを選んだ場合
-	{{"君はこの選択を選ぶんだね。\n"
-		"君は後悔を恐れるよりも、停滞を何よりも恐れるということか...",}, 1, 0},
+	{{"君は後悔を恐れるよりも、停滞を何よりも恐れるということか...",}, 1, 0},
 		// 選ばないを選んだ場合
-	{{"そうなんだね。\n"
-		"君は確実な後悔を予期してまで飛び込むのは賢明ではないと判断したんだね。",
-		"慎重さもまた、人生を豊かにする要素だね。"}, 1, 1},
+	{{"君は確実な後悔を予期してまで飛び込むのは賢明ではないと判断したんだな。",
+		"慎重さもまた、人生を豊かにする要素ということか。"}, 1, 1},
 		// 呼べるを選んだ場合
 	{{"なるほど。\n"
-		"「自由」よりも「平穏」を選んだんだね。",
+		"「自由」よりも「平穏」を選んだか。",
 		"君は全ての可能性を閉ざしても、不安のない日々こそが\n"
-		"真の幸福だと思ってるんだね！"}, 2, 0},
+		"真の幸福だと思ってるんだな。"}, 2, 0},
 		// 呼べないを選んだ場合
-	{{"そうなんだ。\n"
-		"君は安心感のためであっても、可能性が閉ざされるのは耐えられないんだね。",
+	{{"なるほど。\n"
+		"君は安心感のためであっても、可能性が閉ざされるのは耐えられないんだな。",
 		"人間の探求心は、決して満たされないということか..."}, 2, 1},
 #pragma region 3
 		// 押せるを選んだ場合
-		{{"なるほど。君はボタンを押すんだね。",
-			"つまり、君は「現在の幸福」も「過去の失敗の代償」だと\n"
-			"捉えてるってことなんだね。",
+		{{"なるほど。\n"
+			"君はボタンを押すのか。",
+			"つまり、君は「現在の幸福」も「過去の失敗の代償」だと捉えてるんだな。",
 			"なら、もし新しくなった自分に大切な誰かができたとき、その人たちに向けて\n"
-			"「無かったことにした自分」を語ることができるのかな？"},3, 0},
+			"「無かったことにした自分」を語ることができるのか？"},3, 0},
 		// 押せないを選んだ場合
-	{{"君はそのボタンを押さないんだね。",
+	{{"君はそのボタンを押さないのか。",
 		"つまり君は「今の自分」という存在を、過去の全ての「失敗や痛み」を含めて\n"
 		"「今の幸福な自分」だと見なしてるということか。",
 		"なら、もし君の大切な誰かが、君の過去の失敗によって苦しみ続けていたら\n"
-		"それでも自分を優先できるのかな？"},3, 1},
+		"それでも自分を優先できるのか？"},3, 1},
 
 	#pragma region 4
 		// 語れるを選んだ場合 
 	{{"なるほど。",
-		"君は、失ったものがあっても言葉にできると判断したんだね。",
-		"過去を語れると思えることも、一つの強さだね。"}, 4, 0},
+		"君は、失ったものがあっても言葉にできると判断したんだな。",
+		"過去を語れると思えることも、一つの強さだな。"}, 4, 0},
 		//語れないを選んだ場合
 	{{"なるほど。",
-		"君は、語れない記憶を抱えたまま進む道を選んだんだね。",
-		"無理に言葉にしない選択も、君なりの誠実さだね。"}, 4, 1},
+		"君は、語れない記憶を抱えたまま進む道を選んだのか。",
+		"無理に言葉にしない選択も、君なりの誠実さだな。"}, 4, 1},
 		// できるを選んだ場合
-	{{"そうなんだね。",
-		"君は、他人の痛みがあっても自分の幸福うぃ選ぶと決めたんだね。",
-		"それもまた、生き方の一つだね。"}, 5, 0},
+	{{"なるほど。",
+		"君は、他人の痛みがあっても自分の幸福を選ぶと決めたんだな。",
+		"それもまた、一つの生き方だな。"}, 5, 0},
 		// できないを選んだ場合
-	{{"そうなんだね。",
-		"君は、誰かの痛みを見過ごせないと感じたんだね。",
-		"その感覚を大切にする生き方もあるね。"}, 5, 1},
+	{{"なるほど。",
+		"君は、誰かの痛みを見過ごせないと感じたのか。",
+		"その感覚を大切にする生き方もあるだろう。"}, 5, 1},
 
 #pragma region 5
 		// 完璧な計画を選んだ場合
-	{{"準備こそが成功の鍵。君は石橋を叩いて渡るタイプなんだね。",
+	{{"準備こそが成功の鍵か。\n"
+		"君は石橋を叩いて渡るタイプなんだな。",
 		"でも、その完璧な計画の「完成を待つ」ことで、実行のタイミングを永遠に\n"
 		"失った場合、君はどう思う？"},6, 0},
 		// 即座の行動を選んだ場合
-	{{"スピードを重視する、決断力のあるタイプなんだね！",
-		"でも、「修正不可能な致命的なミス」が1分以内に起こる確実な場合、\n"
+	{{"スピードを重視するか。決断力のあるタイプなんだな。",
+		"でも、計画をすれば起きないが、\n"
+		"「修正不可能な致命的なミス」が1分以内に起こる確実な場合、\n"
 		"それでも君は即座に行動を優先する？"},6, 1},
 
 	#pragma region 6
 		// 失敗と見なすを選んだ場合
-	{{"君は失敗と見なすんだね。",
+	{{"君は失敗と見なすのか。",
 		"実行されない計画は、存在しないに等しい。君の厳格な判断だ。"}, 7, 0},
 		// 失敗と見なさないを選んだ場合
-	{{"君は失敗と見なさないんだね。",
-		"つまり、計画自体は完璧だけど、失敗した原因は実行のタイミングだけ、\n"
-		"ということだね。"}, 7, 1},
+	{{"君は失敗と見なさないのか。",
+		"つまり、計画自体は完璧だけど、失敗した原因は実行のタイミングだけが、\n"
+		"原因ということか。"}, 7, 1},
 		// 優先するを選んだ場合
-	{{"君にとっての「成果」は、自分自身の破滅よりも価値があるんだね。",
+	{{"君にとっての「成果」は、自分自身の破滅よりも価値があるんだな。",
 		"1分後に終わると知っていて、それでも君の歩みは引き返さないと\n"
-		"決めたんだね。"}, 8, 0},
+		"決めたんだな。"}, 8, 0},
 		// 優先しないを選んだ場合
-	{{"なるほどね。",
+	{{"なるほど。",
 		"君は、不確実な成果を得ることよりも、致命的な失敗を避ける道を\n"
-		"選んだんだね。",}, 8, 1},
+		"選択するのか。",}, 8, 1},
 
 #pragma region 7
 		// 内部からの探求を選んだ場合
-	{{"夢がない時こそ、立ち止まって自分と向き合う、それが君の流儀なんだね。",
+	{{"夢がない時こそ、立ち止まって自分と向き合う、それが君の流儀なのか。",
 		"なら、探す時間が無限に与えられ、何も見つからないまま「人生の終わり」が\n"
 		"来たら、その探求は有意義だったと言えるかな？"},9, 0},
 		// 外部からの強制に素直に従うを選んだ場合
-	{{"君は決断を他者に委ねる、もしくは、決断をする意思がないと言うことかな？",
+	{{"君は決断を他者に委ねる、もしくは、決断をする意思がないと言うことか？",
 		"確かに、決断をするには悩みや葛藤が発生するから煩わしい気持ちは\n"
 		"理解できる。",
 		"なら、君は今後、他者からの意見に素直に従い続け、いつしか君が\n"
-		"「何者でもない空っぽな存在」になったとき、君は後悔しないのかな？"},9, 1},
+		"「何者でもない空っぽな存在」になったとき、君は後悔しないのか？"},9, 1},
 
 #pragma region 8
-		// 内部からの探求を選んだ場合
-	{{"君は有意義であると言えるんだね。",
-		"結果ではなく、探求のプロセスそのものに君は価値を見出したってことかな。"}, 10, 0},
-		// 外部からの強制に素直に従うを選んだ場合
-	{{"そっか。君は有意義ではないという意見なんだね。",
-		"やはり、目標を持たない探求は、時間という資源の浪費ということだよね。"}, 10, 1},
+		// いえるを選んだ場合
+	{{"君は有意義であると言えるんだな。",
+		"結果ではなく、探求のプロセスそのものに君は価値を見出したってことか。"}, 10, 0},
+		// 言えないを選んだ場合
+	{{"そっか。君は有意義ではないという意見なんだな。",
+		"やはり、目標を持たない探求は、時間という資源の浪費だと考えてるのか。"}, 10, 1},
 		// 後悔はないを選んだ場合
 	{{"なるほど...",
 		"君は全てを強制させられ、空っぽの存在になっても、後悔はないということか。",
 		"それぐらい強制された世の中で生きてきたのか、もしくは、周りの環境が\n",
 		"君という人間を捻じ曲げられていたと考えるべきなのかな..."}, 11, 0},
 		// 少し怖いを選んだ場合
-	{{"そっか。素直に従う生き方をしても、君にはまだ恐怖心は\n"
-		"存在しているんだね。",
-		"その気持ちは残しておくべきだよ。他者からの言いなりなんてのは、\n"
+	{{"そうか...なるほど。\n"
+		"素直に従う生き方をしても、君の中にはまだ恐怖心は存在しているのか。",
+		"その気持ちは残しておくべきだ。他者からの言いなりなんてのは、\n"
 		"自分という人間を見てるのではなく、使い捨ての道具や奴隷など、\n"
-		"蔑んだ目で君を見ている証拠だからね。",
+		"蔑んだ目で君を見ている証拠だからな。",
 		"まだ、その恐怖心が残っているのであれば、自分なりの夢や道を探す\n"
-		"その一歩を歩みだしてみようね！！"}, 11, 1},
+		"その一歩を歩みだしてみるべきだ。"}, 11, 1},
 #pragma region 9
 		// 抗うを選んだ場合
-	{{"運命に屈しない、強い意志だね。\n"
-	    "生きることに、徹底的に執着するか...",
-		"しかし、その「抵抗」が、皮肉にも運命の日より「早く」死を招いた行動の\n"
-		 "場合、その行動は無謀であったと言えるだろうか？"},12, 0},
+	{{"運命に屈しない、強い意志か。\n"
+	    "生きることに、徹底的に執着するだな。.",
+		"しかし、その「抵抗」が、皮肉にも運命の日より「早く」死を招いた行動の場合、\n"
+		"その行動は無謀であったと言えるだろうか？"},12, 0},
 		// 受け入れるを選んだ場合
-	{{"受け入れることの潔さ、もしくは諦めたってことかな。",
+	{{"受け入れることの潔さ、もしくは諦めたってことか。",
 		"なら、受け入れて残された時間を「最大限に充実させる」努力は、\n"
 		"運命への「抵抗」と呼べると思う？"},12, 1},
 
 #pragma region 10
 		// 言えるを選んだ場合
 	{{"なるほど。",
-		"運命に抗う行為が結果的に運命を予定より早めてしまったけど、\n"
-		"君はそれでも正しい行動だったという結論なんだね。"}, 13, 0},
+		"運命に抗う行為が結果的に運命を予定より早めてしまったが、\n"
+		"君はそれでも正しい行動だったという結論なんだな。"}, 13, 0},
 		// 言えないを選んだ場合
-	{{"言えないを選択したんだね。",
-		"君は、結果的に予定より早まった以上、その行動を正しいとは\n"
-		"言い切れないと感じだんだね。",
+	{{"言えないを選択したか。",
+		"君は、結果的に予定より早まった以上、その行動が正しかったとは\n"
+		"言い切れないと感じだんだな。",
 		"つまり、意図と結果を切り分けて考えた判断をしたってことか。"}, 13, 1},
 		// 満足感を選んだ場合
 	{{"なるほど。",
-		"君の人生はとても充実していて、楽しい日々を過ごしていたんだね。",
-		"後悔のない素晴らしい人生を歩んでいた証拠だよ"}, 14, 0},
+		"君の人生はとても充実していて、楽しい日々を過ごしていたんだな。",
+		"後悔のない素晴らしい人生を歩んでいた証拠だな。"}, 14, 0},
 		// 無意味を選んだ場合
-	{{"そっか...",
-		"亡くなる運命には抗っても結果は変わらないと思ってるんだね。",
-		"確かに抗ってもそれが絶対に報われる保障もないだろうから、\n"
-		"君の選択も間違っていないよ。"}, 14, 1},
+	{{"そうか...",
+		"亡くなる運命には抗っても結果は変わらないと思ってるんだな。",
+		"確かに抗ってもそれが絶対に報われる保障もないから、\n"
+		"君の選択も間違っていない。"}, 14, 1},
 	};
 	//"おとなしく運命を受け入れるということは、君は自分の人生に一定の満足感を\n"
 	//	"感じているから？\n"
@@ -439,14 +443,13 @@ void GameScene::Init(void)
 	//	{"無意味", -1, 1310, 760, 0, LoadGraph("Data/Image/Choice/無意味.png")}
 	//}
 	resultTailMessages_ = {
-		"お疲れ様！\n"
-		"これで全ての質問が終わったよ！",
-		"どうだった？正直に答えることはできたかな？",
-		"最初に伝えておくけど、君の選択や全ての問い自体に答えは存在しないよ。",
+		"お疲れ様。\n"
+		"これで全ての問いが終わった。",
+		"正直に答えることができていたようだね　。",
+		"まず、最初に伝えておくが、君の選択や全ての問い自体に答えは存在しない。",
 		"この実験は正解・不正解を出すのではなく、君自身の価値観に向き合うこと。\n"
 		"思考という行為を楽しんでもらうことを重きにおいた実験だったんだ。",
-		"だから、君がどんな選択をしたとしても、それは君にとって正しい\n"
-		"選択なんだよね。",
+		"だから、君がどんな選択をしたとしても、それは君にとって正しい選択なんだ。",
 		"それに、君の選択によって君の価値観が変わることもあるし、\n"
 		"君の価値観が君の選択を変えることもある。",
 		"大切なのは、君が自分自身の価値観に向き合い、\n"
@@ -511,6 +514,15 @@ void GameScene::ManagerInit(void)
 
 void GameScene::Update(void)
 {
+	// --- ポーズ復帰直後の処理 ---
+	if (isResumed_)
+	{
+		// マウスの状態だけ更新して、後の処理を飛ばす
+		isLButtonDown_ = (GetMouseInput() & MOUSE_INPUT_LEFT);
+		isResumed_ = false;
+		return; // このフレームはこれ以降のUpdate（クリック判定など）を行わない
+	}
+
 	// マウスカーソルを表示
 	SetMouseDispFlag(TRUE);
 
@@ -518,28 +530,6 @@ void GameScene::Update(void)
 	msg_.Update();
 
 #pragma region ポーズ処理
-	//// --- ポーズメニュー中 ---
-	//if (state_ == SceneState::PAUSE)
-	//{
-	//	 PauseScene::GetInstance().GameUpdate();
-
-	//	if (inputManager_.IsTrgDown(KEY_INPUT_ESCAPE) ||
-	//		inputManager_.IsTrgDown(KEY_INPUT_TAB))
-	//	{
-	//		state_ = stateBeforePause_;
-	//	}
-	//	return;
-	//}
-
-	//// --- 通常時のポーズ遷移 ---
-	//if (inputManager_.IsTrgDown(KEY_INPUT_ESCAPE) ||
-	//	inputManager_.IsTrgDown(KEY_INPUT_TAB))
-	//{
-	//	stateBeforePause_ = state_;
-	//	state_ = SceneState::PAUSE;
-	//	PauseScene::GetInstance().OnEnter();
-	//	return;
-	//}
 
 	// --- マウス判定 ---
 	int mx, my;
@@ -560,12 +550,12 @@ void GameScene::Update(void)
 	// --- キーボード判定 ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_TAB) || inputManager_.IsTrgDown(KEY_INPUT_ESCAPE))
 	{
-		//if (state_ == SceneState::RESULT &&
-		//	resultState_ == ResultState::TAIL ||
-		//	resultState_ == ResultState::DETAIL)
-		//{
-		//	// 無視して何もしない
-		//}
+		if (state_ == SceneState::RESULT &&
+			resultState_ == ResultState::TAIL ||
+			resultState_ == ResultState::DETAIL)
+		{
+			// 無視して何もしない
+		}
 		 if (state_ != SceneState::PAUSE)
 		{
 			stateBeforePause_ = state_;
@@ -595,6 +585,8 @@ void GameScene::Update(void)
 		return;
 	}
 #endif
+	// --- アニメーションタイマー更新 ---
+	animTimer_++;
 
 	switch (state_)
 	{
@@ -654,6 +646,7 @@ void GameScene::StoryUpdate(void)
 	bool isLButtonTrg = (mouseButton & MOUSE_INPUT_LEFT) && !isLButtonDown_;
 	isLButtonDown_ = (mouseButton & MOUSE_INPUT_LEFT);
 
+	// --- スペース or マウスクリックで次へ ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_SPACE) || isLButtonTrg)
 	{
 		if (!msg_.IsFinished())
@@ -678,6 +671,7 @@ void GameScene::StoryUpdate(void)
 
 void GameScene::QuestionUpdate(void)
 {
+
 	// マウス座標とボタン状態を取得
 	int mouseX, mouseY;
 	GetMousePoint(&mouseX, &mouseY);
@@ -686,7 +680,7 @@ void GameScene::QuestionUpdate(void)
 	isLButtonDown_ = (mouseButton & MOUSE_INPUT_LEFT);
 
 	//if (!msg_.IsFinished()); return;
-
+	
 	// --- キーボード操作（既存） ---
 	if (inputManager_.IsTrgDown(KEY_INPUT_A))
 	{
@@ -908,16 +902,23 @@ void GameScene::PauseUpdate(void)
 	// ポーズ解除
 	if (pauseScene_.IsResume())
 	{
+		
 		// 元の状態に戻す
 		state_ = stateBeforePause_;
 
 		// 問いの状態を復元
 		if (state_ == SceneState::QUESTION)
 		{
-			questionIndex_ = pauseQuestionIndex_;
-			selectedChoice_ = pauseSelectedChoice_;
+			/*questionIndex_ = pauseQuestionIndex_;
+			selectedChoice_ = pauseSelectedChoice_;*/
 			msg_.SetMessage(questions_[questionIndex_].text);
 		}
+		else if (state_ == SceneState::RESULT && resultState_ == ResultState::TAIL)
+		{
+			msg_.SetMessage(resultTailMessages_[resultTailIndex_]);
+		}
+		// ポーズ復帰フラグON
+		isResumed_ = true;
 	}
 	pauseScene_.SetResume(false);
 }
@@ -1098,7 +1099,7 @@ RESULT_DECISION:
 			// 「次へ進む」が選択された場合、すぐに END シーンへ遷移
 			//SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::END);
 			state_ = SceneState::END; // GameSceneの状態も終了へ
-			msg_.SetMessage("これで終了だよ。遊んでくれてありがとう！");
+			msg_.SetMessage("これで実験は終了だ。協力してくれてありがとう。");
 			return; // Update処理を終了
 		}
 		else
@@ -1262,7 +1263,7 @@ void GameScene::Draw(void)
 	const int thickness = 6;
 
 	// 外枠
-	int frameColor = onPause ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+	int frameColor = onPause ? GetColor(255, 2550, 0) : GetColor(255, 255, 255);
 	DrawBox(
 		pauseX_, pauseY_,
 		pauseX_ + pauseW_, pauseY_ + pauseH_,
@@ -1302,29 +1303,33 @@ void GameScene::QuestionDraw(void)
 {
 	if (state_ == SceneState::QUESTION)
 	{
+		// アニメーション用オフセット計算 (±10ピクセルの変動)
+		int offset = (int)(sin(animTimer_ * 0.1) * 10.0);
 
+		// --- 左側の選択肢 ---
+		int leftFrameColor = (selectedChoice_ == 0) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+		int L_off = (selectedChoice_ == 0) ? offset : 0; // 選択中のみ値を適用
 
-		// 問いの選択肢の背景枠(左側)	DrawBox(左側面、上、右側面、下) 
-		DrawBox(CHOICE_WHITE_LEFT, CHOICE_WHITE_TOP, 
-			CHOICE_WHITE_RIGHT, CHOICE_WHITE_BOTTOM,
-			GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(CHOICE_BLACK_LEFT, CHOICE_BLACK_TOP, 
-			CHOICE_BLACK_RIGHT, CHOICE_BLACK_BOTTOM,
-			GetColor(0, 0, 0), true);       // 黒枠線
+		// ★座標に L_off を適用して拡大縮小させる
+		DrawBox(CHOICE_WHITE_LEFT - L_off, CHOICE_WHITE_TOP - L_off,
+			CHOICE_WHITE_RIGHT + L_off, CHOICE_WHITE_BOTTOM + L_off, leftFrameColor, true);
 
-		// 問いの選択肢の背景枠(右側)
-		DrawBox(CHOICE2_WHITE_LEFT, CHOICE2_WHITE_TOP, 
-			CHOICE2_WHITE_RIGHT, CHOICE2_WHITE_BOTTOM,
-			GetColor(255, 255, 255), true);  // 白背景
-		DrawBox(CHOICE2_BLACK_LEFT, CHOICE2_BLACK_TOP, 
-			CHOICE2_BLACK_RIGHT, CHOICE2_BLACK_BOTTOM,
-			GetColor(0, 0, 0), true);       // 黒枠線
+		DrawBox(CHOICE_BLACK_LEFT - L_off, CHOICE_BLACK_TOP - L_off,
+			CHOICE_BLACK_RIGHT + L_off, CHOICE_BLACK_BOTTOM + L_off, GetColor(0, 0, 0), true);
 
-		// 選択肢の描画
+		// --- 右側の選択肢 ---
+		int rightFrameColor = (selectedChoice_ == 1) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+		int R_off = (selectedChoice_ == 1) ? offset : 0; // 選択中のみ値を適用
+
+		// ★座標に R_off を適用して拡大縮小させる
+		DrawBox(CHOICE2_WHITE_LEFT - R_off, CHOICE2_WHITE_TOP - R_off,
+			CHOICE2_WHITE_RIGHT + R_off, CHOICE2_WHITE_BOTTOM + R_off, rightFrameColor, true);
+
+		DrawBox(CHOICE2_BLACK_LEFT - R_off, CHOICE2_BLACK_TOP - R_off,
+			CHOICE2_BLACK_RIGHT + R_off, CHOICE2_BLACK_BOTTOM + R_off, GetColor(0, 0, 0), true);
+
+		// 選択肢の描画（文字や画像など）
 		DrawChoices(questions_[questionIndex_].choices, selectedChoice_, false);
-
-
-
 	}
 }
 
@@ -1362,7 +1367,7 @@ void GameScene::AfterTalkDraw(void)
 			for (int v : questionData.choiceCounts) total += v;
 
 			// 選択肢と割合の表示（manager 側の counts を使う）
-			int y = 490; // 縦の開始位置
+			int y = 510; // 縦の開始位置
 			for (size_t i = 0; i < question.choices.size(); i++) {
 				const auto& cVisual = question.choices[i];
 
@@ -1376,8 +1381,8 @@ void GameScene::AfterTalkDraw(void)
 
 				bool isSelected = (i == talk.choiceIndex);
 
-				int textColor = (i == talk.choiceIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
-				int barColor = (i == talk.choiceIndex) ? GetColor(255, 100, 100) : GetColor(100, 100, 255);
+				int textColor = (i == talk.choiceIndex) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
+				int barColor = (i == talk.choiceIndex) ? GetColor(255, 255, 0) : GetColor(100, 100, 255);
 				int questionNo = answeredCount_ + 1;
 
 				// 問題番号
@@ -1398,8 +1403,7 @@ void GameScene::AfterTalkDraw(void)
 					GetColor(255, 255, 255)
 				);
 
-			
-
+		
 				// 選択肢文字
 				SetFontSize(80);
 				DrawString(
@@ -1436,7 +1440,7 @@ void GameScene::AfterTalkDraw(void)
 
 					DrawString(
 						25,
-						340,
+						360,
 						"あなたの選択：",
 						GetColor(255, 255, 255)
 					);
@@ -1446,9 +1450,9 @@ void GameScene::AfterTalkDraw(void)
 
 					DrawString(
 						25 + offsetX,
-						340,
+						360,
 						r.selectedChoiceText.c_str(),
-						GetColor(255, 0, 0)
+						GetColor(255, 255, 0)
 					);
 				}
 
@@ -1516,10 +1520,10 @@ void GameScene::ListDraw(void)
 
 	// 回答リストの表示（横1列 × 2段）
 	const int itemPerRow = 5;     // 1段に5個
-	const int itemWidth = 300;    // 横幅の間隔（各アイテム間の距離）
+	const int itemWidth = 320;    // 横幅の間隔（各アイテム間の距離）
 	const int topRowY = 150;      // 上段のY座標
 	const int bottomRowY = 350;   // 下段のY座標
-	const int base2X = 270;        // 左端の開始位置
+	const int base2X = 225;        // 左端の開始位置
 
 	SetFontSize(120);
 
@@ -1533,13 +1537,13 @@ void GameScene::ListDraw(void)
 		int x = base2X + colIndex * itemWidth;
 		int y = (row == 0) ? topRowY : bottomRowY;
 
-		int color = (i == resultSelectIndex_) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+		int color = (i == resultSelectIndex_) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
 		std::string line = "問"+std::to_string(i + 1);
 
 		// ===== 背景 =====
-		int rect_left = x - 30;
+		int rect_left = x ;
 		int rect_top = y - 10;
-		int rect_right = x + 210;
+		int rect_right = x + 250;
 		int rect_bottom = y + 120;
 
 		// 選択中の項目は背景色を変える
@@ -1550,7 +1554,7 @@ void GameScene::ListDraw(void)
 
 		// ===== 文字描画 =====
 		DrawString(x, y, line.c_str(), color);
-		if (i == resultSelectIndex_) DrawString(x - 50, y, ">", color);
+		if (i == resultSelectIndex_) DrawString(x - 70, y, ">", color);
 
 		// ===== マウス判定矩形登録 =====
 		choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
@@ -1567,9 +1571,9 @@ void GameScene::ListDraw(void)
 
 	if (resultSelectIndex_ == (int)results_.size()) DrawString(690, nextY, ">", nextColor);
 
-	int rect_left = nextX - 100;
+	int rect_left = nextX;
 	int rect_top = nextY;
-	int rect_right = nextX + nextWidth + 40;
+	int rect_right = nextX + nextWidth;
 	int rect_bottom = nextY + 145;
 
 	if (resultSelectIndex_ == (int)results_.size())
@@ -1578,7 +1582,7 @@ void GameScene::ListDraw(void)
 	}
 
 	DrawString(nextX, nextY, nextText.c_str(), nextColor);
-	if (resultSelectIndex_ == (int)results_.size()) DrawString(620, nextY, ">", nextColor);
+	if (resultSelectIndex_ == (int)results_.size()) DrawString(610, nextY, ">", nextColor);
 
 	choiceRects_.push_back({ rect_left, rect_top, rect_right, rect_bottom });
 
@@ -1647,7 +1651,7 @@ void GameScene::DetailDraw(void)
 	DrawFormatString(
 		400,
 		350,
-		GetColor(255, 0, 0),
+		GetColor(255, 255, 0),
 		"%s",
 		r.selectedChoiceText.c_str()
 	);
@@ -1668,11 +1672,11 @@ void GameScene::DetailDraw(void)
 		bool isSelected = r.selectedChoiceText == question.choices[i].text;
 
 		int textColor = isSelected
-			? GetColor(255, 0, 0)
+			? GetColor(255, 255, 0)
 			: GetColor(255, 255, 255);
 
 		int barColor = isSelected
-			? GetColor(255, 80, 80)
+			? GetColor(255, 255, 0)
 			: GetColor(100, 100, 255);
 		// 選択肢文字描画
 		SetFontSize(80);
@@ -1715,8 +1719,6 @@ void GameScene::CharacterDraw(void)
 	DrawGraph(CHARACTER_IMAGE_X, CHARACTER_IMAGE_Y, characterImage_, TRUE);
 }
 
-
-
 void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex, bool showPercent)
 {
 	// 選択肢の描画
@@ -1735,7 +1737,7 @@ void GameScene::DrawChoices(const std::vector<Choice>& choices, int cursorIndex,
 	// 選択肢の表示
 	for (size_t i = 0; i < choices.size(); i++) {
 		int choiceWidth = GetDrawStringWidth(choices[i].text.c_str(), (int)choices[i].text.size());
-		int color = (i == cursorIndex) ? GetColor(255, 0, 0) : GetColor(255, 255, 255);
+		int color = (i == cursorIndex) ? GetColor(255, 255, 0) : GetColor(255, 255, 255);
 
 		// 選択肢のテキストの上に画像を表示する
 		if (choices[i].imageHandle != -1) {
