@@ -12,6 +12,7 @@ class TitleScene : public SceneBase
 	{
 		NORMAL,
 		PAUSE,
+		MOVIE,
 	};
 
 public:
@@ -27,6 +28,9 @@ public:
 	void Release(void) override;
 
 private:
+	// 動画開始時間
+	const int IDLE_LIMIT = 1500;
+
 	// 入力制御オブジェクト
 	InputManager& inputManager_;
 	// ポーズシーンオブジェクト
@@ -62,4 +66,9 @@ private:
 	// アニメーション用
 	float buttonAnimTime_;   // 時間
 	float buttonScale_;			 // 拡大率
+
+	// 動画ハンドル用
+	int movieHandle_;
+	// 放置時間タイマー
+	int idleTimer_;
 };
